@@ -1,0 +1,231 @@
+jurisdiction: CO_STATE
+name: "Colorado State Court"
+day_type_default: calendar        # calendar | business
+holiday_set: federal+colorado
+
+rules:
+  # ── SERVICE OF COMPLAINT ──────────────────────────────────────────────────
+  - id: co_state_answer
+    trigger: service_of_complaint
+    label: "Answer to Complaint Due"
+    offset_days: 21
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: red
+    notes: "C.R.C.P. 12(a)(1)"
+
+  - id: co_state_answer_publication
+    trigger: service_by_publication
+    label: "Answer to Complaint Due (Publication Service)"
+    offset_days: 35
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [21, 14, 7, 3, 1]
+    color: red
+    notes: "C.R.C.P. 4(g)"
+
+  # ── STATUTE OF LIMITATIONS ────────────────────────────────────────────────
+  - id: co_state_sol_general
+    trigger: incident_date
+    label: "Statute of Limitations — General (2 yr)"
+    # offset_days: 730
+    offset_years: 2
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [365, 180, 90, 30, 14, 7, 3, 1]
+    color: red
+    notes: "C.R.S. § 13-80-102 — personal injury, property damage"
+
+  - id: co_state_sol_contract
+    trigger: breach_date
+    label: "Statute of Limitations — Written Contract (3 yr)"
+    # offset_days: 1095
+    offset_years: 3
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [365, 180, 90, 30, 14, 7, 3, 1]
+    color: red
+    notes: "C.R.S. § 13-80-101"
+
+  - id: co_state_sol_contract_oral
+    trigger: breach_date
+    label: "Statute of Limitations — Oral Contract (3 yr)"
+    # offset_days: 1095
+    offset_years: 3
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [365, 180, 90, 30, 14, 7, 3, 1]
+    color: red
+    notes: "C.R.S. § 13-80-101"
+
+  # ── DISCOVERY ─────────────────────────────────────────────────────────────
+  - id: co_state_initial_disclosures
+    trigger: at_issue_date
+    label: "Initial Disclosures Due (C.R.C.P. 26(a)(1))"
+    offset_days: 28
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: orange
+    notes: "C.R.C.P. 26(a)(1) — 28 days after case is at issue"
+
+  - id: co_state_discovery_cutoff
+    trigger: trial_date
+    label: "Discovery Cutoff"
+    offset_days: -63
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [30, 14, 7]
+    color: orange
+    notes: "C.R.C.P. 16(b) — 63 days (9 weeks) before trial"
+
+  - id: co_state_expert_disclosure
+    trigger: trial_date
+    label: "Expert Witness Disclosure Deadline"
+    offset_days: -91
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [30, 14, 7, 3]
+    color: orange
+    notes: "C.R.C.P. 26(a)(2) — 91 days (13 weeks) before trial"
+
+  - id: co_state_rebuttal_expert
+    trigger: defendant_expert_disclosure_date
+    label: "Rebuttal Expert Disclosure Deadline"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3]
+    color: orange
+    notes: "C.R.C.P. 26(a)(2). Trigger = defendant_expert_disclosure_date + 30 days (chained trigger — NOT trial_date). If defendant date unknown, use trial−63 as provisional estimate with warning."
+
+  # ── MOTION DEADLINES ──────────────────────────────────────────────────────
+  - id: co_state_msj
+    trigger: trial_date
+    label: "Motion for Summary Judgment Deadline"
+    offset_days: -91
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [30, 14, 7, 3, 1]
+    color: yellow
+    notes: "C.R.C.P. 56 — typically 91 days before trial per case management order"
+
+  - id: co_state_msj_response
+    trigger: msj_filed_date
+    label: "Response to Motion for Summary Judgment"
+    offset_days: 21
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: yellow
+    notes: "C.R.C.P. 121 § 1-15(3)"
+
+  - id: co_state_msj_reply
+    trigger: msj_response_date
+    label: "Reply in Support of Motion for Summary Judgment"
+    offset_days: 14
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: yellow
+    notes: "C.R.C.P. 121 § 1-15(3)"
+
+  - id: co_state_motion_response
+    trigger: motion_filed_date
+    label: "Response to Motion Due"
+    offset_days: 21
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: yellow
+    notes: "C.R.C.P. 121 § 1-15(3) — standard motion response"
+
+  - id: co_state_motion_reply
+    trigger: motion_response_date
+    label: "Reply in Support of Motion Due"
+    offset_days: 14
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: yellow
+    notes: "C.R.C.P. 121 § 1-15(3)"
+
+  # ── TRIAL SCHEDULING ──────────────────────────────────────────────────────
+  - id: co_state_pretrial_order
+    trigger: trial_date
+    label: "Proposed Pre-Trial Order Due"
+    offset_days: -21
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: blue
+    notes: "C.R.C.P. 16(f) — 21 days before trial"
+
+  - id: co_state_witness_list
+    trigger: trial_date
+    label: "Final Witness & Exhibit List Due"
+    offset_days: -21
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: blue
+    notes: "C.R.C.P. 16(f)"
+
+  - id: co_state_jury_instructions
+    trigger: trial_date
+    label: "Proposed Jury Instructions Due"
+    offset_days: -7
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [7, 3, 1]
+    color: blue
+    notes: "C.R.C.P. 51 — typically 7 days before trial"
+
+  # ── POST-TRIAL ────────────────────────────────────────────────────────────
+  - id: co_state_motion_new_trial
+    trigger: judgment_entry_date
+    label: "Motion for New Trial"
+    offset_days: 14
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: red
+    notes: "C.R.C.P. 59(a) — 14 days from entry of judgment. AZ state equivalent is 15 days (ARCP 59)."
+
+  - id: co_state_notice_of_appeal
+    trigger: judgment_entry_date
+    label: "Notice of Appeal"
+    offset_days: 49
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [21, 14, 7, 3, 1]
+    color: red
+    notes: "C.A.R. 4(a)(1) — 49 days from entry of judgment for civil cases. JURISDICTIONAL — cannot extend."
+
+  # ── COMPLAINT FILED DATE ANCHORS ─────────────────────────────────────────
+  - id: co_state_filing_case_mgmt
+    trigger: complaint_filed_date
+    label: "Case Management Order Deadline (Filing Anchor)"
+    offset_days: 49
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 1]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: CO STATE ONLY
+    notes: "CO State — case management deadline anchored to complaint filed date. C.R.C.P. 16 — 49-day default; confirm offset with Khushi. CMO always controls when provided."
+
+  - id: co_state_sol_tolling
+    trigger: complaint_filed_date
+    label: "SOL Tolling Confirmation"
+    offset_days: 0
+    day_type: calendar
+    rollover: none
+    reminders_days: [7, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: CO STATE ONLY
+    notes: "SOL tolled as of complaint filed date. C.R.S. § 13-80-102 et seq. Verify tolling applies to all claims. offset_days: 0 = fires on the filing date itself as a checklist reminder."

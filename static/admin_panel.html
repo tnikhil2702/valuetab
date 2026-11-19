@@ -1,0 +1,3638 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LxIntel Admin Panel</title>
+    <link
+      rel="icon"
+      type="image/webp"
+      href="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #14171b;
+      --panel-hover: #191d22;
+      --border: #262b31;
+      --border-hover: #3a3020;
+      --gold: #c9a44c;
+      --gold-soft: #e4c876;
+      --text: #ece9e2;
+      --text-dim: var(--text);
+      --text-faint: var(--text);
+      --serif: 'Montserrat', sans-serif;
+      --sans: 'Montserrat', sans-serif;
+      --mono: 'Montserrat', sans-serif;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--gold) !important;
+    }
+
+    * { box-sizing: border-box; }
+
+    label {
+      color: var(--gold) !important;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* focus visibility */
+    a:focus-visible, input:focus-visible, button:focus-visible {
+      outline: 1.5px solid var(--gold);
+      outline-offset: 3px;
+    }
+
+    /* ---------- topbar ---------- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 40px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(11, 13, 16, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand img {
+      width: 26px;
+      height: 26px;
+      filter: drop-shadow(0 0 8px rgba(201, 164, 76, 0.45));
+    }
+
+    .brand-word {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      color: var(--gold);
+    }
+
+    .brand-sub {
+      font-family: var(--mono);
+      font-size: 0.80rem;
+      font-weight: 500;
+      /* color: var(--text-faint); */
+      color: var(--gold-soft);
+      letter-spacing: 1.2px;
+      margin-left: 4px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap input {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 0.82rem;
+      padding: 8px 14px 8px 32px;
+      border-radius: 8px;
+      width: 190px;
+      transition: border-color 0.2s, width 0.2s;
+    }
+
+    .search-wrap input::placeholder { color: var(--text-faint); }
+
+    .search-wrap input:focus {
+      border-color: var(--gold);
+      width: 230px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      color: var(--text-faint);
+      pointer-events: none;
+    }
+
+    .admin-link {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gold-soft);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 7px 16px;
+      border-radius: 8px;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+
+    .admin-link:hover {
+      color: var(--gold-soft);
+      border-color: var(--border-hover);
+    }
+
+    /* ---------- hero ---------- */
+    .hero {
+      text-align: center;
+      padding: 64px 24px 40px;
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: 3.4rem;
+      font-weight: 500;
+      margin: 0 0 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero p {
+      font-size: 1.02rem;
+      color: var(--text-dim);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ---------- directory layout ---------- */
+    .directory {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 48px;
+      max-width: 1180px;
+      margin: 20px auto 100px;
+      padding: 0 40px;
+    }
+
+    .rail {
+      position: sticky;
+      top: 96px;
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .rail a {
+      display: block;
+      padding: 11px 14px;
+      border-left: 2px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-faint);
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .rail a .tab {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 1px;
+      color: var(--text-faint);
+      margin-bottom: 2px;
+    }
+
+    /* .rail a:hover, .rail a.active {
+      color: var(--text);
+      border-left-color: var(--gold);
+    } */
+
+    .rail a.active {
+      color: var(--gold);
+      border-left-color: var(--gold);
+    }
+
+    .rail a.active .tab {
+      color: var(--gold);
+    }
+
+    .rail a:hover .tab, .rail a.active .tab { color: var(--gold); }
+
+    .sections { min-width: 0; }
+
+    section.exhibit {
+      margin-bottom: 56px;
+      scroll-margin-top: 96px;
+    }
+
+    section.exhibit h2 {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin: 0 0 6px;
+    }
+
+    .exhibit-tag {
+      margin-bottom: 6px;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+      border: 1px solid rgba(201, 164, 76, 0.35);
+      padding: 3px 8px;
+      border-radius: 5px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 18px 16px;
+      height: 100%;
+      transition: border-color 0.2s, transform 0.2s, background 0.2s;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: -1px; left: 14px;
+      width: 22px; height: 3px;
+      background: var(--border);
+      border-radius: 0 0 3px 3px;
+      transition: background 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      background: var(--panel-hover);
+      transform: translateY(-2px);
+    }
+
+    .card:hover::before { background: var(--gold); }
+
+    .card-icon {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-soft);
+      opacity: 0.9;
+    }
+
+    .card-icon svg { width: 19px; height: 19px; }
+
+    .card-title {
+      font-size: 0.94rem;
+      font-weight: 600;
+      letter-spacing: 0.1px;
+      color: var(--gold);
+    }
+
+    .card-desc {
+      font-size: 0.78rem;
+      color: var(--text-faint);
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    .card-arrow {
+      position: absolute;
+      top: 18px; right: 16px;
+      width: 13px; height: 13px;
+      color: var(--text-faint);
+      opacity: 0;
+      transform: translate(-3px, 3px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .card:hover .card-arrow { opacity: 1; transform: translate(0,0); color: var(--gold); }
+
+    .hidden { display: none !important; }
+
+    .no-results {
+      color: var(--text-faint);
+      font-size: 0.85rem;
+      padding: 30px 0;
+      text-align: center;
+      font-family: var(--mono);
+    }
+
+
+    #status-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-faint);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-family: var(--sans);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    #status-btn:hover { border-color: var(--border-hover); color: var(--text-dim); }
+
+    #status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #555;
+    }
+
+    #status-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #status-modal.open { display: flex; }
+
+    #status-box {
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 32px;
+      min-width: 340px;
+      max-width: 560px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    #status-box h2 {
+      margin: 0 0 18px;
+      font-size: 1.05rem;
+      font-family: var(--serif);
+      font-weight: 500;
+      color: var(--gold-soft);
+    }
+
+    #status-close {
+      position: absolute; top: 14px; right: 18px;
+      background: none; border: none; color: #aaa;
+      font-size: 1.3rem; cursor: pointer; line-height: 1;
+    }
+    #status-close:hover { color: #fff; }
+
+    .s-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0; border-bottom: 1px solid #222; font-size: 0.85rem;
+    }
+    .s-row:last-child { border-bottom: none; }
+    .s-name { opacity: 0.85; }
+    .s-badge {
+      font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .s-ok { background: #17301f; color: #5ec98a; }
+    .s-fail { background: #331414; color: #f08080; }
+    .s-section {
+      margin: 14px 0 4px; font-size: 0.7rem; color: var(--gold);
+      text-transform: uppercase; letter-spacing: 1px; opacity: 0.8;
+      font-family: var(--mono);
+    }
+    #status-ts { font-size: 0.7rem; color: #555; margin-top: 16px; }
+    #status-loading { text-align: center; padding: 20px; opacity: 0.6; font-size: 0.85rem; }
+
+    /* ---------- responsive ---------- */
+    @media (max-width: 900px) {
+      .directory {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .rail {
+        position: static;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 6px;
+      }
+      .rail a {
+        border-left: none;
+        border-bottom: 2px solid var(--border);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .rail a:hover, .rail a.active { border-bottom-color: var(--gold); }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 16px 20px; }
+      .brand-sub { display: none; }
+      .search-wrap input { width: 130px; }
+      .search-wrap input:focus { width: 150px; }
+      .hero { padding: 44px 20px 30px; }
+      .hero h1 { font-size: 2.3rem; }
+      .directory { padding: 0 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+    /* ---------- admin: login / dashboard chrome ---------- */
+    button.admin-link, .logout-btn, .editors-access-btn {
+      font-family: var(--sans);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .logout-btn {
+      color: #c98a8a;
+      border-color: #3a2626;
+    }
+
+    .logout-btn:hover {
+      color: #f0b4b4;
+      border-color: #5a3232;
+    }
+
+    #admin-welcome {
+      margin: 0;
+      font-size: 0.72rem;
+      color: var(--text-faint);
+      font-family: var(--mono);
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .login-page-wrapper {
+      min-height: 100vh;
+    }
+
+    .login-page-content {
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 8px 24px 80px;
+    }
+
+    .login-form-card {
+      text-align: left;
+    }
+
+    .login-form-card h2 {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin: 0 0 20px;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .login-form-group { margin-bottom: 16px; }
+
+    .login-form-group label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .login-form-group input,
+    .modal-body input[type="text"],
+    .modal-body input[type="email"],
+    .modal-body input[type="file"],
+    .spec-select,
+    .spec-input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--sans);
+    }
+
+    .login-form-group input:focus,
+    .modal-body input:focus,
+    .spec-select:focus,
+    .spec-input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .password-wrapper { position: relative; }
+    .password-wrapper input { padding-right: 3.4rem; }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      cursor: pointer;
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      padding: 0;
+    }
+    .toggle-password:hover { color: var(--gold-soft); }
+    .toggle-password svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+    .toggle-password .eye-open { display: block; }
+    .toggle-password .eye-closed { display: none; }
+    .toggle-password.show-closed .eye-open { display: none; }
+    .toggle-password.show-closed .eye-closed { display: block; }
+
+    .login-error-message {
+      color: #f08080;
+      background: #331414;
+      border: 1px solid #4a2020;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 11px;
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 600;
+      background: var(--gold);
+      color: #111;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .login-btn:hover:not(:disabled) { background: var(--gold-soft); }
+    .login-btn:disabled { background: #3a3e44; color: var(--text-faint); cursor: not-allowed; }
+
+    .login-btn-spinner {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .spinner {
+      border: 2px solid rgba(0,0,0,0.25);
+      border-top-color: #111;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .dashboard-wrapper { display: none; }
+    .dashboard-wrapper.active { display: block; }
+
+    button.card {
+      width: 100%;
+      font-family: var(--sans);
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dashboard-btn-wrapper { position: relative; height: 100%; display: block; }
+
+    .tool-popup {
+      position: absolute;
+      top: calc(100% - 6px);
+      left: 0;
+      min-width: 210px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      z-index: 80;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: opacity 0.15s ease, visibility 0.15s ease;
+    }
+
+    .dashboard-btn-wrapper:hover .tool-popup,
+    .dashboard-btn-wrapper:focus-within .tool-popup,
+    .tool-popup:hover {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .popup-btn {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid transparent;
+      padding: 8px 12px;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      font-family: var(--sans);
+    }
+    .popup-btn:hover {
+      background: var(--panel-hover);
+      color: var(--gold-soft);
+      border-color: var(--border);
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-content {
+      background: #111318;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 32px;
+      max-width: 920px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+    .modal-header h2 {
+      color: var(--gold-soft);
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-weight: 500;
+      margin: 0;
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      font-size: 1.4rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+    }
+    .modal-close-btn:hover { color: var(--text); }
+    .modal-body { color: var(--text-dim); font-size: 14px; line-height: 1.6; }
+    .modal-loading { text-align: center; padding: 40px; color: var(--text-faint); font-family: var(--mono); font-size: 0.85rem; }
+    .modal-loading .spinner {
+      width: 32px; height: 32px; border-width: 3px;
+      border-color: var(--border); border-top-color: var(--gold);
+      margin: 0 auto 16px;
+    }
+
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .data-table th, .data-table td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    .data-table th {
+      background: var(--panel);
+      color: var(--gold);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.68rem;
+      letter-spacing: 1px;
+      font-family: var(--mono);
+    }
+    .data-table tr:hover { background: var(--panel-hover); }
+
+    .data-item {
+      background: var(--panel);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .data-item strong { color: var(--gold-soft); display: inline-block; min-width: 150px; }
+
+    .specialist-form .field-label {
+      display: block;
+      color: var(--gold);
+      margin-bottom: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .spec-select {
+      appearance: none;
+      cursor: pointer;
+      color-scheme: dark;
+      padding-right: 34px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23c9a44c' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 12px 8px;
+    }
+    .spec-select option, .spec-select optgroup { background: #14171b; color: var(--text); }
+    .specialist-row {
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .specialist-row-grid { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 10px; }
+    .specialist-row-grid.has-remove-btn { margin-top: 10px; }
+    .specialist-remove-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: none; border: none; color: #f08080; cursor: pointer; font-size: 20px;
+    }
+    .spec-btn-secondary, .spec-btn-dashed {
+      padding: 9px 16px;
+      background: transparent;
+      color: var(--gold-soft);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: var(--sans);
+    }
+    .spec-btn-dashed { width: 100%; margin-bottom: 20px; border-style: dashed; }
+    .spec-email-error { color: #f08080; font-size: 11px; margin-top: 4px; min-height: 14px; }
+
+    .role-action-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--sans);
+      background: var(--panel);
+      color: var(--text);
+    }
+    .role-action-btn.edit { background: var(--gold); color: #111; border: none; }
+    .role-action-btn.delete { color: #f08080; border-color: #3a2626; background: transparent; }
+    .role-perm-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .role-perm-badge.true { background: #17301f; color: #5ec98a; }
+    .role-perm-badge.false { background: #331414; color: #f08080; }
+    .role-perm-badge.attorney { background: #17301f; color: #5ec98a; }
+    .role-perm-badge.qa { background: #2a2414; color: #e0c36a; }
+
+    .success-toast {
+      position: fixed;
+      top: 24px; right: 24px;
+      z-index: 2000;
+      background: var(--panel);
+      border: 1px solid #17301f;
+      border-radius: 10px;
+      padding: 14px 20px;
+      color: #5ec98a;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(-12px);
+      pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .success-toast.visible { opacity: 1; transform: none; pointer-events: auto; }
+
+    .view-prompt-btn { color: var(--gold); font-weight: 600; cursor: pointer; text-decoration: underline; margin-left: 8px; }
+
+    .editors-access-container { display: contents; }
+
+    @media (max-width: 767px) {
+      .specialist-row-grid { grid-template-columns: 1fr; }
+      .tool-popup { left: 0; right: 0; min-width: auto; }
+    }
+
+    </style>
+  </head>
+
+  <body>
+
+  <!-- LOGIN PAGE -->
+  <div class="login-page-wrapper" id="login-page">
+    <header class="topbar">
+      <div class="brand">
+        <img src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp" alt="Ramos Law">
+        <span class="brand-word">LxIntel</span>
+        <span class="brand-sub">Admin</span>
+      </div>
+      <div class="topbar-right">
+        <a href="/" class="admin-link">Tools</a>
+        <button type="button" class="editors-access-btn admin-link" onclick="window.location.href='/editorpanel'">Editors Access</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>Admin Panel</h1>
+      <p>Secure access for authorized Ramos Law administrators.</p>
+    </section>
+
+    <div class="login-page-content">
+      <div class="login-form-card card">
+        <h2>Login</h2>
+        <form onsubmit="handleLogin(event)">
+          <div class="login-form-group">
+            <label for="admin-email">Email</label>
+            <input id="admin-email" type="email" placeholder="Enter your admin email" required />
+          </div>
+          <div class="login-form-group">
+            <label for="admin-password">Password</label>
+            <div class="password-wrapper">
+              <input id="admin-password" type="password" placeholder="Enter your password" required />
+              <button type="button" class="toggle-password" aria-label="Show password" title="Show password">
+                <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <svg class="eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.86 21.86 0 0 1 5.06-6.06" />
+                  <path d="M1 1l22 22" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="login-error" class="login-error-message" style="display: none"></div>
+          <button type="submit" id="login-btn" class="login-btn">
+            <span id="login-btn-text">Login</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard-wrapper" id="dashboard">
+    <header class="topbar">
+      <div class="brand">
+        <img src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp" alt="Ramos Law">
+        <span class="brand-word">LxIntel</span>
+        <span class="brand-sub">Admin</span>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="tool-search" type="text" placeholder="Find a tool…" autocomplete="off">
+        </div>
+        <p id="admin-welcome">Welcome, Admin</p>
+        <a href="/" class="admin-link">Tools</a>
+        <button type="button" class="logout-btn admin-link" onclick="handleLogout()">Logout</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>Admin Panel</h1>
+    </section>
+
+    <div class="directory">
+      <aside class="rail">
+        <a href="#exhibit-a" class="active"><span class="tab">Exhibit A</span>Case Intelligence</a>
+        <a href="#exhibit-b"><span class="tab">Exhibit B</span>Case Operations</a>
+        <a href="#exhibit-c"><span class="tab">Exhibit C</span>Reporting</a>
+        <a href="#exhibit-d"><span class="tab">Exhibit D</span>Assistants</a>
+        <a href="#exhibit-e"><span class="tab">Exhibit E</span>Firm Access</a>
+      </aside>
+
+      <div class="sections" id="sections">
+
+        <section class="exhibit" id="exhibit-a">
+          <h2><span class="exhibit-tag">Exhibit A</span>Case Intelligence</h2>
+          <div class="grid" data-section>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="casevalue" data-name="CaseValue">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="7" width="19" height="13" rx="2"/><path d="M16 21V5.5A1.5 1.5 0 0014.5 4h-5A1.5 1.5 0 008 5.5V21"/><line x1="2.5" y1="12.5" x2="21.5" y2="12.5"/></svg></div>
+                <div class="card-title">CaseValue</div>
+                <p class="card-desc">Error logs, active sessions, and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'casevalue')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'casevalue')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'casevalue')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="document_summary" data-name="Document Summary Generator">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+                <div class="card-title">Document Summary Generator</div>
+                <p class="card-desc">Error logs, active sessions, and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'Medical_Summary_Generator')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'Medical_Summary_Generator')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'Medical_Summary_Generator')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="injury_intelligence" data-name="Injury Intelligence Vision">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
+                <div class="card-title">Injury Intelligence: Vision</div>
+                <p class="card-desc">Error logs, active sessions, and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'Injury_Intelligence')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'Injury_Intelligence')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'Injury_Intelligence')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="vehicle_loss_analyzer" data-name="Vehicle Loss Analyzer">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 13l1.6-4.8A2 2 0 016.5 7h11a2 2 0 011.9 1.2L21 13"/><path d="M3 13h18v4a1 1 0 01-1 1h-1.5a1 1 0 01-1-1v-1h-11v1a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><circle cx="7.5" cy="17.5" r="1.4"/><circle cx="16.5" cy="17.5" r="1.4"/></svg></div>
+                <div class="card-title">Vehicle Loss Analyzer</div>
+                <p class="card-desc">Error logs, active sessions, and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'Vehicle_Loss_Analyzer')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'Vehicle_Loss_Analyzer')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'Vehicle_Loss_Analyzer')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="email2ai" data-name="Email2Ai">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M4 8l8 5 8-5"/></svg></div>
+                <div class="card-title">Email2Ai</div>
+                <p class="card-desc">Error logs and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'email2ai')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'email2ai')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="vicp_attorney_fees" data-name="VICP Attorney Fees">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 10.5h5M9.5 13.5h5"/></svg></div>
+                <div class="card-title">VICP Attorney Fees</div>
+                <p class="card-desc">Error logs, active sessions, and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'VICP_Attorney_Fees')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'VICP_Attorney_Fees')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'VICP_Attorney_Fees')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="settlement_optimizer" data-name="Settlement Optimizer">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></div>
+                <div class="card-title">Settlement Optimizer</div>
+                <p class="card-desc">Error logs, active sessions, and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'Settlement_Predictor')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'Settlement_Predictor')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'Settlement_Predictor')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="demand_optimizer" data-name="Demand Optimizer">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V5h11l5 5v9z"/><path d="M15 5v5h5"/><line x1="8" y1="13" x2="14" y2="13"/><line x1="8" y1="16" x2="12" y2="16"/></svg></div>
+                <div class="card-title">Demand Optimizer</div>
+                <p class="card-desc">Error logs, active sessions, and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'Demand_optimizer')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'Demand_optimizer')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'Demand_optimizer')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="demand_quality_assurance" data-name="Demand Quality Assurance">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+                <div class="card-title">Demand Quality Assurance</div>
+                <p class="card-desc">Error logs, active sessions, and prompt logs.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'Demand_Quality_Assurance')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'Demand_Quality_Assurance')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'Demand_Quality_Assurance')">Prompt Logs</button>
+              </div>
+            </div>
+
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="demand_generator" data-name="Demand Generator">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+                <div class="card-title">Demand Generator</div>
+                <p class="card-desc">Sessions, prompt logs, and attorney access.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('active-today', 'demand_generator')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'demand_generator')">Prompt Logs</button>
+                <button class="popup-btn" onclick="showModal('list-attorneys', 'demand_generator')">List Attorneys</button>
+                <button class="popup-btn" onclick="showModal('add-attorney', 'demand_generator')">Add Member</button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <section class="exhibit" id="exhibit-b">
+          <h2><span class="exhibit-tag">Exhibit B</span>Case Operations</h2>
+          <div class="grid" data-section>
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="intakeops" data-name="IntakeOps">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.1L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.9A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.1z"/></svg></div>
+                <div class="card-title">IntakeOps</div>
+                <p class="card-desc">Logs, sessions, and specialist assignment.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'intakeops')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'intakeops')">Active Sessions</button>
+                <button class="popup-btn" onclick="showModal('view-specialists', 'intakeops')">View Specialists</button>
+                <button class="popup-btn" onclick="showModal('add-specialist', 'intakeops')">Add Specialist</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="exhibit" id="exhibit-c">
+          <h2><span class="exhibit-tag">Exhibit C</span>Reporting</h2>
+          <div class="grid" data-section>
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="roles" data-name="Executive Dashboard">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div>
+                <div class="card-title">Executive Dashboard</div>
+                <p class="card-desc">List roles and create new role permissions.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('list-roles', 'Roles')">List Roles</button>
+                <button class="popup-btn" onclick="showModal('create-role', 'Roles')">Create Role</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="exhibit" id="exhibit-d">
+          <h2><span class="exhibit-tag">Exhibit D</span>Assistants</h2>
+          <div class="grid" data-section>
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="playbook_chatbot" data-name="Playbook Chatbot">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.4 8.4 0 01-8.9 8.4 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8A8.5 8.5 0 0112.6 3h.4a8 8 0 018 8v.5z"/></svg></div>
+                <div class="card-title">Playbook Chatbot</div>
+                <p class="card-desc">Logs, upload, and editor access.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('error-logs', 'Playbook_Chatbot')">Error Logs</button>
+                <button class="popup-btn" onclick="showModal('active-today', 'Playbook_Chatbot')">Active Session</button>
+                <button class="popup-btn" onclick="showModal('prompt-logs', 'Playbook_Chatbot')">Prompt Logs</button>
+                <button class="popup-btn" onclick="showModal('upload-playbook', 'Playbook_Chatbot')">Upload</button>
+                <button class="popup-btn" onclick="showModal('view-editors', 'Playbook_Chatbot')">View Editors</button>
+                <button class="popup-btn" onclick="showModal('edit-editors', 'Playbook_Chatbot')">Edit Editors</button>
+                <button class="popup-btn" onclick="showModal('delete-editors', 'Playbook_Chatbot')">Delete Editors</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="exhibit" id="exhibit-e">
+          <h2><span class="exhibit-tag">Exhibit E</span>Firm Access</h2>
+          <div class="grid" data-section>
+            <div class="dashboard-btn-wrapper">
+              <button type="button" class="card dashboard-btn" data-tool="whitelist_files" data-name="Whitelist Files">
+                <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div class="card-title">Whitelist Files</div>
+                <p class="card-desc">View and edit the file whitelist.</p>
+                <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <div class="tool-popup">
+                <button class="popup-btn" onclick="showModal('whitelist-view', 'Whitelist')">View</button>
+                <button class="popup-btn" onclick="showModal('whitelist-edit', 'Whitelist')">Edit</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <p class="no-results hidden" id="no-results">No tools match “<span id="no-results-term"></span>.”</p>
+      </div>
+    </div>
+  </div>
+
+  <div
+      class="success-toast"
+      id="success-toast"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="success-toast-icon">✓</span>
+      <span id="success-toast-message">Success</span>
+    </div>
+
+    <!-- MODAL FOR API DATA -->
+    <div class="modal-overlay" id="data-modal" onclick="closeModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2 id="modal-title">Loading...</h2>
+          <button class="modal-close-btn" onclick="closeModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body" id="modal-body">
+          <div class="modal-loading">
+            <div class="spinner"></div>
+            <p>Loading data...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "";
+      const API_BASE_URL_DS = "https://medicalsummarytool.lxintel.net";// <-- UPDATE THIS WITH THE Document Summary API URL
+
+      // Check if already logged in on page load
+      window.addEventListener("DOMContentLoaded", function () {
+        const token = localStorage.getItem("adminToken");
+        const adminEmail = localStorage.getItem("adminEmail");
+
+        if (token && adminEmail) {
+          showDashboard(adminEmail);
+        }
+      });
+
+      // Handle login form submission
+      async function handleLogin(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("admin-email").value.trim();
+        const password = document.getElementById("admin-password").value;
+        const loginBtn = document.getElementById("login-btn");
+        const loginBtnText = document.getElementById("login-btn-text");
+        const errorDiv = document.getElementById("login-error");
+
+        // Disable button and show loading
+        loginBtn.disabled = true;
+        loginBtnText.innerHTML =
+          '<span class="login-btn-spinner"><span class="spinner"></span>Logging in...</span>';
+        errorDiv.style.display = "none";
+
+        try {
+          // Call your login API - using email and password as per your curl
+          const formData = new URLSearchParams();
+          formData.append("email", email);
+          formData.append("password", password);
+
+          const response = await fetch(`${API_BASE_URL}/admin/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+              errorData.detail ||
+                errorData.message ||
+                `Login failed with status ${response.status}`,
+            );
+          }
+
+          const data = await response.json();
+
+          if (data.access_token) {
+            // Store token and email
+            localStorage.setItem("adminToken", data.access_token);
+            localStorage.setItem("adminEmail", email);
+
+            // Show dashboard
+            showDashboard(email);
+          } else {
+            throw new Error("No access token received");
+          }
+        } catch (error) {
+          // Show error message
+          errorDiv.textContent =
+            error.message || "Login failed. Please try again.";
+          errorDiv.style.display = "block";
+
+          // Re-enable button
+          loginBtn.disabled = false;
+          loginBtnText.textContent = "Login";
+        }
+      }
+
+      // Show dashboard after successful login
+      function showDashboard(email) {
+        document.getElementById("login-page").style.display = "none";
+        document.getElementById("dashboard").classList.add("active");
+        document.getElementById("admin-welcome").textContent =
+          `Welcome, ${email}`;
+      }
+
+      // Handle logout
+      function handleLogout() {
+        if (confirm("Are you sure you want to logout?")) {
+          localStorage.removeItem("adminToken");
+          localStorage.removeItem("adminEmail");
+          location.reload();
+        }
+      }
+
+      // Get auth headers
+      function getAuthHeaders() {
+        const token = localStorage.getItem("adminToken");
+        return {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        };
+      }
+
+      // CHANGED: Show modal and fetch data based on button clicked - now accepts toolName parameter
+      async function showModal(type, toolName) {
+        const modal = document.getElementById("data-modal");
+        const modalTitle = document.getElementById("modal-title");
+        const modalBody = document.getElementById("modal-body");
+
+        // Show modal with loading state
+        modal.classList.add("active");
+        // If this is the playbook upload UI
+        if (type === "upload-playbook" && toolName === "Playbook_Chatbot") {
+          modalTitle.textContent = "Playbook Chatbot - Upload";
+          modalBody.innerHTML = `
+      
+                <div style="background: rgba(17, 17, 17, 0.8); border: 2px solid rgba(201, 164, 76, 0.3); border-radius: 12px; padding: 40px;">
+                  <h2 style="color: #c9a44c; font-size: 24px; font-weight: 700; margin-bottom: 32px; text-align: center;">Playbook Chatbot</h2>
+                  <div style="margin-bottom: 24px;">
+                    <label for="playbook-file-input" style="display: block; color: #c9a44c; font-size: 14px; font-weight: 600; margin-bottom: 12px;">Select Document / PDF</label>
+                    <input id="playbook-file-input" type="file" accept=".pdf,.doc,.docx" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(201, 164, 76, 0.3); border-radius: 6px; color: #fff; font-family: Inter, sans-serif; cursor: pointer;" />
+                  </div>
+                  <div style="margin-bottom: 32px;">
+                    <label for="playbook-department-input" style="display: block; color: #c9a44c; font-size: 14px; font-weight: 600; margin-bottom: 12px;">Department (Optional)</label>
+                    <input id="playbook-department-input" type="text" placeholder="e.g., HR, Legal, Finance" style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(201, 164, 76, 0.3); border-radius: 6px; color: #fff; font-family: Inter, sans-serif; font-size: 14px;" onfocus="this.style.borderColor='rgba(201, 164, 76, 0.6)'" onblur="this.style.borderColor='rgba(201, 164, 76, 0.3)'" />
+                  </div>
+                  <div id="playbook-upload-message" style="margin-bottom: 20px; font-size: 14px; text-align: center; display: none;"></div>
+                  <button id="playbook-upload-btn" type="button" onclick="handlePlaybookUpload()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #c9a44c, #c9a44c); color: #000; border: none; border-radius: 6px; font-weight: 700; font-size: 16px; cursor: pointer; transition: all 0.3s; font-family: Inter, sans-serif;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(201, 164, 76, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">Upload</button>
+                </div>
+              
+            `;
+
+          return; // do not call API for this modal
+        }
+
+        // ── VIEW EDITORS ──
+        if (type === "view-editors" && toolName === "Playbook_Chatbot") {
+          modalTitle.textContent = "Playbook Chatbot - View Editors";
+          modalBody.innerHTML = `
+          <div class="modal-loading">
+            <div class="spinner"></div>
+            <p>Loading editors...</p>
+          </div>`;
+
+          try {
+            const token = localStorage.getItem("adminToken");
+            const resp = await fetch(
+              `${API_BASE_URL}/admin/Playbook_Chatbot/editors`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "ngrok-skip-browser-warning": "true",
+                },
+              },
+            );
+
+            const data = await resp.json().catch(() => ({}));
+
+            if (!resp.ok) {
+              modalBody.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(data.detail || "Failed to load editors")}</div>`;
+              return;
+            }
+
+            const members = Array.isArray(data.members) ? data.members : [];
+            if (members.length === 0) {
+              modalBody.innerHTML =
+                '<div class="data-item">No editors found</div>';
+              return;
+            }
+
+            const rows = members
+              .map(
+                (m, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${escapeHtml(m.name || "N/A")}</td>
+              <td>${escapeHtml(m.email || "N/A")}</td>
+            </tr>`,
+              )
+              .join("");
+
+            modalBody.innerHTML = `
+            <table class="data-table">
+              <thead>
+                <tr><th>#</th><th>Name</th><th>Email</th></tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>`;
+          } catch (err) {
+            modalBody.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Error loading editors")}</div>`;
+          }
+          return;
+        }
+
+        // ── EDIT EDITORS ──
+        if (type === "edit-editors" && toolName === "Playbook_Chatbot") {
+          modalTitle.textContent = "Playbook Chatbot - Edit Editors";
+          modalBody.innerHTML = `
+          <div style="margin-bottom:16px; color:#c9a44c; font-weight:700; font-size:16px;">Add Editor</div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:13px;">Name</label>
+            <input id="editors-name-input" type="text" placeholder="Full name"
+              style="width:100%; padding:10px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff; font-family:Inter,sans-serif;" />
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:13px;">Email</label>
+            <input id="editors-email-input" type="email" placeholder="email@ramoslaw.com"
+              style="width:100%; padding:10px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff; font-family:Inter,sans-serif;" />
+          </div>
+          <div id="editors-edit-result" style="margin-bottom:12px;"></div>
+          <button id="editors-submit-btn" type="button"
+            style="width:100%; padding:10px; background:linear-gradient(135deg,#c9a44c,#c9a44c); color:#000; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif;">
+            Submit
+          </button>`;
+
+          (function () {
+            const submitBtn = document.getElementById("editors-submit-btn");
+            const nameInput = document.getElementById("editors-name-input");
+            const emailInput = document.getElementById("editors-email-input");
+            const resultDiv = document.getElementById("editors-edit-result");
+
+            submitBtn.addEventListener("click", async function () {
+              resultDiv.innerHTML = "";
+              const name = (nameInput.value || "").trim();
+              const email = (emailInput.value || "").trim();
+
+              if (!name) {
+                resultDiv.innerHTML =
+                  '<div class="data-item" style="color:#e74c3c;">Name is required</div>';
+                return;
+              }
+              if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+                resultDiv.innerHTML =
+                  '<div class="data-item" style="color:#e74c3c;">A valid email is required</div>';
+                return;
+              }
+
+              submitBtn.disabled = true;
+              const prevText = submitBtn.innerHTML;
+              submitBtn.innerHTML =
+                '<span class="spinner"></span> Submitting...';
+
+              try {
+                const token = localStorage.getItem("adminToken");
+                const body = new URLSearchParams();
+                body.append("name", name);
+                body.append("email", email);
+
+                const resp = await fetch(
+                  `${API_BASE_URL}/admin/Playbook_Chatbot/editors`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/x-www-form-urlencoded",
+                      Authorization: `Bearer ${token}`,
+                      "ngrok-skip-browser-warning": "true",
+                    },
+                    body: body,
+                  },
+                );
+
+                const data = await resp.json().catch(() => ({}));
+
+                if (!resp.ok) {
+                  throw new Error(
+                    data.detail || data.message || "Failed to add editor",
+                  );
+                }
+
+                resultDiv.innerHTML = `<div class="data-item" style="color:#2ecc71;">${escapeHtml(data.message || "Editor added successfully")}</div>`;
+                nameInput.value = "";
+                emailInput.value = "";
+              } catch (err) {
+                resultDiv.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Something went wrong")}</div>`;
+              } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = prevText;
+              }
+            });
+          })();
+          return;
+        }
+
+        // ── DELETE EDITORS ──
+        if (type === "delete-editors" && toolName === "Playbook_Chatbot") {
+          modalTitle.textContent = "Playbook Chatbot - Delete Editor";
+          modalBody.innerHTML = `
+          <div style="margin-bottom:12px;">
+            <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:13px;">Email of Editor to Delete</label>
+            <input id="editors-delete-email-input" type="email" placeholder="email@ramoslaw.com"
+              style="width:100%; padding:10px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff; font-family:Inter,sans-serif;" />
+          </div>
+          <div id="editors-delete-result" style="margin-bottom:12px;"></div>
+          <button id="editors-delete-btn" type="button"
+            style="width:100%; padding:10px; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif;">
+            Submit
+          </button>`;
+
+          (function () {
+            const deleteBtn = document.getElementById("editors-delete-btn");
+            const emailInput = document.getElementById(
+              "editors-delete-email-input",
+            );
+            const resultDiv = document.getElementById("editors-delete-result");
+
+            deleteBtn.addEventListener("click", async function () {
+              resultDiv.innerHTML = "";
+              const email = (emailInput.value || "").trim();
+
+              if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+                resultDiv.innerHTML =
+                  '<div class="data-item" style="color:#e74c3c;">A valid email is required</div>';
+                return;
+              }
+
+              deleteBtn.disabled = true;
+              const prevText = deleteBtn.innerHTML;
+              deleteBtn.innerHTML = '<span class="spinner"></span> Deleting...';
+
+              try {
+                const token = localStorage.getItem("adminToken");
+                const resp = await fetch(
+                  `${API_BASE_URL}/admin/Playbook_Chatbot/editors?email=${encodeURIComponent(email)}`,
+                  {
+                    method: "DELETE",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "ngrok-skip-browser-warning": "true",
+                    },
+                  },
+                );
+
+                const data = await resp.json().catch(() => ({}));
+
+                if (!resp.ok) {
+                  throw new Error(
+                    data.detail || data.message || "Failed to delete editor",
+                  );
+                }
+
+                resultDiv.innerHTML = `<div class="data-item" style="color:#2ecc71;">${escapeHtml(data.message || "Editor deleted successfully")}</div>`;
+                emailInput.value = "";
+              } catch (err) {
+                resultDiv.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Something went wrong")}</div>`;
+              } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = prevText;
+              }
+            });
+          })();
+          return;
+        }
+
+        // ── LIST ROLES ──
+        if (type === "list-roles" && toolName === "Roles") {
+          showRolesListView();
+          return;
+        }
+
+        // ── CREATE ROLE ──
+        if (type === "create-role" && toolName === "Roles") {
+          modalTitle.textContent = "Roles - Create Role";
+          modalBody.innerHTML = `
+            <div class="modal-loading">
+              <div class="spinner"></div>
+              <p>Loading emails...</p>
+            </div>`;
+          initCreateRoleModal();
+          return;
+        }
+
+        // ── LIST ATTORNEYS ──
+        if (type === "list-attorneys" && toolName === "demand_generator") {
+          modalTitle.textContent = "Demand Generator - Attorneys";
+          modalBody.innerHTML = `
+            <div class="modal-loading">
+              <div class="spinner"></div>
+              <p>Loading attorneys...</p>
+            </div>`;
+          fetchDemandGeneratorAttorneys();
+          return;
+        }
+
+        // ── ADD MEMBER ──
+        if (type === "add-attorney" && toolName === "demand_generator") {
+          modalTitle.textContent = "Demand Generator - Add Member";
+          modalBody.innerHTML = `
+            <div style="margin-bottom:16px; color:#c9a44c; font-weight:700; font-size:16px;">Add Member</div>
+            <div style="margin-bottom:12px;">
+              <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:13px;">Name</label>
+              <input id="attorney-name-input" type="text" placeholder="John Smith"
+                style="width:100%; padding:10px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff; font-family:Inter,sans-serif;" />
+            </div>
+            <div style="margin-bottom:12px;">
+              <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:13px;">Email</label>
+              <input id="attorney-email-input" type="email" placeholder="john.smith@example.com"
+                style="width:100%; padding:10px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff; font-family:Inter,sans-serif;" />
+            </div>
+            <div style="margin-bottom:12px;">
+              <label style="display:flex; align-items:center; gap:8px; color:#c9a44c; font-size:13px; cursor:pointer;">
+                <input id="attorney-is-attorney-input" type="checkbox"
+                  style="width:16px; height:16px; accent-color:#c9a44c; cursor:pointer;" />
+                Mark as attorney
+              </label>
+            </div>
+            <div id="attorney-add-result" style="margin-bottom:12px;"></div>
+            <button id="attorney-submit-btn" type="button" onclick="submitDemandGeneratorAttorney()"
+              style="width:100%; padding:10px; background:linear-gradient(135deg,#c9a44c,#c9a44c); color:#000; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif;">
+              Add Member
+            </button>`;
+          return;
+        }
+
+        // ── VIEW SPECIALISTS ──
+        if (type === "view-specialists" && toolName === "intakeops") {
+          modalTitle.textContent = "IntakeOps - View Specialists";
+          modalBody.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: flex-end; margin-bottom: 20px;">
+              <div>
+                <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:12px; font-weight:600;">Practice Area</label>
+                <input id="filter-practice-area" type="text" placeholder="e.g. MVA (optional)"
+                  onkeydown="if(event.key==='Enter') fetchSpecialists()"
+                  style="width:100%; padding:9px 12px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff; font-family:Inter,sans-serif; font-size:13px;" />
+              </div>
+              <div>
+                <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:12px; font-weight:600;">Group</label>
+                <input id="filter-group" type="number" placeholder="e.g. 2 (optional)"
+                  onkeydown="if(event.key==='Enter') fetchSpecialists()"
+                  style="width:100%; padding:9px 12px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff; font-family:Inter,sans-serif; font-size:13px;" />
+              </div>
+              <button onclick="fetchSpecialists()" style="padding:9px 20px; background:linear-gradient(135deg,#c9a44c,#c9a44c); color:#000; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif; white-space:nowrap;">Search</button>
+            </div>
+            <div id="specialists-results">
+              <div class="modal-loading"><div class="spinner"></div><p>Loading specialists...</p></div>
+            </div>
+          `;
+          // Auto-load all on open
+          fetchSpecialists();
+          return;
+        }
+
+        // ── ADD SPECIALIST ──
+        if (type === "add-specialist" && toolName === "intakeops") {
+          modalTitle.textContent = "IntakeOps - Add Specialist";
+          modalBody.innerHTML = `
+            <div class="modal-loading">
+              <div class="spinner"></div>
+              <p>Loading practice areas and positions...</p>
+            </div>
+          `;
+          initAddSpecialistModal(modalBody);
+          return;
+        }
+
+        // If this is the whitelist view (show members)
+        if (type === "whitelist-view" && toolName === "Whitelist") {
+          modalTitle.textContent = "Whitelist Members";
+          modalBody.innerHTML = `
+            <div class="modal-loading">
+              <div class="spinner"></div>
+              <p>Loading whitelist...</p>
+            </div>
+          `;
+
+          try {
+            const response = await fetch(`${API_BASE_URL}/admin/whitelist`, {
+              method: "GET",
+              headers: getAuthHeaders(),
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+              modalBody.innerHTML = `<div class="data-item">${data.detail || "Failed to load whitelist"}</div>`;
+              return;
+            }
+
+            const members = Array.isArray(data.members) ? data.members : [];
+            if (members.length === 0) {
+              modalBody.innerHTML =
+                '<div class="data-item">No whitelist members found</div>';
+              return;
+            }
+
+            const rows = members
+              .map(
+                (m) => `
+                <div style="padding:8px 0; border-bottom:1px solid rgba(201,164,76,0.06);">
+                  <strong style="color:#c9a44c; display:inline-block; width:180px;">${escapeHtml(m.name || "N/A")}</strong>
+                  <span style="color:#ddd;">${escapeHtml(m.email || "N/A")}</span>
+                </div>
+              `,
+              )
+              .join("");
+
+            modalBody.innerHTML = `<div class="data-item">${rows}</div>`;
+          } catch (err) {
+            modalBody.innerHTML = `<div class="data-item">${err.message || "Error loading whitelist"}</div>`;
+            console.error("Whitelist fetch error", err);
+          }
+
+          return; // handled
+        }
+
+        // If this is the whitelist edit view (show form and submit)
+        if (type === "whitelist-edit" && toolName === "Whitelist") {
+          modalTitle.textContent = "Whitelist - Edit";
+          modalBody.innerHTML = `            
+              <div style="margin-bottom:16px; color:#c9a44c; font-weight:700; font-size:16px;">Add Whitelist Member</div>
+              <div style="margin-bottom:12px;">
+                <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:13px;">Name</label>
+                <input id="whitelist-name-input" type="text" placeholder="Full name" style="width:100%; padding:10px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff;" />
+              </div>
+              <div style="margin-bottom:12px;">
+                <label style="display:block; color:#c9a44c; margin-bottom:6px; font-size:13px;">Email</label>
+                <input id="whitelist-email-input" type="email" placeholder="email@company.com" style="width:100%; padding:10px; border-radius:6px; background:rgba(0,0,0,0.6); border:1px solid rgba(201,164,76,0.2); color:#fff;" />
+              </div>
+              <div id="whitelist-edit-result" style="margin-bottom:12px; display:block;"></div>
+              <button id="whitelist-submit-btn" type="button" style="width:100%; padding:10px; background: linear-gradient(135deg, #c9a44c, #c9a44c); color: #000; border: none; border-radius: 6px; font-weight:700; cursor:pointer;">Submit</button>
+          `;
+
+          // Wire up submit handler
+          (function () {
+            const submitBtn = document.getElementById("whitelist-submit-btn");
+            const nameInput = document.getElementById("whitelist-name-input");
+            const emailInput = document.getElementById("whitelist-email-input");
+            const resultDiv = document.getElementById("whitelist-edit-result");
+
+            function validateEmail(email) {
+              return /^\S+@\S+\.\S+$/.test(email);
+            }
+
+            submitBtn.addEventListener("click", async function () {
+              resultDiv.innerHTML = "";
+              const name = (nameInput.value || "").trim();
+              const email = (emailInput.value || "").trim();
+
+              if (!name) {
+                resultDiv.innerHTML =
+                  '<div class="data-item" style="color:#e74c3c;">Name is required</div>';
+                return;
+              }
+
+              if (!email || !validateEmail(email)) {
+                resultDiv.innerHTML =
+                  '<div class="data-item" style="color:#e74c3c;">A valid email is required</div>';
+                return;
+              }
+
+              submitBtn.disabled = true;
+              const prevText = submitBtn.innerHTML;
+              submitBtn.innerHTML =
+                '<span class="spinner"></span>Submitting...';
+
+              try {
+                const resp = await fetch(`${API_BASE_URL}/admin/whitelist`, {
+                  method: "POST",
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ name, email }),
+                });
+
+                const data = await resp.json().catch(() => ({}));
+
+                if (!resp.ok) {
+                  throw new Error(
+                    data1.detail || data1.message || "Primary request failed",
+                  );
+                }
+
+                resultDiv.innerHTML = `
+                  <div class="data-item" style="color:#2ecc71;">
+                    ${escapeHtml(data.message || "Member added successfully")}
+                  </div>
+                `;
+
+                // Optional: clear inputs
+                nameInput.value = "";
+                emailInput.value = "";
+              } catch (err) {
+                resultDiv.innerHTML = `
+                  <div class="data-item" style="color:#e74c3c;">
+                    ${escapeHtml(err.message || "Something went wrong")}
+                  </div>
+                `;
+              } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = prevText;
+              }
+            });
+          })();
+
+          return; // handled
+        }
+
+        modalTitle.textContent = getModalTitle(type, toolName); // CHANGED: Pass toolName to title
+        modalBody.innerHTML = `
+          <div class="modal-loading">
+            <div class="spinner"></div>
+            <p>Loading data...</p>
+          </div>
+        `;
+
+        try {
+          let endpoint = "";
+
+          // Map tool names to project names for tokens endpoint
+          const projectNameMap = {
+            Medical_Summary_Generator: "Medical_Summary_Generator",
+            Settlement_Predictor: "Settlement_Predictor",
+            VICP_Attorney_Fees: "VICP_Attorney_Fees",
+            Injury_Intelligence: "Injury_Intelligence",
+            Demand_optimizer: "Demand_optimizer",
+            Demand_Quality_Assurance: "Demand_Quality_Assurance",
+            Vehicle_Loss_Analyzer: "Vehicle_Loss_Analyzer",
+            Playbook_Chatbot: "Playbook_Chatbot",
+          };
+
+          // CHANGED: Build dynamic endpoint with toolName prefix
+          switch (type) {
+            case "error-logs":
+              // Special case for email2ai which uses /logs endpoint
+              endpoint =
+                toolName === "email2ai"
+                  ? `/admin/${toolName}/logs`
+                  : `/admin/${toolName}/error-logs`;
+              break;
+
+            case "active-today":
+              endpoint = `/admin/${toolName}/active-today`;
+              break;
+            case "prompt-logs":
+              endpoint = `/admin/${toolName}/prompt_logs`;
+              break;
+          }
+
+          // Medical Summary and Demand Generator live on the medical summary host
+          const baseUrl =
+            toolName === "Medical_Summary_Generator"
+              ? `${API_BASE_URL_DS}/medical-summary`
+              : toolName === "demand_generator"
+                ? `${API_BASE_URL_DS}/demand_generator`
+                : API_BASE_URL;
+
+          const response = await fetch(`${baseUrl}${endpoint}`, {
+            method: "GET",
+            headers: getAuthHeaders(),
+          });
+
+          const data = await response.json();
+
+          // Check if response has a detail or message field (e.g., {"detail":"No error logs found"})
+          const simpleMsg =
+            data && typeof data === "object" && (data.detail || data.message)
+              ? data.detail || data.message
+              : null;
+
+          if (simpleMsg) {
+            modalBody.innerHTML = '<div class="data-item"></div>';
+            modalBody.querySelector(".data-item").textContent = simpleMsg;
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch data");
+          }
+
+          displayModalData(type, data, toolName);
+        } catch (error) {
+          // CHANGED: Better error message with endpoint info
+          modalBody.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #e74c3c;">
+            <p style="font-size: 18px; margin-bottom: 12px;">⚠️ Error Loading Data</p>
+            <p style="font-size: 14px; opacity: 0.8;">${error.detail.detail}</p>
+            <p style="font-size: 12px; opacity: 0.6; margin-top: 8px;">Endpoint: ${endpoint}</p>
+          </div>
+        `;
+        }
+      }
+
+      // CHANGED: Get modal title based on type and toolName
+      function getModalTitle(type, toolName) {
+        const toolNames = {
+          casevalue: "CaseValue",
+          medical_summary_generator: "Medical Summary Generator",
+          email2ai: "Email2Ai",
+          vicp_attorney_fees: "VICP Attorney Fees",
+          settlement_optimizer: "Settlement Optimizer",
+          injury_intelligence: "Injury Intelligence",
+          demand_optimizer: "Demand Optimizer",
+          demand_quality_assurance: "Demand Quality Assurance",
+          demand_generator: "Demand Generator",
+          vehicle_loss_analyzer: "Vehicle Loss Analyzer",
+          Playbook_Chatbot: "Playbook Chatbot",
+          intakeops: "IntakeOps",
+        };
+
+        const typeNames = {
+          "error-logs": "Error Logs",
+          "active-today": "Active Today",
+          "prompt-logs": "Prompt Logs",
+          "view-specialists": "View Specialists",
+          "add-specialist": "Add Specialist",
+          "list-attorneys": "Attorneys",
+          "add-attorney": "Add Member",
+        };
+
+        const tool = toolNames[toolName] || toolName;
+        const typeName = typeNames[type] || type;
+
+        return `${tool} - ${typeName}`;
+      }
+
+      // Display data in modal based on type
+      function displayModalData(type, data, toolName) {
+        const modalBody = document.getElementById("modal-body");
+
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+          modalBody.innerHTML =
+            '<p style="text-align: center; padding: 40px; color: #aaa;">No data available</p>';
+          return;
+        }
+
+        let html = "";
+
+        switch (type) {
+          case "error-logs":
+            html = formatErrorLogs(data);
+            break;
+
+          case "active-today":
+            html = formatActiveSessions(data);
+            break;
+          case "prompt-logs":
+            html = formatPromptLogs(data, toolName, toolName);
+            break;
+          default:
+            html = "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+        }
+
+        modalBody.innerHTML = html;
+      }
+
+      // Format error logs
+      function formatErrorLogs(data) {
+        if (!Array.isArray(data)) return "<p>Invalid data format</p>";
+        // {"detail":"No error logs found"} i want to hanle this case in this case i want to show the details like No error logs found instead of showing loading spiner
+        return data
+          .map(
+            (log) => `
+        <div class="data-item">
+          <div><strong>ID:</strong> ${log.id || "N/A"}</div>
+          <div><strong>API Endpoint:</strong> ${log.api || "N/A"}</div>
+          <div><strong>Error Type:</strong> ${log.error_type || "N/A"}</div>
+          <div><strong>Category:</strong> ${log.category || "N/A"}</div>
+          <div><strong>Message:</strong> ${log.message || "N/A"}</div>
+          <div><strong>Status Code:</strong> ${log.status_code || "N/A"}</div>
+          <div><strong>Request ID:</strong> ${log.request_id || "N/A"}</div>
+          <div><strong>Created At:</strong> ${log.created_at ? new Date(log.created_at).toLocaleString() : "N/A"}</div>
+          ${log.stack_trace ? `<div><strong>Stack:</strong> <pre style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; font-size: 12px; overflow-x: auto;">${log.stack_trace}</pre></div>` : ""}
+        </div>
+      `,
+          )
+          .join("");
+      }
+
+      // Format active sessions
+      function formatActiveSessions(data) {
+        if (!Array.isArray(data)) return "<p>Invalid data format</p>";
+
+        return `
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Last Active</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data
+              .map(
+                (session) => `
+              <tr>
+                <td>${session.email || "N/A"}</td>
+                <td>${session.last_active ? new Date(session.last_active).toLocaleString() : "N/A"}</td>
+              </tr>
+            `,
+              )
+              .join("")}
+          </tbody>
+        </table>
+      `;
+      }
+
+      // Format prompt logs
+      function formatPromptLogs(data, toolName) {
+        if (!Array.isArray(data)) {
+          if (
+            typeof data === "object" &&
+            data.data &&
+            Array.isArray(data.data)
+          ) {
+            data = data.data; // Extract the array from the data field
+          } else if (typeof data === "object" && data.detail) {
+            return `<div class="data-item">${data.detail}</div>`;
+          } else {
+            return "<p>Invalid data format</p>";
+          }
+        }
+
+        if (data.length === 0) {
+          return '<p style="text-align: center; padding: 20px; color: #aaa;">No prompt logs available</p>';
+        }
+
+        // Special format for email2ai
+        if (toolName === "email2ai") {
+          return data
+            .map(
+              (log) => `
+        <div class="data-item">
+          <div><strong>ID:</strong> ${log.id || "N/A"}</div>
+          <div><strong>Sender Email:</strong> ${log.sender_email || "N/A"}</div>
+          <div><strong>Subject:</strong> ${escapeHtml(log.subject || "N/A")}</div>
+          <div><strong>Attachment Name:</strong> ${escapeHtml(log.attachment_name || "N/A")}</div>
+          <div><strong>Attachment Type:</strong> ${log.attachment_type || "N/A"}</div>
+          <div><strong>Input Tokens:</strong> ${log.input_tokens != null ? log.input_tokens : "N/A"}</div>
+          <div><strong>Output Tokens:</strong> ${log.output_tokens != null ? log.output_tokens : "N/A"}</div>
+          <div><strong>Input Cost (USD):</strong> ${log.input_cost_usd != null ? log.input_cost_usd : "N/A"}</div>
+          <div><strong>Output Cost (USD):</strong> ${log.output_cost_usd != null ? log.output_cost_usd : "N/A"}</div>
+          <div><strong>Response Time:</strong> ${log.response_time != null ? log.response_time + "s" : "N/A"}</div>
+          <div><strong>Status:</strong> ${log.status || "N/A"}</div>
+          <div><strong>Created At:</strong> ${log.created_at ? new Date(log.created_at).toLocaleString() : "N/A"}</div>
+        </div>
+      `,
+            )
+            .join("");
+        }
+
+        return data
+          .map((log) => {
+            // only include feedback field when viewing Playbook Chatbot logs
+            const feedbackHtml =
+              toolName === "Playbook_Chatbot"
+                ? `<div><strong>Feedback:</strong> ${log.response_feedback != null ? log.response_feedback : "N/A"}</div>`
+                : "";
+
+            const hidePromptFields = toolName === "demand_generator";
+            const promptFieldsHtml = hidePromptFields
+              ? ""
+              : `<div><strong>Prompt Text:</strong>
+            ${
+              log.prompt_text
+                ? log.prompt_text.length > 200
+                  ? `<span class="short-prompt">${escapeHtml(log.prompt_text.substring(0, 200))}...</span><span class="full-prompt" style="display:none;">${escapeHtml(log.prompt_text)}</span><strong class='view-prompt-btn' onclick="togglePrompt(this)">View full prompt</strong>`
+                  : escapeHtml(log.prompt_text)
+                : "N/A"
+            }
+          </div>
+          <div><strong>Prompt Type:</strong> ${log.prompt_type || "N/A"}</div>`;
+
+            return `
+        <div class="data-item">
+          <div><strong>ID:</strong> ${log.id || "N/A"}</div>
+          <div><strong>User Email:</strong> ${log.user_email || "N/A"}</div>
+          ${promptFieldsHtml}
+          <div><strong>Model:</strong> ${log.model || "N/A"}</div>
+          <div><strong>Input Tokens:</strong> ${log.input_tokens != null ? log.input_tokens : "N/A"}</div>
+          <div><strong>Output Tokens:</strong> ${log.output_tokens != null ? log.output_tokens : "N/A"}</div>
+          <div><strong>Input Cost (USD):</strong> ${log.input_cost_usd != null ? log.input_cost_usd : "N/A"}</div>
+          <div><strong>Output Cost (USD):</strong> ${log.output_cost_usd != null ? log.output_cost_usd : "N/A"}</div>
+          ${feedbackHtml}
+          <div><strong>Total Processing Time:</strong> ${log.total_processing_time ? log.total_processing_time : "N/A"}</div>
+        </div>
+      `;
+          })
+          .join("");
+      }
+
+      // Toggle between short and full prompt text when user clicks the button
+      function togglePrompt(button) {
+        try {
+          const container = button.closest(".data-item");
+          if (!container) return;
+          const shortEl = container.querySelector(".short-prompt");
+          const fullEl = container.querySelector(".full-prompt");
+          if (!shortEl || !fullEl) return;
+
+          const isHidden = shortEl.style.display === "none";
+          if (isHidden) {
+            // currently showing full, switch to short
+            shortEl.style.display = "";
+            fullEl.style.display = "none";
+            button.textContent = "View full prompt";
+          } else {
+            // show full
+            shortEl.style.display = "none";
+            fullEl.style.display = "";
+            button.textContent = "View less";
+          }
+        } catch (e) {
+          console.error("togglePrompt error", e);
+        }
+      }
+
+      // Simple escape to avoid breaking HTML when inserting prompt text
+      function escapeHtml(str) {
+        if (typeof str !== "string") return str;
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      // Format object keys for display
+      function formatKey(key) {
+        return key
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      }
+
+      // Close modal
+      function closeModal(event) {
+        if (!event || event.target.id === "data-modal") {
+          document.getElementById("data-modal").classList.remove("active");
+        }
+      }
+
+      let rolesListCache = [];
+      let successToastTimer = null;
+
+      function showSuccessToast(message) {
+        const toast = document.getElementById("success-toast");
+        const msgEl = document.getElementById("success-toast-message");
+        if (!toast || !msgEl) return;
+
+        msgEl.textContent = message;
+        toast.classList.add("visible");
+
+        if (successToastTimer) clearTimeout(successToastTimer);
+        successToastTimer = setTimeout(() => {
+          toast.classList.remove("visible");
+        }, 3500);
+      }
+
+      function formatBoolBadge(value) {
+        const str = value ? "true" : "false";
+        const label = value ? "True" : "False";
+        return `<span class="role-perm-badge ${str}">${label}</span>`;
+      }
+
+      function isExecutiveRoleEmailBlocked(member) {
+        return (
+          member?.revenue_access === true ||
+          member?.attorney_full_access === true
+        );
+      }
+
+      async function fetchEligibleExecutiveRoleEmails() {
+        const response = await fetch(
+          `${API_BASE_URL}/admin/exceutive_router/whitelist`,
+          {
+            method: "GET",
+            headers: getRoleAuthHeaders(false),
+          },
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(
+            data.detail || data.message || "Failed to load whitelist emails",
+          );
+        }
+
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid response from whitelist API");
+        }
+
+        return data
+          .filter(
+            (member) => member?.email && !isExecutiveRoleEmailBlocked(member),
+          )
+          .map((member) => member.email)
+          .sort((a, b) => a.localeCompare(b));
+      }
+
+      function updateCreateRoleEmailField(emailOptions) {
+        const form = document.getElementById("role-form");
+        if (!form) return;
+
+        const options = Array.isArray(emailOptions) ? emailOptions : [];
+        form.dataset.allowedEmails = JSON.stringify(options);
+
+        const emailField = form.querySelector('[data-field="email"]');
+        if (!emailField) return;
+
+        if (emailField.tagName === "SELECT") {
+          emailField.innerHTML = `
+          <option value="" disabled selected>Select an email</option>
+          ${options
+            .map(
+              (email) =>
+                `<option value="${escapeHtml(email)}">${escapeHtml(email)}</option>`,
+            )
+            .join("")}`;
+          return;
+        }
+
+        const datalist = document.getElementById("role-email-options");
+        if (datalist) {
+          datalist.innerHTML = options
+            .map((email) => `<option value="${escapeHtml(email)}"></option>`)
+            .join("");
+        }
+        emailField.value = "";
+      }
+
+      async function refreshCreateRoleEmailDropdown() {
+        const form = document.getElementById("role-form");
+        if (!form || form.dataset.mode !== "create") return;
+
+        try {
+          const emailOptions = await fetchEligibleExecutiveRoleEmails();
+          updateCreateRoleEmailField(emailOptions);
+        } catch (err) {
+          console.error("Failed to refresh create role email dropdown", err);
+        }
+      }
+
+      async function initCreateRoleModal() {
+        const modalBody = document.getElementById("modal-body");
+        if (!modalBody) return;
+
+        try {
+          const emailOptions = await fetchEligibleExecutiveRoleEmails();
+
+          modalBody.innerHTML = buildRoleFormHtml({
+            roleId: "",
+            roleName: "",
+            submitLabel: "Create Role",
+            resultId: "role-create-result",
+            useEmailDropdown: true,
+            emailOptions,
+          });
+
+          initRoleForm({
+            mode: "create",
+            revenueAccess: false,
+            attorneyFullAccess: false,
+            emailOptions,
+            onSubmit: handleCreateRoleSubmit,
+          });
+        } catch (err) {
+          modalBody.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Error loading emails")}</div>`;
+          console.error("Create role email fetch error", err);
+        }
+      }
+
+      function buildRoleFormHtml({
+        roleId,
+        roleName,
+        submitLabel,
+        resultId,
+        showBack,
+        useEmailDropdown,
+        useEmailReadOnly,
+        emailOptions,
+      }) {
+        const emailFieldHtml = useEmailDropdown
+          ? `
+            <div style="margin-bottom:12px;">
+              <label class="field-label">Email</label>
+              <select data-field="email" class="spec-select">
+                <option value="" disabled ${roleName ? "" : "selected"}>Select an email</option>
+                ${(emailOptions || [])
+                  .map(
+                    (email) =>
+                      `<option value="${escapeHtml(email)}"${email === roleName ? " selected" : ""}>${escapeHtml(email)}</option>`,
+                  )
+                  .join("")}
+              </select>
+            </div>`
+          : useEmailReadOnly
+            ? `
+            <div style="margin-bottom:12px;">
+              <label class="field-label">Email</label>
+              <input data-field="email" type="email" class="spec-input" value="${escapeHtml(roleName || "")}" readonly />
+            </div>`
+            : `
+            <div style="margin-bottom:12px;">
+              <label class="field-label">Role Name</label>
+              <input data-field="email" type="text" class="spec-input" placeholder="e.g. Attorney (General)" value="${escapeHtml(roleName || "")}" />
+            </div>`;
+
+        return `
+          ${showBack ? `<button type="button" onclick="showRolesListView()" style="margin-bottom:16px; padding:6px 14px; background:transparent; border:1px solid rgba(201,164,76,0.3); color:#c9a44c; border-radius:6px; cursor:pointer; font-family:Inter,sans-serif; font-size:12px; font-weight:600;">← Back to List</button>` : ""}
+          <div id="role-form">
+            <input type="hidden" data-field="role_id" value="${escapeHtml(roleId || "")}" />
+            ${emailFieldHtml}
+            <div style="margin-bottom:12px;">
+              <label class="field-label">Revenue Access</label>
+              <select data-field="revenue_access" class="spec-select">
+                <option value="false">False</option>
+                <option value="true">True</option>
+              </select>
+            </div>
+            <div style="margin-bottom:12px;">
+              <label class="field-label">Attorney Full Access</label>
+              <select data-field="attorney_full_access" class="spec-select">
+                <option value="false">False</option>
+                <option value="true">True</option>
+              </select>
+            </div>
+            <div id="${resultId}" style="margin-bottom:12px;"></div>
+            <button type="button" data-role-submit style="width:100%; padding:10px; background:linear-gradient(135deg,#c9a44c,#c9a44c); color:#000; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif;">${escapeHtml(submitLabel)}</button>
+          </div>
+        `;
+      }
+
+      function initRoleForm({
+        mode,
+        revenueAccess,
+        attorneyFullAccess,
+        emailOptions,
+        onSubmit,
+      }) {
+        const form = document.getElementById("role-form");
+        if (!form) return;
+
+        form.dataset.mode = mode || "";
+
+        if (Array.isArray(emailOptions)) {
+          form.dataset.allowedEmails = JSON.stringify(emailOptions);
+        }
+
+        const revSelect = form.querySelector('[data-field="revenue_access"]');
+        const attSelect = form.querySelector(
+          '[data-field="attorney_full_access"]',
+        );
+        if (revSelect) revSelect.value = revenueAccess ? "true" : "false";
+        if (attSelect) attSelect.value = attorneyFullAccess ? "true" : "false";
+
+        const submitBtn = form.querySelector("[data-role-submit]");
+        if (!submitBtn) return;
+
+        submitBtn.addEventListener("click", onSubmit);
+      }
+
+      function getRoleFormPayload() {
+        const form = document.getElementById("role-form");
+        if (!form) {
+          return {
+            email: "",
+            revenue_access: false,
+            attorney_full_access: false,
+            role_id: "",
+          };
+        }
+
+        const email = (
+          form.querySelector('[data-field="email"]')?.value || ""
+        ).trim();
+        const revenueAccess =
+          form.querySelector('[data-field="revenue_access"]')?.value === "true";
+        const attorneyFullAccess =
+          form.querySelector('[data-field="attorney_full_access"]')?.value ===
+          "true";
+        const roleId =
+          form.querySelector('[data-field="role_id"]')?.value || "";
+
+        return {
+          email,
+          revenue_access: revenueAccess,
+          attorney_full_access: attorneyFullAccess,
+          role_id: roleId,
+        };
+      }
+
+      function getRolePatchUrl(roleId, payload) {
+        const params = new URLSearchParams({
+          email: payload.email,
+          revenue_access: String(payload.revenue_access),
+          attorney_full_access: String(payload.attorney_full_access),
+        });
+        return `${API_BASE_URL}/admin/exceutive_router/roles/${encodeURIComponent(roleId)}?${params.toString()}`;
+      }
+
+      function getRoleAuthHeaders(includeJsonContentType) {
+        const token = localStorage.getItem("adminToken");
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true",
+        };
+        if (includeJsonContentType) {
+          headers["Content-Type"] = "application/json";
+        }
+        return headers;
+      }
+
+      function showRolesListView() {
+        const modalTitle = document.getElementById("modal-title");
+        const modalBody = document.getElementById("modal-body");
+        modalTitle.textContent = "Roles - List";
+        modalBody.innerHTML = `
+          <div id="roles-list-container">
+            <div class="modal-loading"><div class="spinner"></div><p>Loading roles...</p></div>
+          </div>`;
+        fetchAndRenderRoles();
+      }
+
+      async function fetchAndRenderRoles() {
+        const modalTitle = document.getElementById("modal-title");
+        const container = document.getElementById("roles-list-container");
+        if (!container) return;
+
+        modalTitle.textContent = "Roles - List";
+        container.innerHTML =
+          '<div class="modal-loading"><div class="spinner"></div><p>Loading roles...</p></div>';
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/admin/roles`, {
+            method: "GET",
+            headers: getAuthHeaders(),
+          });
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            container.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(data.detail || data.message || "Failed to load roles")}</div>`;
+            return;
+          }
+
+          rolesListCache = Array.isArray(data) ? data : [];
+
+          if (rolesListCache.length === 0) {
+            container.innerHTML = '<div class="data-item">No roles found</div>';
+            return;
+          }
+
+          const rows = rolesListCache
+            .map((role, i) => {
+              const safeId = escapeHtml(role.id || "");
+              const safeName = escapeHtml(role.email || "N/A");
+              return `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${safeName}</td>
+              <td>${formatBoolBadge(!!role.revenue_access)}</td>
+              <td>${formatBoolBadge(!!role.attorney_full_access)}</td>
+              <td style="white-space:nowrap;">
+                <button type="button" class="role-action-btn edit" onclick="openRoleEditView('${safeId}')">Edit</button>
+                <button type="button" class="role-action-btn delete" style="margin-left:6px;" onclick="handleRoleDelete('${safeId}')">Delete</button>
+              </td>
+            </tr>`;
+            })
+            .join("");
+
+          container.innerHTML = `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Email</th>
+                  <th>Revenue Access</th>
+                  <th>Attorney Full Access</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>`;
+        } catch (err) {
+          container.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Error loading roles")}</div>`;
+        }
+      }
+
+      function openRoleEditView(roleId) {
+        const role = rolesListCache.find((r) => r.id === roleId);
+        if (!role) return;
+
+        const modalTitle = document.getElementById("modal-title");
+        const modalBody = document.getElementById("modal-body");
+        modalTitle.textContent = "Roles - Edit Role";
+        modalBody.innerHTML = buildRoleFormHtml({
+          roleId: role.id,
+          roleName: role.email || role.role_name || "",
+          submitLabel: "Save Changes",
+          resultId: "role-edit-result",
+          showBack: true,
+          useEmailReadOnly: true,
+        });
+        initRoleForm({
+          mode: "edit",
+          revenueAccess: !!role.revenue_access,
+          attorneyFullAccess: !!role.attorney_full_access,
+          onSubmit: handleRoleUpdate,
+        });
+      }
+
+      async function handleCreateRoleSubmit() {
+        const resultDiv = document.getElementById("role-create-result");
+        const submitBtn = document
+          .getElementById("role-form")
+          ?.querySelector("[data-role-submit]");
+        if (!resultDiv || !submitBtn) return;
+
+        resultDiv.innerHTML = "";
+        const payload = getRoleFormPayload();
+
+        if (!payload.email) {
+          resultDiv.innerHTML =
+            '<div class="data-item" style="color:#e74c3c;">Email is required</div>';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        const prevText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner"></span> Creating...';
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/admin/exceutive_router/roles`,
+            {
+              method: "POST",
+              headers: getRoleAuthHeaders(true),
+              body: JSON.stringify({
+                email: payload.email,
+                revenue_access: payload.revenue_access,
+                attorney_full_access: payload.attorney_full_access,
+              }),
+            },
+          );
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(
+              data.detail || data.message || "Failed to create role",
+            );
+          }
+
+          showSuccessToast(data.message || "Role created successfully");
+          resultDiv.innerHTML = `<div class="data-item" style="color:#2ecc71;">${escapeHtml(data.message || "Role created successfully")}</div>`;
+
+          const form = document.getElementById("role-form");
+          if (form) {
+            const emailField = form.querySelector('[data-field="email"]');
+            if (emailField) emailField.value = "";
+            form.querySelector('[data-field="revenue_access"]').value = "false";
+            form.querySelector('[data-field="attorney_full_access"]').value =
+              "false";
+          }
+
+          await refreshCreateRoleEmailDropdown();
+        } catch (err) {
+          resultDiv.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Something went wrong")}</div>`;
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = prevText;
+        }
+      }
+
+      async function handleRoleUpdate() {
+        const resultDiv = document.getElementById("role-edit-result");
+        const submitBtn = document
+          .getElementById("role-form")
+          ?.querySelector("[data-role-submit]");
+        const payload = getRoleFormPayload();
+        const roleId = payload.role_id;
+        if (!resultDiv || !submitBtn || !roleId) return;
+
+        resultDiv.innerHTML = "";
+
+        if (!payload.email) {
+          resultDiv.innerHTML =
+            '<div class="data-item" style="color:#e74c3c;">Email is required</div>';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        const prevText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner"></span> Saving...';
+
+        try {
+          const response = await fetch(getRolePatchUrl(roleId, payload), {
+            method: "PATCH",
+            headers: getRoleAuthHeaders(false),
+          });
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(
+              data.detail || data.message || "Failed to update role",
+            );
+          }
+
+          showSuccessToast(data.message || "Role updated successfully");
+          showRolesListView();
+        } catch (err) {
+          resultDiv.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Something went wrong")}</div>`;
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = prevText;
+        }
+      }
+
+      async function handleRoleDelete(roleId) {
+        const role = rolesListCache.find((r) => r.id === roleId);
+        const roleName = role?.email || role?.role_name || roleId;
+
+        if (
+          !confirm(
+            `Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`,
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/admin/exceutive_router/roles/${encodeURIComponent(roleId)}`,
+            {
+              method: "DELETE",
+              headers: getAuthHeaders(),
+            },
+          );
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(
+              data.detail || data.message || "Failed to delete role",
+            );
+          }
+
+          showSuccessToast(data.message || "Role deleted successfully");
+          showRolesListView();
+        } catch (err) {
+          alert(err.message || "Failed to delete role");
+        }
+      }
+
+      // Initialize password toggle buttons
+      function initPasswordToggles() {
+        document.querySelectorAll(".password-wrapper").forEach((wrapper) => {
+          const input = wrapper.querySelector("input");
+          const btn = wrapper.querySelector(".toggle-password");
+          const eyeOpen = btn.querySelector(".eye-open");
+          const eyeClosed = btn.querySelector(".eye-closed");
+
+          if (!input || !btn) return;
+
+          btn.addEventListener("click", () => {
+            if (input.type === "password") {
+              input.type = "text";
+              btn.setAttribute("aria-label", "Hide password");
+              btn.title = "Hide password";
+              btn.classList.add("show-closed");
+            } else {
+              input.type = "password";
+              btn.setAttribute("aria-label", "Show password");
+              btn.title = "Show password";
+              btn.classList.remove("show-closed");
+            }
+          });
+        });
+      }
+
+      // Global variables to store Playbook upload state
+      let lastPlaybookUploadedFile = null;
+      let lastPlaybookUploadedDepartment = null;
+
+      // Handle Playbook file upload
+      async function handlePlaybookUpload() {
+        const fileInput = document.getElementById("playbook-file-input");
+        const departmentInput = document.getElementById(
+          "playbook-department-input",
+        );
+        const uploadBtn = document.getElementById("playbook-upload-btn");
+        const uploadMessage = document.getElementById(
+          "playbook-upload-message",
+        );
+
+        const file = fileInput.files[0];
+        const department = departmentInput.value.trim();
+
+        // Validation - file is required
+        if (!file) {
+          uploadMessage.style.display = "block";
+          uploadMessage.style.color = "#e74c3c";
+          uploadMessage.textContent = "Please select a file";
+          return;
+        }
+
+        try {
+          // Disable button and show loading
+          uploadBtn.disabled = true;
+          uploadBtn.textContent = "Uploading...";
+          uploadMessage.style.display = "none";
+
+          // Create FormData
+          const formData = new FormData();
+          formData.append("file", file);
+          if (department) {
+            formData.append("department", department);
+          }
+
+          // Get auth token
+          const token = localStorage.getItem("adminToken");
+          if (!token) {
+            throw new Error("Not authenticated. Please login again.");
+          }
+
+          // Call upload API
+          const response = await fetch(
+            `${API_BASE_URL}/admin/Playbook_Chatbot/upload`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "ngrok-skip-browser-warning": "true",
+              },
+              body: formData,
+            },
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+              errorData.detail || errorData.message || "Upload failed",
+            );
+          }
+
+          const data = await response.json();
+
+          // Check if response has indexed status or file already exists
+          if (
+            data.result &&
+            (data.result.status === "indexed" ||
+              data.result.status.includes("file is already present"))
+          ) {
+            // Store the uploaded file and department for regenerate
+            lastPlaybookUploadedFile = file;
+            lastPlaybookUploadedDepartment = department;
+
+            // Show the status message (either indexed or file already present)
+            uploadMessage.style.display = "block";
+            uploadMessage.style.color = "#c9a44c";
+            uploadMessage.textContent = data.result.status;
+
+            // Change button to Regenerate
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = "Regenerate";
+            uploadBtn.onclick = handlePlaybookRegenerate;
+
+            // Disable file and department inputs
+            fileInput.disabled = true;
+            departmentInput.disabled = true;
+          } else {
+            // Success message for other responses
+            uploadMessage.style.display = "block";
+            uploadMessage.style.color = "#2ecc71";
+            uploadMessage.textContent = "✓ File uploaded successfully!";
+
+            // Reset form after 2 seconds
+            setTimeout(() => {
+              fileInput.value = "";
+              departmentInput.value = "";
+              uploadMessage.style.display = "none";
+              uploadBtn.disabled = false;
+              uploadBtn.textContent = "Upload";
+              uploadBtn.onclick = handlePlaybookUpload;
+              fileInput.disabled = false;
+              departmentInput.disabled = false;
+            }, 2000);
+          }
+        } catch (error) {
+          uploadMessage.style.display = "block";
+          uploadMessage.style.color = "#e74c3c";
+          uploadMessage.textContent = `Error: ${error.message}`;
+
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = "Upload";
+          uploadBtn.onclick = handlePlaybookUpload;
+        }
+      }
+
+      // Handle Playbook file regenerate
+      async function handlePlaybookRegenerate() {
+        const fileInput = document.getElementById("playbook-file-input");
+        const departmentInput = document.getElementById(
+          "playbook-department-input",
+        );
+        const uploadBtn = document.getElementById("playbook-upload-btn");
+        const uploadMessage = document.getElementById(
+          "playbook-upload-message",
+        );
+
+        if (!lastPlaybookUploadedFile) {
+          uploadMessage.style.display = "block";
+          uploadMessage.style.color = "#e74c3c";
+          uploadMessage.textContent = "No file to regenerate";
+          return;
+        }
+
+        try {
+          // Disable button and show loading
+          uploadBtn.disabled = true;
+          uploadBtn.innerHTML =
+            '<span class="login-btn-spinner"><span class="spinner"></span>Regenerating...</span>';
+          uploadMessage.style.display = "none";
+
+          // Enable file and department inputs during regenerate
+          fileInput.disabled = true;
+          departmentInput.disabled = false;
+
+          // Create FormData
+          const formData = new FormData();
+          formData.append("file", lastPlaybookUploadedFile);
+          if (lastPlaybookUploadedDepartment) {
+            formData.append("department", lastPlaybookUploadedDepartment);
+          }
+
+          // Get auth token
+          const token = localStorage.getItem("adminToken");
+          if (!token) {
+            throw new Error("Not authenticated. Please login again.");
+          }
+
+          // Call regenerate API with ?regenerate=true
+          const response = await fetch(
+            `${API_BASE_URL}/admin/Playbook_Chatbot/upload?regenerate=true`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "ngrok-skip-browser-warning": "true",
+              },
+              body: formData,
+            },
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+              errorData.detail || errorData.message || "Regenerate failed",
+            );
+          }
+
+          const data = await response.json();
+
+          // Success message
+          uploadMessage.style.display = "block";
+          uploadMessage.style.color = "#2ecc71";
+          uploadMessage.textContent = "✓ File regenerated successfully!";
+
+          // Reset to Upload state
+          lastPlaybookUploadedFile = null;
+          lastPlaybookUploadedDepartment = null;
+
+          // Enable inputs
+          fileInput.disabled = false;
+          departmentInput.disabled = false;
+
+          // Clear inputs
+          fileInput.value = "";
+          departmentInput.value = "";
+
+          // Reset button
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = "Upload";
+          uploadBtn.onclick = handlePlaybookUpload;
+        } catch (error) {
+          uploadMessage.style.display = "block";
+          uploadMessage.style.color = "#e74c3c";
+          uploadMessage.textContent = `Error: ${error.message}`;
+
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = "Regenerate";
+        }
+      }
+
+      function extractApiError(data, fallback) {
+        const detail = data && (data.detail || data.message);
+        if (!detail) return fallback;
+        if (typeof detail === "string") return detail;
+        if (Array.isArray(detail)) {
+          return detail
+            .map((item) =>
+              typeof item === "string"
+                ? item
+                : item.msg || item.message || JSON.stringify(item),
+            )
+            .join("; ");
+        }
+        return fallback;
+      }
+
+      let demandGeneratorAttorneysCache = [];
+
+      function extractAttorneyList(data) {
+        if (Array.isArray(data)) return data;
+        if (!data || typeof data !== "object") return [];
+        const keys = ["attorneys", "data", "members", "items", "results"];
+        for (const key of keys) {
+          if (Array.isArray(data[key])) return data[key];
+        }
+        return [];
+      }
+
+      function memberIsAttorney(attorney) {
+        const value = attorney?.is_attorney;
+        return value === true || value === 1 || value === "true" || value === "1";
+      }
+
+      function attorneyRecordId(attorney) {
+        const rawId = attorney?.id ?? attorney?.attorney_id ?? attorney?.user_id;
+        if (rawId === undefined || rawId === null || rawId === "") return "";
+        return String(rawId);
+      }
+
+      function renderAttorneyTable(attorneys) {
+        if (!attorneys.length) {
+          return '<div class="data-item">No attorneys found</div>';
+        }
+
+        const rows = attorneys
+          .map((attorney, index) => {
+            const isAttorney = memberIsAttorney(attorney);
+            const roleLabel = isAttorney ? "Attorney" : "QA";
+            const nextRole = isAttorney ? "QA" : "Attorney";
+            const recordId = attorneyRecordId(attorney);
+            const action = recordId
+              ? `<button type="button" class="role-action-btn edit" onclick="switchDemandGeneratorAttorneyRole('${escapeHtml(recordId)}', ${isAttorney ? "false" : "true"})">Switch to ${nextRole}</button>`
+              : `<span style="color:#888;">—</span>`;
+
+            return `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${escapeHtml(attorney.name || attorney.full_name || "N/A")}</td>
+              <td>${escapeHtml(attorney.email || "N/A")}</td>
+              <td><span class="role-perm-badge ${isAttorney ? "attorney" : "qa"}">${roleLabel}</span></td>
+              <td style="white-space:nowrap;">${action}</td>
+            </tr>`;
+          })
+          .join("");
+
+        return `
+          <div id="attorney-role-message"></div>
+          <table class="data-table">
+            <thead>
+              <tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      }
+
+      async function fetchDemandGeneratorAttorneys() {
+        const modalBody = document.getElementById("modal-body");
+        try {
+          const response = await fetch(
+            `${API_BASE_URL_DS}/demand_generator/admin/attorneys`,
+            { method: "GET", headers: getAuthHeaders() },
+          );
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            modalBody.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(extractApiError(data, "Failed to load attorneys"))}</div>`;
+            return;
+          }
+
+          demandGeneratorAttorneysCache = extractAttorneyList(data);
+          modalBody.innerHTML = renderAttorneyTable(demandGeneratorAttorneysCache);
+        } catch (err) {
+          modalBody.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Error loading attorneys")}</div>`;
+        }
+      }
+
+      async function switchDemandGeneratorAttorneyRole(id, makeAttorney) {
+        const nextIsAttorney = makeAttorney === true || makeAttorney === "true";
+        const member = demandGeneratorAttorneysCache.find(
+          (item) => attorneyRecordId(item) === String(id),
+        );
+        const name =
+          member?.name || member?.full_name || member?.email || "this member";
+        const nextLabel = nextIsAttorney ? "Attorney" : "QA";
+
+        if (!confirm(`Switch ${name} to ${nextLabel}?`)) return;
+
+        const messageEl = document.getElementById("attorney-role-message");
+        const buttons = document.querySelectorAll("#modal-body .role-action-btn");
+        buttons.forEach((btn) => {
+          btn.disabled = true;
+        });
+        if (messageEl) {
+          messageEl.innerHTML = `<div class="data-item">Switching role...</div>`;
+        }
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL_DS}/demand_generator/admin/attorneys/${encodeURIComponent(id)}`,
+            {
+              method: "PATCH",
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ is_attorney: nextIsAttorney }),
+            },
+          );
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(extractApiError(data, "Failed to switch role"));
+          }
+
+          await fetchDemandGeneratorAttorneys();
+          const updatedMessage = document.getElementById("attorney-role-message");
+          if (updatedMessage) {
+            updatedMessage.innerHTML = `<div class="data-item" style="color:#2ecc71;">${escapeHtml(name)} is now ${escapeHtml(nextLabel)}</div>`;
+          }
+        } catch (err) {
+          const errorMessage = document.getElementById("attorney-role-message");
+          if (errorMessage) {
+            errorMessage.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Failed to switch role")}</div>`;
+          }
+          buttons.forEach((btn) => {
+            btn.disabled = false;
+          });
+        }
+      }
+
+      async function submitDemandGeneratorAttorney() {
+        const nameInput = document.getElementById("attorney-name-input");
+        const emailInput = document.getElementById("attorney-email-input");
+        const isAttorneyInput = document.getElementById(
+          "attorney-is-attorney-input",
+        );
+        const resultDiv = document.getElementById("attorney-add-result");
+        const submitBtn = document.getElementById("attorney-submit-btn");
+        if (!nameInput || !emailInput || !resultDiv || !submitBtn) return;
+
+        const is_attorney = isAttorneyInput?.checked === true;
+
+        resultDiv.innerHTML = "";
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+
+        if (!name) {
+          resultDiv.innerHTML =
+            '<div class="data-item" style="color:#e74c3c;">Name is required</div>';
+          return;
+        }
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+          resultDiv.innerHTML =
+            '<div class="data-item" style="color:#e74c3c;">A valid email is required</div>';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        const prevText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner"></span> Adding...';
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL_DS}/demand_generator/admin/attorneys`,
+            {
+              method: "POST",
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ name, email, is_attorney }),
+            },
+          );
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(
+              extractApiError(data, "Failed to add member"),
+            );
+          }
+
+          resultDiv.innerHTML = `<div class="data-item" style="color:#2ecc71;">${escapeHtml(data.message || "Member added successfully")}</div>`;
+          nameInput.value = "";
+          emailInput.value = "";
+          if (isAttorneyInput) isAttorneyInput.checked = false;
+        } catch (err) {
+          resultDiv.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Something went wrong")}</div>`;
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = prevText;
+        }
+      }
+
+      // ── INTAKEOPS HELPERS ──
+
+      async function fetchSpecialists() {
+        const resultsDiv = document.getElementById("specialists-results");
+        if (!resultsDiv) return;
+
+        const practiceArea = (
+          document.getElementById("filter-practice-area")?.value || ""
+        ).trim();
+        const group = (
+          document.getElementById("filter-group")?.value || ""
+        ).trim();
+
+        // Build query string
+        const params = new URLSearchParams();
+        if (practiceArea) params.append("practice_area", practiceArea);
+        if (group) params.append("group", group);
+        const query = params.toString() ? `?${params.toString()}` : "";
+
+        resultsDiv.innerHTML =
+          '<div class="modal-loading"><div class="spinner"></div><p>Loading specialists...</p></div>';
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/admin/intakeops/intake_specialists${query}`,
+            { method: "GET", headers: getAuthHeaders() },
+          );
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            resultsDiv.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(data.detail || "Failed to load specialists")}</div>`;
+            return;
+          }
+
+          resultsDiv.innerHTML = formatSpecialists(data);
+        } catch (err) {
+          resultsDiv.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Error loading specialists")}</div>`;
+        }
+      }
+
+      function formatSpecialists(data) {
+        if (!Array.isArray(data?.data) || data?.data?.length === 0) {
+          return '<div class="data-item">No specialists found</div>';
+        }
+
+        const rows = data?.data
+          .map(
+            (s, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${escapeHtml(s.practice_area || "N/A")}</td>
+            <td>${escapeHtml(s.email || "N/A")}</td>
+            <td>${s.position || "N/A"}</td>
+          </tr>`,
+          )
+          .join("");
+
+        return `
+          <table class="data-table">
+            <thead>
+              <tr><th>#</th><th>Practice Area</th><th>Email</th><th>Position</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      }
+
+      const INTAKEOPS_PRACTICE_AREAS = ["AVM", "CONSUMER", "GPI", "MVA", "WCC"];
+      const INTAKEOPS_TOTAL_POSITIONS = 18;
+      let intakeSpecialistsCache = [];
+      let customPracticeAreas = [];
+
+      function getAllPracticeAreas() {
+        const areas = new Set(INTAKEOPS_PRACTICE_AREAS);
+        customPracticeAreas.forEach((pa) => areas.add(pa));
+        intakeSpecialistsCache.forEach((s) => {
+          if (s.practice_area) areas.add(s.practice_area);
+        });
+        document.querySelectorAll(".specialist-row").forEach((row) => {
+          const pa = row.querySelector(".spec-practice-area")?.value?.trim();
+          if (pa) areas.add(pa);
+        });
+        return [...areas].sort((a, b) => a.localeCompare(b));
+      }
+
+      function syncPracticeAreasFromCache() {
+        intakeSpecialistsCache.forEach((s) => {
+          const pa = (s.practice_area || "").trim();
+          if (
+            pa &&
+            !INTAKEOPS_PRACTICE_AREAS.includes(pa) &&
+            !customPracticeAreas.includes(pa)
+          ) {
+            customPracticeAreas.push(pa);
+          }
+        });
+      }
+
+      async function loadIntakeSpecialistsCache() {
+        const response = await fetch(
+          `${API_BASE_URL}/admin/intakeops/intake_specialists`,
+          { method: "GET", headers: getAuthHeaders() },
+        );
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.detail || "Failed to load specialists");
+        }
+        intakeSpecialistsCache = Array.isArray(data.data) ? data.data : [];
+        syncPracticeAreasFromCache();
+        return intakeSpecialistsCache;
+      }
+
+      function buildPracticeAreaOptions(selected) {
+        let html =
+          '<option value="" class="option-placeholder">Select practice area</option>';
+        html +=
+          '<option value="ADD_NEW" style="color: #c9a44c; font-weight: bold;">+ Add New Practice Area</option>';
+        getAllPracticeAreas().forEach((pa) => {
+          html += `<option value="${escapeHtml(pa)}" class="option-available"${selected === pa ? " selected" : ""}>${escapeHtml(pa)}</option>`;
+        });
+        return html;
+      }
+
+      function refreshAllPracticeAreaDropdowns() {
+        document.querySelectorAll(".specialist-row").forEach((row) => {
+          const select = row.querySelector(".spec-practice-area");
+          if (!select) return;
+          const selected = select.value;
+          select.innerHTML = buildPracticeAreaOptions(selected);
+        });
+      }
+
+      function getOccupiedPositionsForPracticeArea(practiceArea, excludeRowId) {
+        const occupied = new Set();
+        intakeSpecialistsCache
+          .filter((s) => s.practice_area === practiceArea)
+          .forEach((s) => occupied.add(Number(s.position)));
+
+        document.querySelectorAll(".specialist-row").forEach((row) => {
+          if (excludeRowId && row.dataset.rowId === excludeRowId) return;
+          const pa = row.querySelector(".spec-practice-area")?.value;
+          const pos = parseInt(row.querySelector(".spec-position")?.value, 10);
+          if (pa === practiceArea && !isNaN(pos)) occupied.add(pos);
+        });
+
+        return occupied;
+      }
+
+      function getUsedEmails(excludeRowId) {
+        const emails = new Set();
+        intakeSpecialistsCache.forEach((s) => {
+          if (s.email) emails.add(s.email.toLowerCase().trim());
+        });
+
+        document.querySelectorAll(".specialist-row").forEach((row) => {
+          if (excludeRowId && row.dataset.rowId === excludeRowId) return;
+          const email = row
+            .querySelector(".spec-email")
+            ?.value.trim()
+            .toLowerCase();
+          if (email) emails.add(email);
+        });
+
+        return emails;
+      }
+
+      function buildPositionOptions(practiceArea, selectedPosition, rowId) {
+        if (!practiceArea) {
+          return '<option value="" class="option-placeholder">Select practice area first</option>';
+        }
+
+        const occupied = getOccupiedPositionsForPracticeArea(
+          practiceArea,
+          rowId,
+        );
+        let html =
+          '<option value="" class="option-placeholder">Select position</option>';
+
+        for (let i = 1; i <= INTAKEOPS_TOTAL_POSITIONS; i++) {
+          const isOccupied = occupied.has(i);
+          const isSelected = Number(selectedPosition) === i;
+          const disabled = isOccupied && !isSelected ? " disabled" : "";
+          const optionClass =
+            isOccupied && !isSelected ? "option-occupied" : "option-available";
+          const label =
+            isOccupied && !isSelected
+              ? `Position ${i} — Occupied`
+              : `Position ${i}`;
+          html += `<option value="${i}" class="${optionClass}"${disabled}${isSelected ? " selected" : ""}>${label}</option>`;
+        }
+
+        return html;
+      }
+
+      function refreshAllPositionDropdowns() {
+        document.querySelectorAll(".specialist-row").forEach((row) => {
+          const rowId = row.dataset.rowId;
+          const practiceArea =
+            row.querySelector(".spec-practice-area")?.value || "";
+          const posSelect = row.querySelector(".spec-position");
+          const selectedPosition = parseInt(posSelect?.value, 10);
+          posSelect.innerHTML = buildPositionOptions(
+            practiceArea,
+            selectedPosition,
+            rowId,
+          );
+
+          if (
+            posSelect.value &&
+            posSelect.options[posSelect.selectedIndex]?.disabled
+          ) {
+            posSelect.value = "";
+          }
+        });
+      }
+
+      function validateSpecialistRowEmail(row) {
+        const emailInput = row.querySelector(".spec-email");
+        const errorEl = row.querySelector(".spec-email-error");
+        const email = emailInput.value.trim().toLowerCase();
+        let message = "";
+
+        if (email) {
+          const usedEmails = getUsedEmails(row.dataset.rowId);
+          if (usedEmails.has(email)) {
+            message = "This email is already in use";
+          } else if (!/^\S+@\S+\.\S+$/.test(emailInput.value.trim())) {
+            message = "Enter a valid email address";
+          }
+        }
+
+        errorEl.textContent = message;
+        emailInput.style.borderColor = message
+          ? "#e74c3c"
+          : "rgba(201, 164, 76, 0.2)";
+        return !message;
+      }
+
+      function wireSpecialistRowEvents(row) {
+        const practiceSelect = row.querySelector(".spec-practice-area");
+        const customInput = row.querySelector(".spec-custom-practice-input");
+        const positionSelect = row.querySelector(".spec-position");
+        const emailInput = row.querySelector(".spec-email");
+
+        practiceSelect.addEventListener("change", () => {
+          if (practiceSelect.value === "ADD_NEW") {
+            practiceSelect.style.display = "none";
+            customInput.style.display = "block";
+            customInput.value = "";
+            customInput.focus();
+          } else {
+            positionSelect.innerHTML = buildPositionOptions(
+              practiceSelect.value,
+              "",
+              row.dataset.rowId,
+            );
+            refreshAllPositionDropdowns();
+          }
+        });
+
+        let isProcessingCustom = false;
+        const handleCustomInput = () => {
+          if (isProcessingCustom) return;
+          isProcessingCustom = true;
+          try {
+            const val = customInput.value.trim().toUpperCase();
+            if (val) {
+              if (!getAllPracticeAreas().includes(val)) {
+                customPracticeAreas.push(val);
+              }
+              refreshAllPracticeAreaDropdowns();
+              const updatedSelect = row.querySelector(".spec-practice-area");
+              updatedSelect.value = val;
+              updatedSelect.style.display = "block";
+              customInput.style.display = "none";
+
+              positionSelect.innerHTML = buildPositionOptions(
+                val,
+                "",
+                row.dataset.rowId,
+              );
+              refreshAllPositionDropdowns();
+            } else {
+              practiceSelect.style.display = "block";
+              customInput.style.display = "none";
+              practiceSelect.value = "";
+            }
+          } finally {
+            isProcessingCustom = false;
+          }
+        };
+
+        customInput.addEventListener("blur", handleCustomInput);
+        customInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleCustomInput();
+          }
+          if (e.key === "Escape") {
+            customInput.value = "";
+            handleCustomInput();
+          }
+        });
+
+        positionSelect.addEventListener("change", refreshAllPositionDropdowns);
+
+        emailInput.addEventListener("input", () => {
+          validateSpecialistRowEmail(row);
+          document.querySelectorAll(".specialist-row").forEach((otherRow) => {
+            if (otherRow !== row) validateSpecialistRowEmail(otherRow);
+          });
+        });
+
+        emailInput.addEventListener("blur", () => {
+          validateSpecialistRowEmail(row);
+        });
+      }
+
+      function addSpecialistRow() {
+        const container = document.getElementById("specialist-rows-container");
+        if (!container) return;
+
+        const rowId = String(Date.now() + Math.random());
+        const row = document.createElement("div");
+        row.className = "specialist-row";
+        row.dataset.rowId = rowId;
+
+        const showRemove = container.children.length > 0;
+        row.innerHTML = `
+          ${showRemove ? `<button type="button" class="specialist-remove-btn" onclick="removeSpecialistRow('${rowId}')" aria-label="Remove row">&times;</button>` : ""}
+          <div class="specialist-row-grid${showRemove ? " has-remove-btn" : ""}">
+            <div class="practice-area-wrapper">
+              <label class="field-label">Practice Area</label>
+              <select class="spec-select spec-practice-area">
+                ${buildPracticeAreaOptions("")}
+              </select>
+              <input type="text" class="spec-input spec-custom-practice-input" style="display:none;" placeholder="Type new area..." maxlength="32" />
+            </div>
+            <div>
+              <label class="field-label">Email</label>
+              <input type="email" class="spec-input spec-email" placeholder="email@ramoslaw.com" />
+              <div class="spec-email-error"></div>
+            </div>
+            <div>
+              <label class="field-label">Position</label>
+              <select class="spec-select spec-position">
+                ${buildPositionOptions("", "", rowId)}
+              </select>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(row);
+        wireSpecialistRowEvents(row);
+      }
+
+      function removeSpecialistRow(rowId) {
+        const row = document.querySelector(
+          `.specialist-row[data-row-id="${rowId}"]`,
+        );
+        if (row) row.remove();
+        refreshAllPositionDropdowns();
+        document.querySelectorAll(".specialist-row").forEach((r) => {
+          validateSpecialistRowEmail(r);
+        });
+      }
+
+      async function initAddSpecialistModal(modalBody) {
+        try {
+          customPracticeAreas = [];
+          await loadIntakeSpecialistsCache();
+          modalBody.innerHTML = `
+            <div class="specialist-form">
+              <div id="specialist-rows-container"></div>
+              <button type="button" class="spec-btn-dashed" onclick="addSpecialistRow()">+ Add More</button>
+              <div id="spec-result" style="margin-bottom:12px; font-size:14px;"></div>
+              <button type="button" onclick="handleSpecialistSubmit()" id="spec-submit-btn" style="width:100%; padding:12px; background: linear-gradient(135deg, #c9a44c, #c9a44c); color: #000; border: none; border-radius: 6px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif;">Add Specialist</button>
+            </div>
+          `;
+          addSpecialistRow();
+        } catch (err) {
+          modalBody.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Failed to load specialist data")}</div>`;
+        }
+      }
+
+      async function handleSpecialistSubmit() {
+        const resultDiv = document.getElementById("spec-result");
+        const submitBtn = document.getElementById("spec-submit-btn");
+        resultDiv.innerHTML = "";
+
+        const rows = document.querySelectorAll(".specialist-row");
+        const specialists = [];
+        let hasError = false;
+
+        rows.forEach((row) => {
+          const practice_area = row
+            .querySelector(".spec-practice-area")
+            .value.trim();
+          const email = row.querySelector(".spec-email").value.trim();
+          const position = parseInt(
+            row.querySelector(".spec-position").value,
+            10,
+          );
+          const emailValid = validateSpecialistRowEmail(row);
+
+          if (!practice_area || !email || isNaN(position) || !emailValid) {
+            hasError = true;
+            row.style.borderColor = "#e74c3c";
+            row.style.background = "rgba(231, 76, 60, 0.05)";
+          } else {
+            row.style.borderColor = "rgba(201, 164, 76, 0.1)";
+            row.style.background = "rgba(255, 255, 255, 0.05)";
+            specialists.push({ practice_area, email, position });
+          }
+        });
+
+        if (hasError) {
+          resultDiv.innerHTML =
+            '<div class="data-item" style="color:#e74c3c;">Please complete all fields. Occupied positions and duplicate emails are not allowed.</div>';
+          return;
+        }
+
+        if (specialists.length === 0) {
+          resultDiv.innerHTML =
+            '<div class="data-item" style="color:#e74c3c;">Please add at least one specialist</div>';
+          return;
+        }
+
+        const isBulk = specialists.length > 1;
+        const endpoint = isBulk
+          ? "/admin/intakeops/intake_specialists/bulk"
+          : "/admin/intakeops/intake_specialists";
+        const body = isBulk
+          ? JSON.stringify(specialists)
+          : JSON.stringify(specialists[0]);
+
+        submitBtn.disabled = true;
+        const prevText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+
+        try {
+          const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: body,
+          });
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(data.detail || data.message || "Request failed");
+          }
+
+          resultDiv.innerHTML = `<div class="data-item" style="color:#2ecc71;">✓ ${escapeHtml(data.message || "Success!")}</div>`;
+        } catch (err) {
+          resultDiv.innerHTML = `<div class="data-item" style="color:#e74c3c;">${escapeHtml(err.message || "Something went wrong")}</div>`;
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = prevText;
+        }
+      }
+
+      // Run on load to wire up toggles (safe to have multiple DOMContentLoaded listeners)
+      window.addEventListener("DOMContentLoaded", function () {
+        initPasswordToggles();
+      });
+    
+      // Directory search + rail (matches index)
+      (function () {
+        const searchInput = document.getElementById("tool-search");
+        if (!searchInput) return;
+        const wrappers = Array.from(document.querySelectorAll(".dashboard-btn-wrapper"));
+        const sections = Array.from(document.querySelectorAll("#dashboard section.exhibit"));
+        const noResults = document.getElementById("no-results");
+        const noResultsTerm = document.getElementById("no-results-term");
+        searchInput.addEventListener("input", () => {
+          const q = searchInput.value.trim().toLowerCase();
+          let anyVisible = false;
+          sections.forEach((section) => {
+            let sectionHasVisible = false;
+            section.querySelectorAll(".dashboard-btn-wrapper").forEach((wrap) => {
+              const btn = wrap.querySelector(".dashboard-btn");
+              const name = ((btn && btn.dataset.name) || "").toLowerCase();
+              const desc = (wrap.querySelector(".card-desc") || {}).textContent || "";
+              const match = !q || name.includes(q) || desc.toLowerCase().includes(q);
+              wrap.classList.toggle("hidden", !match);
+              if (match) {
+                sectionHasVisible = true;
+                anyVisible = true;
+              }
+            });
+            section.classList.toggle("hidden", !sectionHasVisible);
+          });
+          if (noResults) {
+            noResults.classList.toggle("hidden", anyVisible || !q);
+            if (noResultsTerm) noResultsTerm.textContent = searchInput.value.trim();
+          }
+        });
+        const railLinks = Array.from(document.querySelectorAll("#dashboard .rail a"));
+        window.addEventListener('scroll', () => {
+          let current = sections[0].getAttribute('id');
+          const scrollPos = window.scrollY + (window.innerHeight / 2);
+          
+          sections.forEach(section => {
+            if (section.offsetTop <= scrollPos) {
+              current = section.getAttribute('id');
+            }
+          });
+
+          railLinks.forEach(l => {
+            l.classList.remove('active');
+            if (current && l.getAttribute('href') === `#${current}`) {
+              l.classList.add('active');
+            }
+          });
+        });
+      })();
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,642 @@
+jurisdiction: AZ_STATE
+name: "Arizona State Court (Superior Court)"
+day_type_default: calendar
+holiday_set: federal+arizona
+
+rules:
+  # ── PRE-SUIT ──────────────────────────────────────────────────────────────
+  - id: az_state_sol_1yr_strict_liability
+    trigger: incident_date
+    label: "SOL — 1-Year Torts (Dog Bite / A.R.S. §12-541)"
+    offset_days: 365
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [180, 90, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-541. Dog bite strict liability and other §12-541 torts. WARNING: courts have applied both §12-541 (1yr) and §12-542 (2yr) — file within 1 year to be safe."
+
+  - id: az_state_sol_personal_injury
+    trigger: incident_date
+    label: "SOL — Personal Injury (2 yr)"
+    # offset_days: 730
+    offset_years: 2
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [365, 180, 90, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-542. General PI SOL: MVA, premises, negligence, wrongful death, property damage. Minor plaintiffs tolled to age 18 + 2 yrs (§12-502)."
+
+  - id: az_state_sol_government_entity
+    trigger: incident_date
+    label: "SOL — Government Entity (1 yr)"
+    offset_days: 365
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [180, 90, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-821. 1 year TOTAL from injury — not 1 year after NOC clock. Both NOC (180 days) and suit (1 year) run from accrual date."
+
+  - id: az_state_sol_contract_written
+    trigger: breach_date
+    label: "SOL — Written Contract (6 yr)"
+    # offset_days: 2190
+    offset_years: 6
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [365, 180, 90, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-548"
+
+  - id: az_state_sol_contract_oral
+    trigger: breach_date
+    label: "SOL — Oral Contract (3 yr)"
+    # offset_days: 1095
+    offset_years: 3
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [365, 180, 90, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-543"
+
+  - id: az_state_sol_property_damage
+    trigger: incident_date
+    label: "SOL — Property Damage (2 yr)"
+    # offset_days: 730
+    offset_years: 2
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [365, 180, 90, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-542"
+
+  - id: az_state_notice_of_claim
+    trigger: incident_date
+    label: "Notice of Claim — Government Entity (180 days)"
+    offset_days: 180
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [90, 60, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-821.01. Must state SPECIFIC dollar amount — Deer Valley USD v. Houser: 'in excess of X' = VOID. CMO override: accept input but WARN if CMO date is later than statute allows."
+
+  - id: az_state_designation_nonparties
+    trigger: complaint_filed_date
+    label: "Designation of Non-Parties at Fault (150 days)"
+    offset_days: 150
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [60, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-2506(B). NO FEDERAL EQUIVALENT. Statute is absolute — court cannot extend. Warn and refuse CMO date if later than statutory deadline."
+
+  # ── SERVICE OF COMPLAINT ──────────────────────────────────────────────────
+  - id: az_state_serve_complaint
+    trigger: complaint_filed_date
+    label: "Serve Complaint (90 days)"
+    offset_days: 90
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "ARCP 4(i). Failure = dismissal w/o prejudice; court may extend for good cause. Federal: FRCP 4(m) — same 90 days, different citation."
+
+  - id: az_state_answer
+    trigger: service_of_complaint
+    label: "Answer to Complaint Due"
+    offset_days: 20
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: red
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-311; Ariz. R. Civ. P. 12(a)(1). +30 days if served by publication. +60 days if defendant waives service (ARCP 4(f)). Federal default is 21 days — different from AZ."
+
+  - id: az_state_answer_publication
+    trigger: service_by_publication
+    label: "Answer Due — Service by Publication"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [21, 14, 7, 3, 1]
+    color: red
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Civ. P. 4.1(l)"
+
+  # ── EARLY CASE ────────────────────────────────────────────────────────────
+  - id: az_state_early_meeting
+    trigger: answer_filed_date
+    label: "Early Meeting (Rule 16(b)) — 30 Days After Answer"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: orange
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 16(b)(1). KEY ANCHOR: discovery tier clock starts from this date. Store early_meeting_date as a primary input. No federal equivalent — FRCP uses Rule 26(f) instead."
+
+  - id: az_state_joint_report_scheduling
+    trigger: early_meeting_date
+    label: "Joint Report & Proposed Scheduling Order Due"
+    offset_days: 14
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 16(b)(2). All downstream CMO deadlines derive from the resulting scheduling order."
+
+  - id: az_state_initial_disclosures
+    trigger: service_of_complaint
+    label: "Initial Disclosure Statement Due"
+    offset_days: 40
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [21, 14, 7, 3, 1]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Civ. P. 26.1(f)(1) — 40 days after service of complaint (plaintiff). AZ-specific: 10 disclosure categories — much broader than federal Rule 26(a)(1) which requires only 4 categories."
+
+  # ── DISCOVERY — TIER-BASED ─────────────────────────────────────────────────
+  - id: az_state_tier1_discovery_completion
+    trigger: early_meeting_date
+    label: "Tier 1 Discovery Completion (≤$50k)"
+    offset_days: 120
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [30, 14, 7]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 26.2(b)(1). NO FEDERAL EQUIVALENT. Tier 1: ≤$50k. Used in discovery_cutoff MIN formula: MIN(trial_date − 60, early_meeting + 120)."
+
+  - id: az_state_tier2_discovery_completion
+    trigger: early_meeting_date
+    label: "Tier 2 Discovery Completion ($50k–$300k)"
+    offset_days: 180
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [60, 30, 14, 7]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 26.2(b)(2). NO FEDERAL EQUIVALENT. Tier 2: $50k–$300k. Most standard PI cases. Used in MIN formula: MIN(trial_date − 60, early_meeting + 180)."
+
+  - id: az_state_tier3_discovery_completion
+    trigger: early_meeting_date
+    label: "Tier 3 Discovery Completion (>$300k)"
+    offset_days: 240
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [60, 30, 14, 7]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 26.2(b)(3). NO FEDERAL EQUIVALENT. Tier 3: >$300k or complex. Used in MIN formula: MIN(trial_date − 60, early_meeting + 240)."
+
+  - id: az_state_supplemental_disclosure
+    trigger: new_info_discovered_date
+    label: "Supplemental Disclosure Obligation (+30 days from new info)"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: orange
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 26.1(f)(2). Ongoing/recurring duty. Late disclosure after 60 days before trial requires motion for leave. Exclusion is default sanction (ARCP 37(c))."
+
+  - id: az_state_interrogatory_responses
+    trigger: discovery_served_date
+    label: "Interrogatory / RFP / RFA Responses Due"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "ARCP 33(b)(2), 34(b)(2), 36(a). Same 30-day timeline in AZ and federal. +3 days if served by mail. AZ: 40 interrogatories/side; federal: 25 interrogatories/side."
+
+  - id: az_state_deposition_notice
+    trigger: deposition_date
+    label: "Deposition Notice — Minimum 10 Calendar Days Before"
+    offset_days: -10
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [3, 1]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "ARCP 30(b). CALENDAR days (not business days). AZ: max 6 hrs per depo (ARCP 30(d)). Developer: minimum notice — depo cannot occur fewer than 10 days after notice."
+
+  - id: az_state_discovery_cutoff
+    trigger: trial_date
+    label: "Discovery Cutoff"
+    offset_days: -60
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [30, 14, 7]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 26(b); ARCP 26.2. FORMULA: MIN(trial_date − 60, early_meeting + tier_days). The 60-day figure is Maricopa scheduling default — implement as CMO-overridable constant. CMO ALWAYS controls when provided."
+
+  - id: az_state_written_discovery_deadline
+    trigger: discovery_cutoff_date
+    label: "Written Discovery Deadline (−30 days before cutoff)"
+    offset_days: -30
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 33, 34, 36; CMO. Chains from discovery_cutoff_date, NOT trial_date. Compute as: discovery_cutoff_date − 30 days."
+
+  - id: az_state_expert_disclosure
+    trigger: trial_date
+    label: "Plaintiff Expert Witness Disclosure Deadline"
+    offset_days: -120
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [30, 14, 7, 3]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 26.1(a)(6); CMO. CMO ALWAYS controls — 120 days is minimum fallback. Maricopa CMOs typically 150–180 days. AZ does NOT require written expert report (unlike FRCP 26(a)(2)(B))."
+
+  - id: az_state_defendant_expert_disclosure
+    trigger: trial_date
+    label: "Defendant Expert Disclosures Due"
+    offset_days: -90
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [30, 14, 7, 3, 1]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 26.1(a)(6); CMO. CMO ALWAYS controls — 90 days is default. Typically 30 days after plaintiff's disclosure. Some Maricopa judges stagger 60 days after plaintiff."
+
+  - id: az_state_rebuttal_expert
+    trigger: defendant_expert_disclosure_date
+    label: "Rebuttal Expert Disclosure Deadline"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 26.1(a)(6); CMO. CONFIRMED trigger: defendant_expert_disclosure_date + 30 days — NOT trial_date. If defendant date not yet known, use trial−60 as PROVISIONAL estimate with warning. Warn if rebuttal date falls <30 days before trial."
+
+  # ── MOTION DEADLINES ─────────────────────────────────────────────────────
+  - id: az_state_msj
+    trigger: trial_date
+    label: "Motion for Summary Judgment Deadline"
+    offset_days: -91
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [21, 14, 7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "Ariz. R. Civ. P. 56; CMO. Maricopa typical 91 days (range 90–120). AZ: response 30 days; reply 15 days (ARCP 56). Federal: response 21 days (FRCP 56(c)(1)). Must file SOF in AZ."
+
+  - id: az_state_msj_response
+    trigger: msj_filed_date
+    label: "Response to Motion for Summary Judgment"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [21, 14, 7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Civ. P. 56(c)(2) — 30 days (vs 21 in CO federal)"
+
+  - id: az_state_msj_reply
+    trigger: msj_response_date
+    label: "Reply ISO Motion for Summary Judgment"
+    offset_days: 15
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Civ. P. 56(c)(3) — 15 days (vs 14 in CO federal)"
+
+  - id: az_state_motion_response
+    trigger: motion_filed_date
+    label: "Response to Motion Due"
+    offset_days: 10
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Civ. P. 7.1(a)(3) — 10 calendar days for most motions (Superior Court)"
+
+  - id: az_state_motion_reply
+    trigger: motion_response_date
+    label: "Reply in Support of Motion Due"
+    offset_days: 5
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Civ. P. 7.1(a)(4) — 5 days"
+
+  - id: az_state_rule702_daubert_motions
+    trigger: trial_date
+    label: "Rule 702 / Daubert Motions Deadline"
+    offset_days: -60
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [21, 14, 7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Evid. 702; CMO. AZ adopted Daubert in 2012. 60–90 days before trial typical. Check whether CMO treats this as a separate track from MILs."
+
+  # ── TRIAL SCHEDULING ─────────────────────────────────────────────────────
+  - id: az_state_exchange_witness_exhibit_lists
+    trigger: trial_date
+    label: "Exchange Witness / Exhibit Lists"
+    offset_days: -30
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 16(d); CMO. CMO ALWAYS controls when provided. Undisclosed witnesses/exhibits may be excluded at trial."
+
+  - id: az_state_motions_in_limine
+    trigger: trial_date
+    label: "Motions in Limine Deadline"
+    offset_days: -30
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 16(d); CMO. CMO ALWAYS controls when provided."
+
+  - id: az_state_mil_response
+    trigger: mil_filed_date
+    label: "Response to Motions in Limine"
+    offset_days: 10
+    day_type: business
+    rollover: next_business_day
+    reminders_days: [5, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 7.1(b). BUSINESS DAYS ONLY — 10 business days (not calendar days). Skip weekends AND all AZ state holidays. CMOs often shorten to 7 calendar days in pretrial."
+
+  - id: az_state_joint_pretrial_statement
+    trigger: trial_date
+    label: "Joint Pre-Trial Statement / Trial Management Order Due"
+    offset_days: -20
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 16(d); judge standing orders. CMO and judge's standing order control. Content varies by Maricopa judge."
+
+  - id: az_state_preserved_testimony_designations
+    trigger: trial_date
+    label: "Preserved Testimony (Deposition) Designations Due"
+    offset_days: -20
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 32(a); CMO. CMO ALWAYS controls. Counter-designations typically +10 days later."
+
+  - id: az_state_trial_briefs
+    trigger: trial_date
+    label: "Trial Briefs Due"
+    offset_days: -10
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 16(d); CMO. Not universally required — check individual judge's standing orders."
+
+  - id: az_state_jury_instructions
+    trigger: trial_date
+    label: "Proposed Jury Instructions Due"
+    offset_days: -7
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Civ. P. 51(a); CMO. CMO ALWAYS controls. Always start from RAJI. Objections to opponent's instructions must be on record to preserve appeal."
+
+  - id: az_state_witness_exhibit_list
+    trigger: trial_date
+    label: "Final Witness & Exhibit List Due"
+    offset_days: -20
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "Ariz. R. Civ. P. 16(e)"
+
+  - id: az_state_preserved_testimony_lodged
+    trigger: trial_date
+    label: "Preserved Testimony Lodged with Court"
+    offset_days: -3
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 32(a); CMO. CMO ALWAYS controls when provided."
+
+  # ── POST-TRIAL ────────────────────────────────────────────────────────────
+  - id: az_state_motion_new_trial
+    trigger: judgment_entry_date
+    label: "Motion for New Trial"
+    offset_days: 15
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 59(a). +15 days from entry of judgment. Federal equivalent: FRCP 59(b) — 28 days (different number). AZ: 15 days."
+
+  - id: az_state_motion_jnov
+    trigger: judgment_entry_date
+    label: "Motion for JNOV (Judgment as Matter of Law)"
+    offset_days: 15
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 50(b). Must have made ARCP 50(a) motion during trial to preserve. Federal: FRCP 50(b) — 28 days."
+
+  - id: az_state_motion_alter_amend_judgment
+    trigger: judgment_entry_date
+    label: "Motion to Alter or Amend Judgment"
+    offset_days: 15
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 59(l). Federal: FRCP 59(e) — 28 days. AZ: 15 days."
+
+  - id: az_state_motion_attorneys_fees
+    trigger: judgment_entry_date
+    label: "Motion for Attorney's Fees"
+    offset_days: 20
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "ARCP 54(g). Federal: FRCP 54(d)(2)(B) — 14 days. AZ: 20 days."
+
+  - id: az_state_notice_of_appeal
+    trigger: judgment_entry_date
+    label: "Notice of Appeal — JURISDICTIONAL"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "A.R.S. §12-2101. CRITICAL: missing = appeal permanently barred. AZ Court of Appeals has no jurisdiction for late appeals. Federal: FRAP 4(a)(1)(A) — also 30 days. HIGHEST ALERT in UI."
+
+  # ── SETTLEMENT / MARICOPA-SPECIFIC ────────────────────────────────────────
+  - id: az_state_trial_de_novo_demand
+    trigger: arbitration_award_date
+    label: "Trial de Novo Demand (Post-Arbitration)"
+    offset_days: 20
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: yellow
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: MARICOPA ONLY
+    notes: "MCLR Rule 3.10. MARICOPA COUNTY ONLY. Mandatory arbitration for cases ≤$65,000. 20 days from award. WARNING: if appealing party does not improve position by ≥23% at trial de novo, they bear arbitration costs and sanctions."
+
+  # ── COMPLAINT FILED DATE ANCHORS ─────────────────────────────────────────
+  - id: az_state_filing_case_mgmt
+    trigger: complaint_filed_date
+    label: "Case Management Deadline (Filing Anchor)"
+    offset_days: 60
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 1]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "AZ State — case management deadline anchored to complaint filed date. 60-day default; CMO always controls when provided."
+
+  - id: az_state_sol_tolling
+    trigger: complaint_filed_date
+    label: "SOL Tolling Confirmation"
+    offset_days: 0
+    day_type: calendar
+    rollover: none
+    reminders_days: [7, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ STATE ONLY
+    notes: "SOL tolled as of complaint filed date. Verify tolling applies to all claims. offset_days: 0 = fires on the filing date itself as a checklist reminder."

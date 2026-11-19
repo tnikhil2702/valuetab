@@ -1,0 +1,457 @@
+[
+ {
+  "raw": "APEX Posture and Sport",
+  "clean": "APEX Posture and Sport",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Accelerate Health - Denver",
+  "clean": "Accelerate Health - Denver",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Acupuncture Chiropractic Center",
+  "clean": "Acupuncture Chiropractic Center",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Aim High Chiropractic",
+  "clean": "Aim High Chiropractic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Aircraft Owners and Pilot Association",
+  "clean": "Aircraft Owners and Pilot Association",
+  "group": "Other / unclassified"
+ },
+ {
+  "raw": "Alpha Accident Lawyers",
+  "clean": "Alpha Accident Lawyers",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Attorney Share",
+  "clean": "Attorney Share",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Be Well Spine and Soul LLC",
+  "clean": "Be Well Spine and Soul LLC",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Billboard Advertising",
+  "clean": "Billboard Advertising",
+  "group": "Traditional Marketing"
+ },
+ {
+  "raw": "Birdsall Chiropractic Hand & Foot",
+  "clean": "Birdsall Chiropractic Hand & Foot",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Bugs Towing",
+  "clean": "Bugs Towing",
+  "group": "Non-Medical Business Relations"
+ },
+ {
+  "raw": "Building Signage",
+  "clean": "Building Signage",
+  "group": "Traditional Marketing"
+ },
+ {
+  "raw": "Car Ads",
+  "clean": "Car Ads",
+  "group": "Traditional Marketing"
+ },
+ {
+  "raw": "Care Chiropractic",
+  "clean": "Care Chiropractic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Care Chiropractic - Steven C. Visentin, D.C.",
+  "clean": "Care Chiropractic - Steven C. Visentin, D.C.",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Cases on Demand",
+  "clean": "Cases on Demand",
+  "group": "Digital"
+ },
+ {
+  "raw": "ChatGPT",
+  "clean": "ChatGPT",
+  "group": "Digital"
+ },
+ {
+  "raw": "Collision Chiropractic",
+  "clean": "Collision Chiropractic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Colorado Accident and Injury",
+  "clean": "Colorado Accident and Injury",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Colorado Bar Association",
+  "clean": "Colorado Bar Association",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Colorado Injury Center - CO Springs",
+  "clean": "Colorado Injury Center - CO Springs",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Commercial, TvViewer",
+  "clean": "Commercial, TvViewer",
+  "group": "Traditional Marketing"
+ },
+ {
+  "raw": "DMG & Associates PLLC",
+  "clean": "DMG & Associates PLLC",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Denver Chiropractic, LLC",
+  "clean": "Denver Chiropractic, LLC",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Denver Integrated Spine Center",
+  "clean": "Denver Integrated Spine Center",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Dorsa Chiropractic / Integrated Health",
+  "clean": "Dorsa Chiropractic / Integrated Health",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Eddie Powers Towing",
+  "clean": "Eddie Powers Towing",
+  "group": "Non-Medical Business Relations"
+ },
+ {
+  "raw": "Einstein's Brain and Pain",
+  "clean": "Einstein's Brain and Pain",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Employee",
+  "clean": "Employee",
+  "group": "Employee"
+ },
+ {
+  "raw": "Ethos Chiropractic",
+  "clean": "Ethos Chiropractic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Event/Venue",
+  "clean": "Event/Venue",
+  "group": "Traditional Marketing"
+ },
+ {
+  "raw": "Facebook",
+  "clean": "Facebook",
+  "group": "Digital"
+ },
+ {
+  "raw": "Facebook Ads",
+  "clean": "Facebook Ads",
+  "group": "Digital"
+ },
+ {
+  "raw": "FindLaw",
+  "clean": "FindLaw",
+  "group": "Digital"
+ },
+ {
+  "raw": "Friend / Family",
+  "clean": "Friend / Family",
+  "group": "Community / Family"
+ },
+ {
+  "raw": "Genesis Wellness Clinic",
+  "clean": "Genesis Wellness Clinic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Google Ads",
+  "clean": "Google Ads",
+  "group": "Digital"
+ },
+ {
+  "raw": "Google Local Services",
+  "clean": "Google Local Services",
+  "group": "Digital"
+ },
+ {
+  "raw": "Google Search",
+  "clean": "Google Search",
+  "group": "Digital"
+ },
+ {
+  "raw": "Injury Physicians & Advisors",
+  "clean": "Injury Physicians & Advisors",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Instagram",
+  "clean": "Instagram",
+  "group": "Digital"
+ },
+ {
+  "raw": "Internet",
+  "clean": "Internet",
+  "group": "Digital"
+ },
+ {
+  "raw": "Keches Law Group",
+  "clean": "Keches Law Group",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Law Office of Manuel Solis",
+  "clean": "Law Office of Manuel Solis",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Lawyers.com",
+  "clean": "Lawyers.com",
+  "group": "Digital"
+ },
+ {
+  "raw": "Ledger Law Firm",
+  "clean": "Ledger Law Firm",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Left Hand Chiropractic Center",
+  "clean": "Left Hand Chiropractic Center",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Lexamica",
+  "clean": "Lexamica",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "LinkedIn",
+  "clean": "LinkedIn",
+  "group": "Digital"
+ },
+ {
+  "raw": "MVPC - ME Physical Therapy",
+  "clean": "MVPC - ME Physical Therapy",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Marrick Medical",
+  "clean": "Marrick Medical",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Maximize Life Chiropractic",
+  "clean": "Maximize Life Chiropractic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Maximize Life Chiropractic PC",
+  "clean": "Maximize Life Chiropractic PC",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Medical/Health Care Provider",
+  "clean": "Medical/Health Care Provider",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Metro Denver Accident & Injury Centers",
+  "clean": "Metro Denver Accident & Injury Centers",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Morgan & Morgan",
+  "clean": "Morgan & Morgan",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Mountain View Pain Center",
+  "clean": "Mountain View Pain Center",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Mountain View Pain Specialists",
+  "clean": "Mountain View Pain Specialists",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Nunez, Josh",
+  "clean": "Nunez, Josh",
+  "group": "Individual (needs cleanup)"
+ },
+ {
+  "raw": "Paul Wilkinson Law Firm",
+  "clean": "Paul Wilkinson Law Firm",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Pond Lehocky Giordano",
+  "clean": "Pond Lehocky Giordano",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Power Health",
+  "clean": "Power Health",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Precision Integrative Care",
+  "clean": "Precision Integrative Care",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Premier Pain Management",
+  "clean": "Premier Pain Management",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Prior / Current Client",
+  "clean": "Prior / Current Client",
+  "group": "Client / Past-Present"
+ },
+ {
+  "raw": "Pro Performance Chiropractic",
+  "clean": "Pro Performance Chiropractic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Quintana, Ms. Tammy",
+  "clean": "Quintana, Ms. Tammy",
+  "group": "Individual (needs cleanup)"
+ },
+ {
+  "raw": "Radio",
+  "clean": "Radio",
+  "group": "Traditional Marketing"
+ },
+ {
+  "raw": "Rafi Law Group",
+  "clean": "Rafi Law Group",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Ramos, Joseph",
+  "clean": "Ramos, Joseph",
+  "group": "Individual (needs cleanup)"
+ },
+ {
+  "raw": "Range Medical Company",
+  "clean": "Range Medical Company",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Rock Creek Spine & Rehabilitation Center",
+  "clean": "Rock Creek Spine & Rehabilitation Center",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "STAMP Medical",
+  "clean": "STAMP Medical",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Shift Chiropractic",
+  "clean": "Shift Chiropractic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "SiteStaff",
+  "clean": "SiteStaff",
+  "group": "Digital"
+ },
+ {
+  "raw": "Super Lawyers",
+  "clean": "Super Lawyers",
+  "group": "Digital"
+ },
+ {
+  "raw": "Sweet James Law Firm",
+  "clean": "Sweet James Law Firm",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Synergy Health Partners",
+  "clean": "Synergy Health Partners",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "TV Ad",
+  "clean": "TV Ad",
+  "group": "Traditional Marketing"
+ },
+ {
+  "raw": "The Advocates Injury Attorneys - Arizona",
+  "clean": "The Advocates Injury Attorneys - Arizona",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Thomas, Keel & Laird",
+  "clean": "Thomas, Keel & Laird",
+  "group": "Attorney Referral"
+ },
+ {
+  "raw": "Thrive Health Systems - West",
+  "clean": "Thrive Health Systems - West",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "TikTok",
+  "clean": "TikTok",
+  "group": "Digital"
+ },
+ {
+  "raw": "TopDog",
+  "clean": "TopDog",
+  "group": "Other / unclassified"
+ },
+ {
+  "raw": "Ultimate Health Medical Clinic",
+  "clean": "Ultimate Health Medical Clinic",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Vehicle Wrap",
+  "clean": "Vehicle Wrap",
+  "group": "Traditional Marketing"
+ },
+ {
+  "raw": "Warner Injury and Chiropractic Center",
+  "clean": "Warner Injury and Chiropractic Center",
+  "group": "Medical Provider"
+ },
+ {
+  "raw": "Word of Mouth",
+  "clean": "Word of Mouth",
+  "group": "Community / Family"
+ },
+ {
+  "raw": "Yelp",
+  "clean": "Yelp",
+  "group": "Digital"
+ },
+ {
+  "raw": "YouTube",
+  "clean": "YouTube",
+  "group": "Digital"
+ },
+ {
+  "raw": "Zanes Law Injury Lawyers",
+  "clean": "Zanes Law Injury Lawyers",
+  "group": "Attorney Referral"
+ }
+]

@@ -1,0 +1,12 @@
+/__pycache__/
+/.pytest_cache
+.env
+/venv
+sop-index-azure.json
+__pycache__
+VerdictIQ/
+# attorney_tracker/
+evidenceflow/
+# Cs_dashboard/ 
+# PeakTrac/
+# marketing_dashboard/

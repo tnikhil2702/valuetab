@@ -1,0 +1,4176 @@
+﻿﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Injury Intelligence:Vision</title>
+    <link
+      rel="icon"
+      type="image/webp"
+      href="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        font-family: "Montserrat", sans-serif;
+        background-color: #111;
+        color: #f1c40f;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .video-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url("https://static.vecteezy.com/system/resources/previews/007/596/744/non_2x/abstract-digital-glossy-particles-and-lines-connected-3d-illustration-on-black-background-free-photo.jpg");
+        background-size: cover;
+        background-position: center top 150px;
+        z-index: -2;
+      }
+
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.85);
+        z-index: -1;
+      }
+
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100vh;
+      }
+
+      .app-header {
+        background: rgba(17, 17, 17, 0.98);
+        backdrop-filter: blur(20px);
+        border-bottom: 2px solid rgba(241, 196, 15, 0.2);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 20px rgba(241, 196, 15, 0.15);
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .logo {
+        height: 56px;
+        width: auto;
+        filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.3));
+      }
+
+      .header-title h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #f1c40f;
+        letter-spacing: 1px;
+        text-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+      }
+
+      .header-title p {
+        font-size: 13px;
+        color: #999;
+        margin-top: 4px;
+      }
+
+      .header-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .new-chat-btn {
+        background: rgba(241, 196, 15, 0.15);
+        color: #f1c40f;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+      }
+
+      .new-chat-btn:hover {
+        background: rgba(241, 196, 15, 0.25);
+        border-color: rgba(241, 196, 15, 0.6);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3);
+      }
+
+      .tooltip {
+        position: absolute;
+        bottom: -35px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(17, 17, 17, 0.95);
+        color: #f1c40f;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        z-index: 1000;
+      }
+
+      .new-chat-btn:hover .tooltip {
+        opacity: 1;
+      }
+
+      .menu-icon-btn {
+        background: rgba(241, 196, 15, 0.15);
+        color: #f1c40f;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .menu-icon-btn:hover {
+        background: rgba(241, 196, 15, 0.25);
+        border-color: rgba(241, 196, 15, 0.6);
+      }
+
+      .popover {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: rgba(17, 17, 17, 0.98);
+        border: 2px solid rgba(241, 196, 15, 0.3);
+        border-radius: 12px;
+        padding: 8px;
+        min-width: 220px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: none;
+      }
+
+      .popover.active {
+        display: block;
+      }
+
+      .popover-item {
+        padding: 12px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .popover-item:hover {
+        background: rgba(241, 196, 15, 0.15);
+      }
+
+      .popover-item.email-info {
+        cursor: default;
+        border-bottom: 1px solid rgba(241, 196, 15, 0.2);
+        margin-bottom: 4px;
+      }
+
+      .popover-item.email-info:hover {
+        background: transparent;
+      }
+
+      .popover-email {
+        color: #f1c40f;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .popover-status {
+        color: #999;
+        font-size: 12px;
+      }
+
+      .popover-item.logout-btn {
+        color: #e74c3c;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .popover-item.logout-btn:hover {
+        background: rgba(231, 76, 60, 0.15);
+      }
+
+      /* Main app logged-in layout - PURE FLEX NO HEIGHT */
+      [x-data="injuryApp()"] {
+        flex-direction: column !important;
+        width: 100vw !important;
+        height: 100svh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+      }
+
+      [x-data="injuryApp()"][style*="display"] {
+        display: flex !important;
+      }
+
+      [x-data="injuryApp()"] .app-header {
+        padding: 8px 24px 8px 24px !important;
+        flex: 0 0 auto !important;
+        box-sizing: border-box !important;
+      }
+
+      [x-data="injuryApp()"] .chat-container {
+        flex: 1 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+      }
+
+      [x-data="injuryApp()"] .chat-messages {
+        flex: 1 !important;
+        padding: 20px 24px !important;
+        gap: 16px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+      }
+
+      [x-data="injuryApp()"] .chat-messages::-webkit-scrollbar {
+        display: none !important;
+      }
+
+      [x-data="injuryApp()"] .input-container {
+        flex: 0 0 auto !important;
+        padding: 8px 20px 8px 20px !important;
+        margin: 0 !important;
+        background: rgba(17, 17, 17, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        border-top: 1px solid rgba(241, 196, 15, 0.2) !important;
+        box-sizing: border-box !important;
+      }
+
+      [x-data="injuryApp()"] .input-wrapper {
+        display: flex !important;
+        gap: 10px !important;
+        align-items: flex-end !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      [x-data="injuryApp()"] .input-content {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+      }
+
+      [x-data="injuryApp()"] .input-wrapper textarea {
+        flex: 1 !important;
+        min-height: 46px !important;
+        max-height: 110px !important;
+        padding: 11px 90px 11px 14px !important;
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+        box-sizing: border-box !important;
+      }
+
+      [x-data="injuryApp()"] .send-btn {
+        flex: 0 0 auto !important;
+        padding: 11px 24px !important;
+        min-height: 46px !important;
+        font-size: 14px !important;
+        box-sizing: border-box !important;
+      }
+
+      [x-data="injuryApp()"] .attachment-previews {
+        display: none !important;
+      }
+
+      .chat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        max-width: 100%;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0;
+      }
+
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .chat-messages::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .chat-messages::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+      }
+
+      .chat-messages::-webkit-scrollbar-thumb {
+        background: rgba(241, 196, 15, 0.4);
+        border-radius: 4px;
+      }
+
+      .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: rgba(241, 196, 15, 0.6);
+      }
+
+      /* Scrollbar styling for popovers */
+      #templates-popover::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #templates-popover::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+      }
+
+      #templates-popover::-webkit-scrollbar-thumb {
+        background: rgba(241, 196, 15, 0.4);
+        border-radius: 4px;
+      }
+
+      #templates-popover::-webkit-scrollbar-thumb:hover {
+        background: rgba(241, 196, 15, 0.6);
+      }
+
+      #active-users-popover::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #active-users-popover::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+      }
+
+      #active-users-popover::-webkit-scrollbar-thumb {
+        background: rgba(241, 196, 15, 0.4);
+        border-radius: 4px;
+      }
+
+      #active-users-popover::-webkit-scrollbar-thumb:hover {
+        background: rgba(241, 196, 15, 0.6);
+      }
+
+      .message-wrapper {
+        display: flex;
+        animation: slideUp 0.4s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .message-wrapper.user {
+        justify-content: flex-end;
+      }
+
+      .message {
+        max-width: 75%;
+        padding: 18px 24px;
+        border-radius: 16px;
+        line-height: 1.7;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      .message.user {
+        background: linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%);
+        color: #000;
+        border-bottom-right-radius: 4px;
+        font-weight: 500;
+      }
+
+      .message.assistant {
+        background: rgba(17, 17, 17, 0.95);
+        backdrop-filter: blur(10px);
+        color: #e0e0e0;
+        border: 1px solid rgba(241, 196, 15, 0.2);
+        border-bottom-left-radius: 4px;
+      }
+
+      .message.assistant h3 {
+        color: #f1c40f;
+        font-weight: 700;
+        font-size: 17px;
+        margin: 16px 0 10px 0;
+        padding-bottom: 8px;
+        border-bottom: 2px solid rgba(241, 196, 15, 0.4);
+      }
+
+      .message.assistant h3:first-child {
+        margin-top: 0;
+      }
+
+      .message.assistant hr {
+        border: none;
+        border-top: 1px solid rgba(241, 196, 15, 0.3);
+        margin: 16px 0;
+      }
+
+      .message.assistant table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 16px 0;
+        font-size: 14px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .message.assistant th,
+      .message.assistant td {
+        border: 1px solid rgba(241, 196, 15, 0.2);
+        padding: 12px 14px;
+        text-align: left;
+      }
+
+      .message.assistant th {
+        background: rgba(241, 196, 15, 0.2);
+        color: #f1c40f;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+      }
+
+      .message.assistant tbody tr:hover {
+        background: rgba(241, 196, 15, 0.05);
+      }
+
+      .message.assistant ul,
+      .message.assistant ol {
+        margin: 12px 0;
+        padding-left: 24px;
+        color: #e0e0e0;
+      }
+
+      .message.assistant li {
+        margin: 6px 0;
+      }
+
+      .message.assistant strong {
+        color: #f1c40f;
+        font-weight: 700;
+      }
+
+      .message.assistant p {
+        margin: 8px 0;
+        color: #e0e0e0;
+      }
+
+      .message.assistant code {
+        background: rgba(241, 196, 15, 0.15);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        color: #f1c40f;
+        border: 1px solid rgba(241, 196, 15, 0.3);
+      }
+
+      .message.initial-message {
+        max-height: 300px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .message.initial-message::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .message.initial-message::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+      }
+
+      .message.initial-message::-webkit-scrollbar-thumb {
+        background: rgba(241, 196, 15, 0.4);
+        border-radius: 3px;
+      }
+
+      .message.initial-message::-webkit-scrollbar-thumb:hover {
+        background: rgba(241, 196, 15, 0.6);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 20px 20px;
+        color: #777;
+      }
+
+      .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.4;
+        filter: grayscale(100%);
+      }
+
+      .empty-state h2 {
+        font-size: 28px;
+        color: #f1c40f;
+        margin-bottom: 16px;
+        font-weight: 700;
+        text-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
+      }
+
+      .empty-state p {
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: #999;
+      }
+
+      .empty-state .hint {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 15px;
+        background: rgba(241, 196, 15, 0.1);
+        padding: 11px 18px;
+        border-radius: 10px;
+        border: 1px solid rgba(241, 196, 15, 0.3);
+        font-size: 14px;
+        color: #f1c40f;
+        box-shadow: 0 4px 12px rgba(241, 196, 15, 0.1);
+      }
+
+      .typing-wrapper {
+        display: flex;
+      }
+
+      .typing-indicator {
+        display: none;
+        padding: 18px 24px;
+        background: rgba(17, 17, 17, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        border-bottom-left-radius: 4px;
+        border: 1px solid rgba(241, 196, 15, 0.2);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      .typing-indicator.active {
+        display: block;
+      }
+
+      .typing-dots {
+        display: flex;
+        gap: 5px;
+      }
+
+      .typing-dots span {
+        width: 10px;
+        height: 10px;
+        background: #f1c40f;
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+        box-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
+      }
+
+      .typing-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .typing-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes typing {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.5;
+        }
+
+        30% {
+          transform: translateY(-10px);
+          opacity: 1;
+        }
+      }
+
+      /* Input Area */
+      .input-container {
+        background: transparent;
+        backdrop-filter: none;
+        padding: 6px 12px;
+        box-shadow: none;
+      }
+
+      .input-wrapper {
+        max-width: 100%;
+        margin: 0 auto;
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+      }
+
+      .input-content {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        position: relative;
+        max-height: 100px;
+      }
+
+      .input-wrapper textarea {
+        flex: 0 0 auto;
+        min-height: 32px;
+        max-height: 80px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 2px solid rgba(241, 196, 15, 0.3);
+        color: #f1c40f;
+        resize: none;
+        font-family: "Montserrat", sans-serif;
+        font-size: 13px;
+        line-height: 1.3;
+        transition: all 0.3s;
+        width: 100%;
+      }
+
+      .input-wrapper textarea:focus {
+        outline: none;
+        border-color: rgba(241, 196, 15, 0.6);
+        background: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 20px rgba(241, 196, 15, 0.2);
+      }
+
+      .input-wrapper textarea::placeholder {
+        color: #666;
+      }
+
+      .upload-icon-btn {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        background: none;
+        border: none;
+        color: #f1c40f;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        padding: 4px 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        width: 44px;
+        font-weight: bold;
+      }
+
+      .upload-icon-btn:hover {
+        color: #ffd93d;
+        transform: scale(1.15);
+      }
+
+      .upload-icon-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      #image-file-input {
+        display: none;
+      }
+
+      .attachment-previews {
+        display: none !important;
+      }
+
+      .attachment-indicators {
+        position: absolute !important;
+        right: 50px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        display: flex !important;
+        gap: 6px !important;
+        align-items: center !important;
+        pointer-events: none !important;
+      }
+
+      .attachment-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        padding: 0;
+      }
+
+      .attachment-indicator:hover {
+        opacity: 1;
+      }
+
+      .attachment-indicator svg {
+        width: 18px;
+        height: 18px;
+        color: #f1c40f;
+      }
+
+      .attachment-item {
+        display: none !important;
+      }
+
+      .attachment-item.image {
+        display: none !important;
+      }
+
+      .attachment-item img {
+        display: none !important;
+      }
+
+      .attachment-item .remove-btn {
+        display: none !important;
+      }
+
+      .attachment-item .remove-btn:hover {
+        display: none !important;
+      }
+
+      .send-btn {
+        background: linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%);
+        color: #000;
+        border: none;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 16px rgba(241, 196, 15, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+      }
+
+      .send-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 24px rgba(241, 196, 15, 0.6);
+        background: linear-gradient(135deg, #ffd93d 0%, #f1c40f 100%);
+      }
+
+      .send-btn:active {
+        transform: translateY(-1px);
+      }
+
+      .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 4px 16px rgba(241, 196, 15, 0.2);
+      }
+
+      .icon-btn {
+        background: transparent;
+        border: none;
+        color: #f1c40f;
+        padding: 8px 6px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        width: 36px;
+      }
+
+      .icon-btn:hover {
+        background: rgba(241, 196, 15, 0.2);
+        color: #ffd93d;
+      }
+
+      .input-icons {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+
+      #file-input {
+        display: none;
+      }
+
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: rgba(17, 17, 17, 0.98);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(241, 196, 15, 0.3);
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        position: relative;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .modal-header h2 {
+        color: #f1c40f;
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .modal-close-btn {
+        background: none;
+        border: none;
+        color: #f1c40f;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-close-btn:hover {
+        color: #ffd93d;
+        transform: scale(1.2);
+      }
+
+      .modal-input {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 2px solid rgba(241, 196, 15, 0.3);
+        color: #f1c40f;
+        font-family: "Montserrat", sans-serif;
+        font-size: 15px;
+        margin-bottom: 16px;
+        transition: all 0.3s;
+      }
+
+      .modal-input:focus {
+        outline: none;
+        border-color: rgba(241, 196, 15, 0.6);
+        background: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 20px rgba(241, 196, 15, 0.2);
+      }
+
+      .modal-input::placeholder {
+        color: #666;
+      }
+
+      .modal-btn {
+        background: linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%);
+        color: #000;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+      }
+
+      .modal-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3);
+      }
+
+      .spinner {
+        border: 3px solid rgba(0, 0, 0, 0.3);
+        border-top-color: #000;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .app-header {
+          padding: 16px 20px;
+        }
+
+        .header-title h1 {
+          font-size: 18px;
+        }
+
+        .header-title p {
+          display: none;
+        }
+
+        .logo {
+          height: 44px;
+        }
+
+        .message {
+          max-width: 85%;
+        }
+
+        .empty-state {
+          padding: 60px 20px;
+        }
+
+        .empty-state h2 {
+          font-size: 22px;
+        }
+
+        .chat-container {
+          padding: 0 16px;
+        }
+      }
+
+      /* LOGIN PAGE STYLES */
+      .login-page-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+      }
+
+      .login-page-content {
+        width: 100%;
+        max-width: 600px;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .login-logo-section {
+        margin-bottom: 3rem;
+      }
+
+      .login-logo-section img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 2rem;
+        display: inline-block;
+      }
+
+      .login-page-content h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #f1c40f;
+        margin: 0 0 1rem 0;
+        letter-spacing: 2px;
+      }
+
+      .login-page-content > p {
+        font-size: 1rem;
+        color: #aaa;
+        margin: 0 0 2rem 0;
+      }
+
+      .login-form-card {
+        background-color: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      }
+
+      .login-form-card h2 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #f1c40f;
+        margin: 0 0 2rem 0;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .login-form-group {
+        margin-bottom: 2rem;
+        text-align: left;
+      }
+
+      .login-form-group label {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #f1c40f;
+        margin-bottom: 0.75rem;
+      }
+
+      .login-form-group input[type="email"] {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+        background-color: #000;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 6px;
+        font-family: "Montserrat", sans-serif;
+        transition: border-color 0.3s ease;
+      }
+
+      .login-form-group input[type="email"]:focus {
+        outline: none;
+        border-color: #f1c40f;
+        box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.1);
+      }
+
+      .login-form-group input[type="email"]::placeholder {
+        color: #666;
+      }
+
+      .login-email-status {
+        display: flex;
+        align-items: center;
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .login-email-status.visible {
+        opacity: 1;
+      }
+
+      .login-email-status .status-icon {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+      }
+
+      .login-email-status .status-icon.checking {
+        background-color: #3498db;
+        animation: pulse 1.5s infinite;
+      }
+
+      .login-email-status .status-icon.valid {
+        background-color: #2ecc71;
+      }
+
+      .login-email-status .status-icon.invalid {
+        background-color: #e74c3c;
+      }
+
+      .login-error-message {
+        color: #e74c3c;
+        background-color: rgba(231, 76, 60, 0.1);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 0.875rem;
+        font-size: 1rem;
+        font-weight: 700;
+        background-color: #d4ac0d;
+        color: #000;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .login-btn:hover:not(:disabled) {
+        background-color: #f1c40f;
+        box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3);
+      }
+
+      .login-btn:disabled {
+        background-color: #666;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .login-btn-spinner {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.6;
+        }
+
+        50% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: 0.6;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .header-left {
+          gap: 8px;
+          flex-wrap: wrap !important;
+        }
+        .logo {
+          max-height: 40px !important;
+        }
+        .new-chat-btn {
+          padding: 10px 10px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 600;
+          gap: 4px;
+        }
+        .chat-container {
+          position: relative !important;
+          z-index: -1 !important;
+        }
+        .message.initial-message {
+          max-width: 100%;
+        }
+        .upload-icon-btn {
+          right: 4px;
+          bottom: 12px;
+          font-size: 20px;
+          height: 38px;
+          width: 38px;
+        }
+        [x-data="injuryApp()"] .input-wrapper {
+          align-items: center !important;
+        }
+        .message {
+          padding: 10px 15px;
+        }
+      }
+      textarea {
+        overflow: auto !important;
+      }
+      #active-users-list > div:last-child {
+        border-bottom: 0 !important;
+      }
+
+      @media (max-width: 991px) {
+        div#active-users-popover {
+          top: 80px !important;
+        }
+      }
+      @media (max-width: 600px) {
+        div#active-users-popover {
+          top: 80px !important;
+          left: 5% !important;
+          padding: 9px;
+          min-width: auto;
+          min-height: auto;
+          max-height: fit-content;
+        }
+      }
+
+      @media (max-width: 480px) {
+        div#active-users-popover {
+          top: 150px !important;
+          left: 5%;
+          padding: 9px;
+          min-width: auto;
+          min-height: auto;
+          max-height: fit-content;
+        }
+      }
+
+      #active-users-popover {
+        display: none !important;
+      }
+
+      #active-users-popover.open {
+        display: block !important;
+      }
+
+      /* =========================
+   LOGIN PAGE STYLES
+========================= */
+
+      :root {
+        --gold: #f1c40f;
+        --gold-dark: #d4ac0d;
+        --bg-dark: #111111;
+        --card-bg: rgba(20, 20, 20, 0.96);
+        --border: rgba(241, 196, 15, 0.18);
+        --muted: #9ca3af;
+        --danger: #ef4444;
+        --success: #22c55e;
+      }
+
+      /* Wrapper */
+      .login-page-wrapper {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 999;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(6px);
+      }
+
+      /* Content */
+      .login-page-content {
+        width: 100%;
+        max-width: 520px;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Logo Section */
+      .login-logo-section {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+
+      .login-logo-section img {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+        margin-bottom: 18px;
+        filter: drop-shadow(0 0 14px rgba(241, 196, 15, 0.35));
+      }
+
+      .login-page-content h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--gold);
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+        text-shadow: 0 0 18px rgba(241, 196, 15, 0.25);
+      }
+
+      .login-logo-section p {
+        font-size: 0.95rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* Card */
+      .login-form-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 34px;
+        box-shadow:
+          0 10px 40px rgba(0, 0, 0, 0.6),
+          0 0 30px rgba(241, 196, 15, 0.06);
+        backdrop-filter: blur(14px);
+      }
+
+      /* Card Heading */
+      .login-form-card h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--gold);
+        text-align: center;
+        margin-bottom: 24px;
+        letter-spacing: 1px;
+      }
+
+      /* Form Group */
+      .login-form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+
+      .login-form-group label {
+        display: block;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--gold);
+        margin-bottom: 8px;
+      }
+
+      /* Inputs */
+      .login-form-group input {
+        width: 100%;
+        height: 52px;
+        padding: 0 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.65);
+        color: #fff;
+        font-size: 0.95rem;
+        font-family: "Montserrat", sans-serif;
+        transition: all 0.25s ease;
+      }
+
+      .login-form-group input::placeholder {
+        color: #777;
+      }
+
+      .login-form-group input:focus {
+        outline: none;
+        border-color: rgba(241, 196, 15, 0.7);
+        box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.12);
+        background: rgba(0, 0, 0, 0.9);
+      }
+
+      /* Email Status */
+      .login-email-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        font-size: 0.82rem;
+        opacity: 0;
+        transition: 0.25s ease;
+      }
+
+      .login-email-status.visible {
+        opacity: 1;
+      }
+
+      .status-icon {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .status-icon.checking {
+        background: #3b82f6;
+        animation: pulse 1s infinite;
+      }
+
+      .status-icon.valid {
+        background: var(--success);
+      }
+
+      .status-icon.invalid {
+        background: var(--danger);
+      }
+
+      .status-text {
+        color: #d1d5db;
+      }
+
+      /* Error */
+      .login-error-message {
+        margin-bottom: 18px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: #fca5a5;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      /* Button */
+      .login-btn {
+        width: 100%;
+        height: 52px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(
+          135deg,
+          var(--gold) 0%,
+          var(--gold-dark) 100%
+        );
+        color: #000;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-transform: uppercase;
+        margin-top: 6px;
+      }
+
+      .login-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(241, 196, 15, 0.22);
+      }
+
+      .login-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Spinner */
+      .login-btn-spinner {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .spinner {
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      /* Forgot Link */
+      .forgot-link {
+        background: none;
+        border: none;
+        color: var(--gold);
+        font-size: 0.82rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity 0.2s;
+      }
+
+      .forgot-link:hover {
+        opacity: 0.75;
+      }
+
+      /* Back Link */
+      .back-link {
+        width: 100%;
+        margin-top: 16px;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .back-link:hover {
+        color: var(--gold);
+      }
+
+      /* Sub Text */
+      .login-sub {
+        color: var(--muted);
+        text-align: center;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 22px;
+      }
+
+      .login-sub span {
+        color: var(--gold);
+        font-weight: 600;
+      }
+
+      /* Animation */
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.5;
+          transform: scale(0.95);
+        }
+
+        50% {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        100% {
+          opacity: 0.5;
+          transform: scale(0.95);
+        }
+      }
+
+      /* Mobile */
+      @media (max-width: 768px) {
+        .login-page-wrapper {
+          padding: 16px;
+          align-items: flex-start;
+          padding-top: 40px;
+        }
+
+        .login-form-card {
+          padding: 24px;
+          border-radius: 18px;
+        }
+
+        .login-form-card h2 {
+          font-size: 1.6rem;
+        }
+
+        .login-page-content h1 {
+          font-size: 1.5rem;
+        }
+
+        .login-logo-section img {
+          width: 72px;
+          height: 72px;
+        }
+
+        .login-form-group input {
+          height: 48px;
+        }
+
+        .login-btn {
+          height: 48px;
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <script>
+      // Simple check: if token exists, show main app, else show login
+      function updateDisplay() {
+        const hasToken = localStorage.getItem("jwtinjury");
+        const loginPage = document.querySelector(".login-page-wrapper");
+        const mainApp = document.getElementById("main-app-container");
+
+        console.log("[updateDisplay] Token exists:", !!hasToken);
+
+        if (hasToken) {
+          // Show main app, hide login
+          if (loginPage) loginPage.style.display = "none";
+          if (mainApp) {
+            mainApp.style.display = "flex";
+            mainApp.style.visibility = "visible";
+            mainApp.style.opacity = "1";
+          }
+        } else {
+          // Show login, hide main app
+          if (loginPage) {
+            loginPage.style.display = "flex";
+            loginPage.style.visibility = "visible";
+            loginPage.style.opacity = "1";
+          }
+          if (mainApp) {
+            mainApp.style.display = "none !important";
+            mainApp.style.visibility = "hidden";
+            mainApp.style.opacity = "0";
+          }
+        }
+      }
+
+      // Run on DOMContentLoaded
+      document.addEventListener("DOMContentLoaded", updateDisplay);
+
+      // Listen for login success event
+      window.addEventListener("login-success", () => {
+        console.log("[login-success event] Showing main app");
+        setTimeout(() => {
+          updateDisplay();
+        }, 100);
+      });
+
+      // Listen for logout event
+      window.addEventListener("logout-success", () => {
+        console.log("[logout event] Hiding main app");
+        const mainApp = document.getElementById("main-app-container");
+        const loginPage = document.querySelector(".login-page-wrapper");
+        if (mainApp) {
+          mainApp.style.display = "none !important";
+          mainApp.style.visibility = "hidden";
+          mainApp.style.opacity = "0";
+        }
+        if (loginPage) {
+          loginPage.style.display = "flex";
+          loginPage.style.visibility = "visible";
+          loginPage.style.opacity = "1";
+        }
+      });
+
+      // Initial check before DOMContentLoaded
+      if (document.readyState === "loading") {
+        updateDisplay();
+      }
+    </script>
+
+    <div class="video-background"></div>
+    <div class="overlay"></div>
+
+    <!-- LOGIN PAGE -->
+    <div
+      class="login-page-wrapper"
+      x-data="loginApp()"
+      x-init="init()"
+      x-show="!loggedIn"
+    >
+      <div class="login-page-content">
+        <!-- LOGO AND TITLE -->
+        <div class="login-logo-section">
+          <img
+            src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+            alt="Ramos Law"
+          />
+          <h1>Injury Intelligence:Vision</h1>
+          <p>Secure Access for Authorized Ramos Law Users</p>
+        </div>
+
+        <!-- ── VIEW: login ── -->
+        <div
+          class="login-form-card"
+          x-show="view === 'login'"
+          style="display: none"
+        >
+          <h2>Login</h2>
+
+          <!-- Email Input -->
+          <div class="login-form-group">
+            <label for="login-email">Email</label>
+            <input
+              id="login-email"
+              type="email"
+              placeholder="Enter your email"
+              x-model="email"
+              @input.debounce.500="verifyEmail()"
+              @keydown.enter="emailValid && password && login()"
+            />
+            <div
+              class="login-email-status"
+              :class="email && email.includes('@') ? 'visible' : ''"
+              x-show="email && email.includes('@')"
+            >
+              <span
+                class="status-icon"
+                :class="emailChecking ? 'checking' : emailValid ? 'valid' : 'invalid'"
+              ></span>
+              <span
+                class="status-text"
+                x-text="emailChecking ? 'Checking email...' : emailValid ? 'Email authorized' : 'Email not authorized'"
+              ></span>
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div
+            x-show="emailValid && passwordCreated"
+            x-transition
+            class="login-form-group"
+          >
+            <label for="login-password">Password</label>
+            <input
+              id="login-password"
+              type="password"
+              placeholder="Enter your password"
+              x-model="password"
+              @keydown.enter="emailValid && password && login()"
+            />
+          </div>
+
+          <!-- Forgot Password link (only when password already created) -->
+          <div x-show="emailValid && passwordCreated" style="text-align: right">
+            <button
+              type="button"
+              class="forgot-link"
+              @click="_resetOtpState(); view = 'forgot'; forgotSendOtp()"
+            >
+              Forgot Password?
+            </button>
+          </div>
+
+          <!-- Error Message -->
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <!-- Set Password Button (only when email valid but password not yet created) -->
+          <button
+            x-show="emailValid && !passwordCreated"
+            @click="_resetOtpState(); view = 'setup-otp'"
+            class="login-btn"
+          >
+            Set Password
+          </button>
+
+          <!-- Login Button (only when email valid and password already created) -->
+          <button
+            x-show="!emailValid || passwordCreated"
+            @click="login()"
+            :disabled="!emailValid || !password || loggingIn"
+            class="login-btn"
+          >
+            <span x-show="!loggingIn">Login</span>
+            <span x-show="loggingIn" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border-width: 2px;
+                  margin-left: 0;
+                  border: 2px solid rgba(0, 0, 0, 0.3);
+                  border-top-color: #000;
+                "
+              ></span>
+              Logging in...
+            </span>
+          </button>
+        </div>
+
+        <!-- ── VIEW: setup-otp (new account — send OTP) ── -->
+        <div
+          class="login-form-card"
+          x-show="view === 'setup-otp'"
+          style="display: none"
+        >
+          <h2>Set Up Account</h2>
+          <p class="login-sub">
+            No password found for <span x-text="email"></span>. We'll send a
+            one-time code to get started.
+          </p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <button
+            class="login-btn"
+            @click="setupSendOtp()"
+            :disabled="otpSending || otpSent"
+          >
+            <span x-show="!otpSending && !otpSent">Send OTP to Email</span>
+            <span x-show="otpSending" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border: 2px solid rgba(0, 0, 0, 0.3);
+                  border-top-color: #000;
+                  border-width: 2px;
+                "
+              ></span>
+              Sending...
+            </span>
+            <span x-show="!otpSending && otpSent"
+              >OTP Sent ✓ — Enter Below</span
+            >
+          </button>
+
+          <template x-if="otpSent">
+            <div class="login-form-group" style="margin-top: 0">
+              <label>Enter OTP</label>
+              <input
+                type="text"
+                placeholder="6-digit OTP"
+                x-model="otp"
+                @keydown.enter="setupVerifyOtp()"
+              />
+              <button
+                class="login-btn"
+                style="margin-top: 0.75rem"
+                @click="setupVerifyOtp()"
+                :disabled="otpVerifying"
+              >
+                <span x-show="!otpVerifying">Verify OTP</span>
+                <span x-show="otpVerifying" class="login-btn-spinner">
+                  <span
+                    class="spinner"
+                    style="
+                      width: 14px;
+                      height: 14px;
+                      border: 2px solid rgba(0, 0, 0, 0.3);
+                      border-top-color: #000;
+                    "
+                  ></span>
+                  Verifying...
+                </span>
+              </button>
+            </div>
+          </template>
+
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: setup-create (create password) ── -->
+        <div
+          class="login-form-card"
+          x-show="view === 'setup-create'"
+          style="display: none"
+        >
+          <h2>Create Password</h2>
+          <p class="login-sub">OTP verified! Now set your account password.</p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <div class="login-form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              placeholder="Enter new password"
+              x-model="newPassword"
+            />
+          </div>
+          <div class="login-form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              x-model="confirmPassword"
+              @keydown.enter="setupCreatePassword()"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="setupCreatePassword()"
+            :disabled="submitting"
+          >
+            <span x-show="!submitting">Create Password &amp; Login</span>
+            <span x-show="submitting" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border: 2px solid rgba(0, 0, 0, 0.3);
+                  border-top-color: #000;
+                "
+              ></span>
+              Setting up...
+            </span>
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot (auto-sends OTP, shows spinner) ── -->
+        <div
+          class="login-form-card"
+          x-show="view === 'forgot'"
+          style="display: none"
+        >
+          <h2>Forgot Password</h2>
+          <p class="login-sub">
+            Sending a reset OTP to <span x-text="email"></span>…
+          </p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <div
+            x-show="otpSending"
+            style="display: flex; justify-content: center; padding: 1rem"
+          >
+            <span
+              class="spinner"
+              style="
+                width: 22px;
+                height: 22px;
+                border: 3px solid #333;
+                border-top-color: currentColor;
+                border-radius: 50%;
+                animation: spin 0.6s linear infinite;
+              "
+            ></span>
+          </div>
+
+          <button
+            x-show="!otpSending && error"
+            class="login-btn"
+            @click="forgotSendOtp()"
+          >
+            Retry Send OTP
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot-verify (enter OTP) ── -->
+        <div
+          class="login-form-card"
+          x-show="view === 'forgot-verify'"
+          style="display: none"
+        >
+          <h2>Enter OTP</h2>
+          <p class="login-sub">
+            OTP sent to <span x-text="email"></span>. Enter it below.
+          </p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <div class="login-form-group">
+            <label>OTP</label>
+            <input
+              type="text"
+              placeholder="6-digit OTP"
+              x-model="otp"
+              @keydown.enter="forgotVerifyOtp()"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="forgotVerifyOtp()"
+            :disabled="otpVerifying"
+          >
+            <span x-show="!otpVerifying">Verify OTP</span>
+            <span x-show="otpVerifying" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border: 2px solid rgba(0, 0, 0, 0.3);
+                  border-top-color: #000;
+                "
+              ></span>
+              Verifying...
+            </span>
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot-reset (new password) ── -->
+        <div
+          class="login-form-card"
+          x-show="view === 'forgot-reset'"
+          style="display: none"
+        >
+          <h2>Reset Password</h2>
+          <p class="login-sub">Enter your new password below.</p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <div class="login-form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              placeholder="Enter new password"
+              x-model="newPassword"
+            />
+          </div>
+          <div class="login-form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              x-model="confirmPassword"
+              @keydown.enter="forgotResetPassword()"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="forgotResetPassword()"
+            :disabled="submitting"
+          >
+            <span x-show="!submitting">Reset Password &amp; Login</span>
+            <span x-show="submitting" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border: 2px solid rgba(0, 0, 0, 0.3);
+                  border-top-color: #000;
+                "
+              ></span>
+              Resetting...
+            </span>
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN APPLICATION CONTAINER -->
+    <div
+      id="main-app-container"
+      x-data="injuryApp()"
+      x-init="init()"
+      x-show="isLoggedIn"
+      style="display: none"
+    >
+      <div class="app-header">
+        <div class="header-left">
+          <img
+            src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+            alt="Ramos Law"
+            class="logo"
+          />
+          <div class="header-title">
+            <h1>Injury Intelligence:Vision</h1>
+            <div style="display: flex; align-items: center; gap: 12px">
+              <p>AI-Powered Injury Intelligence</p>
+              <!-- Active Users Count -->
+              <button
+                id="active-users-btn"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  background: none;
+                  border: none;
+                  cursor: pointer;
+                  padding: 4px 10px;
+                  border-radius: 6px;
+                  transition: all 0.3s;
+                  color: #f1c40f;
+                  font-size: 12px;
+                  font-weight: 600;
+                "
+                onclick="toggleActiveUsersPopover()"
+                title="Active users on this tool"
+              >
+                <span
+                  style="
+                    display: inline-block;
+                    width: 8px;
+                    height: 8px;
+                    background: #2ecc71;
+                    border-radius: 50%;
+                    box-shadow: 0 0 8px #2ecc71;
+                  "
+                ></span>
+                <span id="active-count">0</span>
+                <span style="margin-left: 4px">Active Users</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="new-chat-btn" onclick="startNewChat()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+              ></path>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="12" x2="15" y2="12"></line>
+              <line x1="12" y1="12" x2="9" y2="12"></line>
+            </svg>
+            New Chat
+            <span class="tooltip">Start a new conversation</span>
+          </button>
+          <div style="position: relative">
+            <button class="menu-icon-btn" onclick="toggleUserMenu()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+            <div class="popover" id="user-menu-popover">
+              <div class="popover-item email-info">
+                <span class="popover-email" x-text="userEmail"></span>
+                <span class="popover-status">Logged in</span>
+              </div>
+              <div
+                class="popover-item logout-btn"
+                @click="logout(); toggleUserMenu()"
+              >
+                Logout
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages"></div>
+      </div>
+
+      <div class="input-container">
+        <div class="input-wrapper">
+          <div class="input-content">
+            <textarea
+              id="message-input"
+              placeholder="Type message or paste images (JPG/PNG) and links (starting with http)"
+              onkeydown="handleKeyPress(event)"
+              onpaste="handlePaste(event)"
+            ></textarea>
+            <div id="attachment-indicators" class="attachment-indicators"></div>
+            <button
+              class="upload-icon-btn"
+              id="upload-btn"
+              title="Upload Image (JPG/PNG)"
+              onclick="document.getElementById('image-file-input').click()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 200 200"
+                width="36"
+                height="36"
+                style="display: inline-block"
+              >
+                <path
+                  d="M 150 80 C 150 65 138 53 123 53 C 121 53 119 53.2 117 53.5 C 112 38 98 27 81 27 C 60 27 43 44 43 65 C 43 66 43 67 43.1 68 C 32 71 24 81 24 93 C 24 107 35 118 49 118 L 145 118 C 162 118 176 104 176 87 C 176 72 165 60 150 60 C 150 66.5 150 73 150 80 Z"
+                  fill="#f1c40f"
+                  stroke="#f1c40f"
+                  stroke-width="6"
+                  stroke-linejoin="round"
+                />
+                <g
+                  fill="#f1c40f"
+                  stroke="#f1c40f"
+                  stroke-width="8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="100" y1="170" x2="100" y2="95" />
+                  <polyline points="75,120 100,95 125,120" fill="none" />
+                </g>
+              </svg>
+            </button>
+            <input
+              type="file"
+              id="image-file-input"
+              accept=".jpg,.jpeg,.png"
+              onchange="handleFileUpload(event)"
+            />
+          </div>
+          <!-- Templates Button -->
+          <button
+            id="templates-btn"
+            style="
+              background: none;
+              border: none;
+              cursor: pointer;
+              padding: 8px;
+              color: #f1c40f;
+              transition: all 0.3s;
+              position: relative;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 44px;
+              height: 44px;
+              border-radius: 8px;
+            "
+            onmouseover="this.style.background = 'rgba(241, 196, 15, 0.1)'"
+            onmouseout="this.style.background = 'none'"
+            onclick="toggleTemplatesPopover(event)"
+            title="Load template message"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+              ></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+          </button>
+          <button class="send-btn" onclick="sendMessage()" id="send-btn">
+            Send
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="link-modal"></div>
+
+      <!-- Save Template Modal -->
+      <div
+        id="save-template-modal"
+        style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.8);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 2000;
+        "
+        onclick="
+          event.target.id === 'save-template-modal' && closeSaveTemplateModal()
+        "
+      >
+        <div
+          style="
+            background: #1a1a1a;
+            border: 1px solid rgba(241, 196, 15, 0.4);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 24px;
+            "
+          >
+            <h2
+              style="
+                color: #f1c40f;
+                font-size: 20px;
+                font-weight: 700;
+                margin: 0;
+              "
+            >
+              Save as Template
+            </h2>
+            <button
+              onclick="closeSaveTemplateModal()"
+              style="
+                background: none;
+                border: none;
+                color: #999;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 0;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              ×
+            </button>
+          </div>
+          <p style="color: #aaa; margin: 0 0 20px 0; font-size: 14px">
+            Save this message as a template for future use
+          </p>
+          <form
+            onsubmit="saveMsgAsTemplate(event)"
+            style="display: flex; flex-direction: column; gap: 16px"
+          >
+            <div>
+              <label
+                style="
+                  display: block;
+                  color: #f1c40f;
+                  font-size: 13px;
+                  font-weight: 600;
+                  margin-bottom: 8px;
+                "
+                >Template Name *</label
+              >
+              <input
+                id="template-name-input"
+                type="text"
+                placeholder="e.g., Initial Demand Letter"
+                required
+                style="
+                  width: 100%;
+                  padding: 10px 12px;
+                  background: rgba(0, 0, 0, 0.6);
+                  border: 1px solid rgba(241, 196, 15, 0.3);
+                  border-radius: 6px;
+                  color: #f1c40f;
+                  font-family: &quot;Montserrat&quot;, sans-serif;
+                  font-size: 14px;
+                  transition: all 0.3s;
+                "
+                onfocus="this.style.borderColor = 'rgba(241, 196, 15, 0.6)'"
+                onblur="this.style.borderColor = 'rgba(241, 196, 15, 0.3)'"
+              />
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  color: #f1c40f;
+                  font-size: 13px;
+                  font-weight: 600;
+                  margin-bottom: 8px;
+                "
+                >Description *</label
+              >
+              <textarea
+                id="template-description-input"
+                placeholder="Brief description of this template"
+                required
+                style="
+                  width: 100%;
+                  padding: 10px 12px;
+                  background: rgba(0, 0, 0, 0.6);
+                  border: 1px solid rgba(241, 196, 15, 0.3);
+                  border-radius: 6px;
+                  color: #f1c40f;
+                  font-family: &quot;Montserrat&quot;, sans-serif;
+                  font-size: 14px;
+                  resize: vertical;
+                  min-height: 80px;
+                  transition: all 0.3s;
+                "
+                onfocus="this.style.borderColor = 'rgba(241, 196, 15, 0.6)'"
+                onblur="this.style.borderColor = 'rgba(241, 196, 15, 0.3)'"
+              ></textarea>
+            </div>
+            <div
+              id="template-modal-message"
+              style="font-size: 14px; text-align: center; display: none"
+            ></div>
+            <div
+              style="
+                display: flex;
+                gap: 12px;
+                justify-content: flex-end;
+                margin-top: 8px;
+              "
+            >
+              <button
+                type="button"
+                onclick="closeSaveTemplateModal()"
+                style="
+                  background: rgba(241, 196, 15, 0.1);
+                  color: #f1c40f;
+                  border: 1px solid rgba(241, 196, 15, 0.3);
+                  padding: 10px 20px;
+                  border-radius: 6px;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: all 0.3s;
+                  font-size: 14px;
+                "
+              >
+                Cancel
+              </button>
+              <button
+                id="save-template-btn"
+                type="submit"
+                style="
+                  background: #f1c40f;
+                  color: #000;
+                  border: none;
+                  padding: 10px 20px;
+                  border-radius: 6px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: all 0.3s;
+                  font-size: 14px;
+                "
+              >
+                Save Template
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Delete Template Confirmation Modal -->
+      <div
+        id="delete-template-modal"
+        style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.8);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 2000;
+        "
+        onclick="
+          event.target.id === 'delete-template-modal' &&
+            closeDeleteTemplateModal()
+        "
+      >
+        <div
+          style="
+            background: #1a1a1a;
+            border: 1px solid rgba(241, 196, 15, 0.4);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 24px;
+            "
+          >
+            <h2
+              style="
+                color: #f1c40f;
+                font-size: 20px;
+                font-weight: 700;
+                margin: 0;
+              "
+            >
+              Delete Template
+            </h2>
+            <button
+              onclick="closeDeleteTemplateModal()"
+              style="
+                background: none;
+                border: none;
+                color: #999;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 0;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              ×
+            </button>
+          </div>
+          <p style="color: #aaa; margin: 0 0 24px 0; font-size: 14px">
+            Are you sure you want to delete this template? This action cannot be
+            undone.
+          </p>
+          <div
+            id="delete-template-message"
+            style="
+              font-size: 14px;
+              text-align: center;
+              margin-bottom: 20px;
+              display: none;
+            "
+          ></div>
+          <div style="display: flex; gap: 12px; justify-content: flex-end">
+            <button
+              type="button"
+              onclick="closeDeleteTemplateModal()"
+              style="
+                background: rgba(241, 196, 15, 0.1);
+                color: #f1c40f;
+                border: 1px solid rgba(241, 196, 15, 0.3);
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+                font-size: 14px;
+              "
+            >
+              Cancel
+            </button>
+            <button
+              id="confirm-delete-btn"
+              type="button"
+              onclick="confirmDeleteTemplate()"
+              style="
+                background: #e74c3c;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s;
+                font-size: 14px;
+              "
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Templates Popover -->
+      <div
+        id="templates-popover"
+        style="
+          position: fixed;
+          bottom: 90px;
+          right: 32px;
+          background-color: #1a1a1a;
+          border: 1px solid rgba(241, 196, 15, 0.4);
+          border-radius: 8px;
+          padding: 12px;
+          min-width: 280px;
+          max-height: 400px;
+          display: none;
+          z-index: 2000;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+          overflow-y: auto;
+        "
+      >
+        <div
+          style="
+            padding: 8px 0;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(241, 196, 15, 0.3);
+            color: #f1c40f;
+            font-size: 12px;
+            font-weight: 600;
+          "
+        >
+          Templates
+        </div>
+        <div id="templates-list" style="color: #aaa; font-size: 13px">
+          <div style="padding: 8px 0; color: #666">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Active Users Popover -->
+      <div
+        id="active-users-popover"
+        style="
+          position: fixed;
+          top: 80px;
+          left: 350px;
+          background-color: rgb(26, 26, 26);
+          border: 1px solid rgba(241, 196, 15, 0.4);
+          border-radius: 8px;
+          padding: 12px;
+          min-width: auto;
+          min-height: auto;
+          max-height: 400px;
+          display: block;
+          z-index: 2100;
+          box-shadow: rgba(0, 0, 0, 0.5) 0px 4px 20px;
+          overflow-y: auto;
+        "
+      >
+        <div
+          style="
+            padding: 8px 0;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(241, 196, 15, 0.3);
+            color: #f1c40f;
+            font-size: 12px;
+            font-weight: 600;
+          "
+        >
+          Active Users
+        </div>
+        <div id="active-users-list" style="color: #aaa; font-size: 13px">
+          <div style="padding: 8px 0; color: #666">Loading...</div>
+        </div>
+      </div>
+    </div>
+    <!-- END MAIN APPLICATION CONTAINER -->
+
+    <div class="modal-overlay" id="link-modal"></div>
+
+    <script>
+      const API_BASE_URL = "";
+      let threadId = null;
+      let isProcessing = false;
+      let uploadedImages = [];
+      let imageLinks = [];
+      let currentMessageToSave = ""; // Store message for saving as template
+
+      marked.setOptions({
+        gfm: true,
+        breaks: true,
+        tables: true,
+      });
+
+      // Toggle user menu popover
+      function toggleUserMenu() {
+        const popover = document.getElementById("user-menu-popover");
+        popover.classList.toggle("active");
+      }
+
+      // Close popover when clicking outside
+      document.addEventListener("click", function (event) {
+        const popover = document.getElementById("user-menu-popover");
+        const menuBtn = event.target.closest(".menu-icon-btn");
+        if (!menuBtn && popover && !popover.contains(event.target)) {
+          popover.classList.remove("active");
+        }
+      });
+
+      function getAuthHeaders(extraHeaders = {}) {
+        const token = localStorage.getItem("jwtinjury");
+
+        if (!token) {
+          throw new Error("Not authenticated");
+        }
+
+        return {
+          ...extraHeaders,
+          Authorization: `Bearer ${token}`,
+        };
+      }
+
+      function loadResponseId() {
+        return localStorage.getItem("vicp_response_id");
+      }
+
+      function saveResponseId(responseId) {
+        localStorage.setItem("vicp_response_id", responseId);
+      }
+
+      function clearResponseId() {
+        localStorage.removeItem("vicp_response_id");
+      }
+
+      function loadInitialMessage() {
+        const initialMessage = `
+
+# Hello! I'm Injury Intelligence:Vision, your firm's specialized accident and injury evaluation tool.
+
+## 📸 What I Do
+
+I use the picture you upload of a damaged client vehicle to quickly generate a preliminary, data-driven report. I analyze the crash dynamics and visible damage to:
+
+- **Estimate Crash Severity:** Determine the force and direction of the impact.
+- **Predict Likely Injuries:** Based on the damage, I predict the most probable injuries for the driver.
+- **Calculate a Settlement Estimate:** I run a detailed synthetic case profile (HIPAA Compliant) through the proprietary Ramos Law Settlement Model to give you an estimated settlement range and a strategic analysis.
+
+## 🚀 How to Use Me
+
+### Upload an Image
+The essential step is to upload a picture or provide a link to a picture of the damaged client vehicle. My full capabilities activate only after I see an image of a damaged car.
+
+### Optional: Add Case Details (Recommended for Accuracy)
+
+While an image is all I strictly need, you can provide any additional case information you have. The more details you provide, the more relevant the synthetic case profile I generate will be, leading to a more useful estimate.
+
+#### Helpful Information to Include:
+
+- Year, make, and model of the client's and at-fault vehicles.
+- Age and sex of both the client and the at-fault driver.
+- Insurance carrier for both parties.
+- Client financial distress (e.g., low credit score, foreclosure).
+- Client likability score (1-10) for a jury.
+- At-fault driver aggravated circumstances (DUI, drug use, reckless driving).
+- Ambulance involvement.
+
+#### Example Prompt:
+
+"My client is driving a 2023 Honda Civic. At-fault was a commercial semi-truck. Client is a 25-year-old female, likeability score 9, low estimated credit score insured by Geico. At-fault driver 55, driving 2025 Corvette with USAA insurance was cited for reckless driving."
+
+## 🛑 Important Note and Disclaimer
+
+The report I generate is a synthetic, data-inspired estimate for preliminary analysis only. It is not legal advice, a medical diagnosis, or a guarantee of any outcome. Always use your professional judgment and consult with qualified medical and legal professionals.`;
+
+        addMessage("assistant", initialMessage, [], [], false, true);
+      }
+
+      function handlePaste(event) {
+        if (isProcessing) {
+          event.preventDefault();
+          return;
+        }
+
+        const clipboardData = event.clipboardData || window.clipboardData;
+        const items = clipboardData.items;
+
+        let hasHandledPaste = false;
+        let isLinkOnly = false;
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+
+          // Handle image paste
+          if (item.type.indexOf("image") !== -1) {
+            event.preventDefault();
+            hasHandledPaste = true;
+            const file = item.getAsFile();
+            if (
+              file &&
+              (file.type === "image/jpeg" || file.type === "image/png")
+            ) {
+              uploadedImages.push(file);
+              renderAttachmentPreviews();
+            } else {
+              alert("Only JPG and PNG images are supported");
+            }
+          }
+          // Handle text paste (for links)
+          else if (item.type === "text/plain") {
+            item.getAsString((text) => {
+              const trimmedText = text.trim();
+              // Check if it's a URL
+              if (
+                trimmedText.startsWith("http://") ||
+                trimmedText.startsWith("https://")
+              ) {
+                if (!imageLinks.includes(trimmedText)) {
+                  event.preventDefault();
+                  imageLinks.push(trimmedText);
+                  renderAttachmentPreviews();
+                  // Clear the textarea if only a link was pasted
+                  document.getElementById("message-input").value = "";
+                }
+              }
+            });
+          }
+        }
+      }
+
+      function handleFileUpload(event) {
+        const files = event.target.files;
+        for (let file of files) {
+          if (
+            file.type === "image/jpeg" ||
+            file.type === "image/png" ||
+            file.name.endsWith(".jpg") ||
+            file.name.endsWith(".jpeg") ||
+            file.name.endsWith(".png")
+          ) {
+            uploadedImages.push(file);
+          } else {
+            alert("Only JPG and PNG files are accepted");
+          }
+        }
+        renderAttachmentPreviews();
+        event.target.value = "";
+      }
+
+      function disableInput() {
+        const textarea = document.getElementById("message-input");
+        const uploadBtn = document.getElementById("upload-btn");
+        textarea.disabled = true;
+        uploadBtn.disabled = true;
+      }
+
+      function enableInput() {
+        const textarea = document.getElementById("message-input");
+        const uploadBtn = document.getElementById("upload-btn");
+        textarea.disabled = false;
+        uploadBtn.disabled = false;
+      }
+
+      function resetInput() {
+        document.getElementById("message-input").value = "";
+        document.getElementById("attachment-indicators").innerHTML = "";
+        uploadedImages = [];
+        imageLinks = [];
+      }
+
+      function renderAttachmentPreviews() {
+        const indicatorsContainer = document.getElementById(
+          "attachment-indicators",
+        );
+        if (!indicatorsContainer) return;
+
+        indicatorsContainer.innerHTML = "";
+
+        // Show image icon if images uploaded
+        if (uploadedImages.length > 0) {
+          const imgIndicator = document.createElement("div");
+          imgIndicator.className = "attachment-indicator";
+          imgIndicator.title =
+            uploadedImages.length +
+            " image" +
+            (uploadedImages.length > 1 ? "s" : "");
+          imgIndicator.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75-3.54c-.3-.38-.77-.62-1.3-.62-.92 0-1.66.74-1.66 1.66 0 .53.24 1 .62 1.3l2.75 3.54c.3.38.77.62 1.3.62.92 0 1.66-.74 1.66-1.66 0-.53-.24-1-.62-1.3z"></path>
+            </svg>
+          `;
+          indicatorsContainer.appendChild(imgIndicator);
+        }
+
+        // Show link icon if links added
+        if (imageLinks.length > 0) {
+          const linkIndicator = document.createElement("div");
+          linkIndicator.className = "attachment-indicator";
+          linkIndicator.title =
+            imageLinks.length + " link" + (imageLinks.length > 1 ? "s" : "");
+          linkIndicator.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          `;
+          indicatorsContainer.appendChild(linkIndicator);
+        }
+      }
+
+      function removeImage(index) {
+        uploadedImages.splice(index, 1);
+        renderAttachmentPreviews();
+      }
+
+      function removeLink(index) {
+        imageLinks.splice(index, 1);
+        renderAttachmentPreviews();
+      }
+
+      function handleKeyPress(event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      }
+
+      function startNewChat() {
+        if (
+          confirm("Start a new conversation? This will clear the current chat.")
+        ) {
+          threadId = null;
+          uploadedImages = [];
+          imageLinks = [];
+          clearResponseId();
+          isProcessing = false;
+          hideTypingIndicator();
+
+          // Reset send button
+          const sendBtn = document.getElementById("send-btn");
+          sendBtn.disabled = false;
+          sendBtn.textContent = "Send";
+
+          // Enable input
+          enableInput();
+
+          // Clear chat and load initial message
+          document.getElementById("chat-messages").innerHTML = "";
+          document.getElementById("message-input").value = "";
+          document.getElementById("attachment-indicators").innerHTML = "";
+
+          // Load the initial instruction message
+          loadInitialMessage();
+        }
+      }
+
+      async function sendMessage() {
+        if (isProcessing) return;
+
+        const input = document.getElementById("message-input");
+        const message = input.value.trim();
+
+        if (
+          !message &&
+          uploadedImages.length === 0 &&
+          imageLinks.length === 0
+        ) {
+          alert("Please enter a message or upload an image/link");
+          return;
+        }
+
+        isProcessing = true;
+        const sendBtn = document.getElementById("send-btn");
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="spinner"></span>';
+
+        disableInput();
+
+        const userSummary = [];
+        if (message) userSummary.push(`Message: ${message}`);
+        if (uploadedImages.length > 0)
+          userSummary.push(`${uploadedImages.length} image(s) uploaded`);
+        if (imageLinks.length > 0)
+          userSummary.push(`${imageLinks.length} link(s) added`);
+
+        addMessage("user", message, uploadedImages, imageLinks);
+        showTypingIndicator();
+
+        try {
+          const formData = new FormData();
+
+          // Only add user_message if it's not a link (links are handled separately)
+          const isLink =
+            message &&
+            (message.startsWith("http://") || message.startsWith("https://"));
+          if (message && !isLink) {
+            formData.append("user_message", message);
+          } else if (message && !imageLinks.includes(message)) {
+            formData.append("user_message", message);
+          }
+
+          if (uploadedImages.length > 0) {
+            uploadedImages.forEach((file) => {
+              formData.append("damage_images", file);
+            });
+          }
+
+          if (imageLinks.length > 0) {
+            imageLinks.forEach((link) => {
+              formData.append("image_links", link);
+            });
+          }
+
+          const previousResponseId = loadResponseId();
+          if (previousResponseId) {
+            formData.append("previous_response_id", previousResponseId);
+          }
+
+          const response = await fetch(
+            `${API_BASE_URL}/Injury_Intelligence/injury-intelligence`,
+            {
+              method: "POST",
+              mode: "cors",
+              headers: {
+                ...getAuthHeaders(),
+                "ngrok-skip-browser-warning": "true",
+              },
+              body: formData,
+            },
+          );
+
+          const data = await response.json();
+
+          if (data.report) {
+            if (data.response_id) {
+              saveResponseId(data.response_id);
+            }
+            addMessage("assistant", data.report);
+          } else {
+            addMessage("assistant", `Error: Invalid response from server`);
+          }
+        } catch (error) {
+          addMessage("assistant", `Connection Error: ${error.message}`);
+        } finally {
+          hideTypingIndicator();
+          isProcessing = false;
+          sendBtn.disabled = false;
+          sendBtn.textContent = "Send";
+          enableInput();
+          resetInput();
+          scrollToBottom();
+        }
+      }
+
+      function addMessage(
+        role,
+        content,
+        userImages = [],
+        userLinks = [],
+        shouldScroll = true,
+        isInitial = false,
+      ) {
+        const messagesDiv = document.getElementById("chat-messages");
+
+        const emptyState = messagesDiv.querySelector(".empty-state");
+        if (emptyState) emptyState.remove();
+
+        const wrapper = document.createElement("div");
+        wrapper.className = `message-wrapper ${role}`;
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${role}${
+          isInitial ? " initial-message" : ""
+        }`;
+
+        if (role === "user") {
+          // Display images first
+          if (userImages && userImages.length > 0) {
+            userImages.forEach((file) => {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const img = document.createElement("img");
+                img.src = e.target.result;
+                img.style.maxWidth = "200px";
+                img.style.height = "auto";
+                img.style.borderRadius = "8px";
+                img.style.marginBottom = "8px";
+                img.style.display = "block";
+                messageDiv.insertBefore(img, messageDiv.firstChild);
+              };
+              reader.readAsDataURL(file);
+            });
+          }
+
+          // Display links
+          if (userLinks && userLinks.length > 0) {
+            const linksContainer = document.createElement("div");
+            linksContainer.style.marginBottom = "12px";
+            linksContainer.style.display = "block";
+            userLinks.forEach((link) => {
+              const linkEl = document.createElement("div");
+              linkEl.style.marginBottom = "6px";
+              linkEl.style.wordBreak = "break-word";
+              linkEl.style.color = "#000";
+              linkEl.innerHTML = `<a href="${link}" target="_blank" style="color: #000; text-decoration: underline; font-weight: 500;">${
+                new URL(link).hostname
+              }</a>`;
+              linksContainer.appendChild(linkEl);
+            });
+            messageDiv.appendChild(linksContainer);
+          }
+
+          // Display text message
+          if (content && content.trim()) {
+            const textEl = document.createElement("div");
+            textEl.textContent = content;
+            textEl.style.display = "block";
+            textEl.style.color = "#000";
+            messageDiv.appendChild(textEl);
+
+            // Add save button only if there's text content
+            const saveBtn = document.createElement("button");
+            saveBtn.style.cssText = `
+              background: none;
+              border: none;
+              color: #f1c40f;
+              cursor: pointer;
+              padding: 4px 8px;
+              border-radius: 4px;
+              transition: all 0.3s;
+              font-size: 16px;
+              flex-shrink: 0;
+              margin-top: 8px;
+              display: block;
+            `;
+            saveBtn.title = "Save this message as template";
+            saveBtn.innerHTML = "💾";
+            saveBtn.onmouseover = function () {
+              this.style.background = "rgba(241, 196, 15, 0.2)";
+            };
+            saveBtn.onmouseout = function () {
+              this.style.background = "none";
+            };
+            saveBtn.onclick = function (e) {
+              e.stopPropagation();
+              currentMessageToSave = content;
+              openSaveTemplateModal();
+            };
+            messageDiv.appendChild(saveBtn);
+          }
+        } else {
+          let processedContent = processTableContent(content);
+          messageDiv.innerHTML = marked.parse(processedContent);
+        }
+
+        wrapper.appendChild(messageDiv);
+        messagesDiv.appendChild(wrapper);
+
+        if (shouldScroll) {
+          scrollToBottom();
+        }
+      }
+
+      function showTypingIndicator() {
+        const messagesDiv = document.getElementById("chat-messages");
+        const wrapper = document.createElement("div");
+        wrapper.className = "typing-wrapper";
+        wrapper.id = "typing-wrapper";
+
+        const indicator = document.createElement("div");
+        indicator.className = "typing-indicator active";
+        indicator.innerHTML =
+          '<div class="typing-dots"><span></span><span></span><span></span></div>';
+
+        wrapper.appendChild(indicator);
+        messagesDiv.appendChild(wrapper);
+        scrollToBottom();
+      }
+
+      function hideTypingIndicator() {
+        const wrapper = document.getElementById("typing-wrapper");
+        if (wrapper) wrapper.remove();
+      }
+
+      function processTableContent(content) {
+        const lines = content.split("\n");
+        let processedContent = [];
+        let i = 0;
+
+        while (i < lines.length) {
+          let line = lines[i].trim();
+
+          if (line.startsWith("|") && line.endsWith("|")) {
+            const tableLines = [];
+            while (i < lines.length && lines[i].trim().startsWith("|")) {
+              const tableLine = lines[i].trim();
+              if (tableLine.length > 0) {
+                tableLines.push(tableLine);
+              }
+              i++;
+            }
+
+            if (tableLines.length > 0) {
+              const markdownTable = convertToMarkdownTable(tableLines);
+              processedContent.push(markdownTable);
+            }
+            continue;
+          }
+
+          processedContent.push(line);
+          i++;
+        }
+
+        return processedContent.join("\n");
+      }
+
+      function convertToMarkdownTable(tableLines) {
+        const rows = tableLines.map((line) => {
+          const cells = line
+            .slice(1, -1)
+            .split("|")
+            .map((cell) => cell.trim());
+          return cells;
+        });
+
+        if (rows.length === 0) return "";
+
+        let separatorIndex = rows.findIndex((row) =>
+          row.every((cell) => /^[\s\-]+$/.test(cell) || cell === ""),
+        );
+
+        let headerRow, dataRows;
+
+        if (separatorIndex !== -1) {
+          headerRow = rows[0];
+          dataRows = rows
+            .slice(1)
+            .filter((_, idx) => idx !== separatorIndex - 1);
+        } else {
+          headerRow = rows[0];
+          dataRows = rows.slice(1);
+        }
+
+        const numCols = Math.max(
+          headerRow.length,
+          ...dataRows.map((row) => row.length),
+        );
+
+        while (headerRow.length < numCols) {
+          headerRow.push("");
+        }
+
+        dataRows = dataRows.map((row) => {
+          const newRow = [...row];
+          while (newRow.length < numCols) newRow.push("");
+          return newRow;
+        });
+
+        let markdown = "\n\n";
+        markdown += "| " + headerRow.join(" | ") + " |\n";
+        markdown += "| " + headerRow.map(() => "---").join(" | ") + " |\n";
+        dataRows.forEach((row) => {
+          markdown += "| " + row.join(" | ") + " |\n";
+        });
+        markdown += "\n";
+
+        return markdown;
+      }
+
+      function scrollToBottom() {
+        const messagesDiv = document.getElementById("chat-messages");
+        setTimeout(() => {
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }, 100);
+      }
+
+      // Load initial message on page load
+      window.addEventListener("load", function () {
+        loadInitialMessage();
+        // Check main app visibility
+        setTimeout(() => {
+          const mainApp = document.getElementById("main-app-container");
+          if (mainApp) {
+            const computed = window.getComputedStyle(mainApp);
+            console.log(
+              "[Alpine check] Main app computed display:",
+              computed.display,
+            );
+            console.log(
+              "[Alpine check] Main app computed visibility:",
+              computed.visibility,
+            );
+            console.log(
+              "[Alpine check] Main app style.display:",
+              mainApp.style.display,
+            );
+          }
+        }, 500);
+        // Don't scroll to bottom on initial load
+      });
+    </script>
+
+    <!-- ALPINE.JS SCRIPTS FOR LOGIN -->
+    <script>
+      const appState = {
+        loggedIn: false,
+        email: "",
+      };
+
+      function loginApp() {
+        return {
+          email: "",
+          password: "",
+          emailValid: false,
+          emailChecking: false,
+          error: "",
+          loggedIn: false,
+          loggingIn: false,
+
+          // OTP / multi-view state
+          view: "login",
+          otp: "",
+          newPassword: "",
+          confirmPassword: "",
+          otpSending: false,
+          otpSent: false,
+          otpVerifying: false,
+          otpVerified: false,
+          submitting: false,
+          passwordCreated: false,
+
+          // ── INIT ──────────────────────────────────────
+          init() {
+            const token = localStorage.getItem("jwtinjury");
+            const savedEmail = localStorage.getItem("injuryEmail");
+            if (token && savedEmail) {
+              this.loggedIn = true;
+              appState.loggedIn = true;
+              this.email = savedEmail;
+              appState.email = savedEmail;
+            }
+            window.addEventListener("logout-success", () => {
+              this.loggedIn = false;
+              this.email = "";
+              this.password = "";
+              this.emailValid = false;
+              this.error = "";
+              this.view = "login";
+              this._resetOtpState();
+            });
+          },
+
+          // ── HELPERS ───────────────────────────────────
+          _resetOtpState() {
+            this.otp = "";
+            this.newPassword = "";
+            this.confirmPassword = "";
+            this.otpSending = false;
+            this.otpSent = false;
+            this.otpVerifying = false;
+            this.otpVerified = false;
+            this.submitting = false;
+            this.error = "";
+          },
+
+          _headers() {
+            return { "ngrok-skip-browser-warning": "true" };
+          },
+
+          // ── 1. VERIFY EMAIL ───────────────────────────
+          verifyEmail() {
+            if (!this.email.includes("@")) {
+              this.emailValid = false;
+              this.passwordCreated = false;
+              this.error = "";
+              return;
+            }
+            this.emailChecking = true;
+            this.error = "";
+            fetch(
+              `${API_BASE_URL}/Injury_Intelligence/verify-email?email=${encodeURIComponent(this.email)}`,
+              { method: "GET", headers: this._headers() },
+            )
+              .then((res) => res.json())
+              .then((json) => {
+                this.emailValid = json.valid;
+                this.passwordCreated = json.password_created || false;
+                this.emailChecking = false;
+                if (!json.valid)
+                  this.error =
+                    "Access denied: Your email is not on the authorized list.";
+              })
+              .catch(() => {
+                this.emailValid = false;
+                this.emailChecking = false;
+                this.passwordCreated = false;
+                this.error =
+                  "Access denied: Your email is not on the authorized list.";
+              });
+          },
+
+          // ── 2. LOGIN (handles "no password" redirect) ─
+          async login() {
+            this.error = "";
+            if (!this.emailValid) {
+              this.error = "Email not authorized";
+              return;
+            }
+            if (!this.email || !this.email.includes("@")) {
+              this.error = "Please enter a valid email";
+              return;
+            }
+            if (!this.password) {
+              this.error = "Please enter password";
+              return;
+            }
+
+            this.loggingIn = true;
+            try {
+              const data = new URLSearchParams();
+              data.append("username", this.email);
+              data.append("password", this.password);
+
+              const res = await fetch(
+                `${API_BASE_URL}/Injury_Intelligence/login`,
+                { method: "POST", headers: this._headers(), body: data },
+              );
+              const json = await res.json();
+
+              if (!res.ok && json.detail === "Please create password first") {
+                this._resetOtpState();
+                this.view = "setup-otp";
+                return;
+              }
+              if (!res.ok) throw new Error(json.detail || "Login failed");
+
+              localStorage.setItem("jwtinjury", json.access_token);
+              localStorage.setItem("injuryEmail", this.email);
+              this.loggedIn = true;
+              appState.loggedIn = true;
+              appState.email = this.email;
+              this.error = "";
+              window.dispatchEvent(new CustomEvent("login-success"));
+            } catch (err) {
+              this.error = err.message || "Something went wrong";
+            } finally {
+              this.loggingIn = false;
+            }
+          },
+
+          // ── SETUP: send OTP ───────────────────────────
+          async setupSendOtp() {
+            this.error = "";
+            this.otpSending = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Injury_Intelligence/send/otp?email=${encodeURIComponent(this.email)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Failed to send OTP");
+              this.otpSent = true;
+            } catch (err) {
+              this.error = err.message || "Failed to send OTP";
+            } finally {
+              this.otpSending = false;
+            }
+          },
+
+          // ── SETUP: verify OTP ─────────────────────────
+          async setupVerifyOtp() {
+            this.error = "";
+            if (!this.otp) {
+              this.error = "Please enter the OTP";
+              return;
+            }
+            this.otpVerifying = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Injury_Intelligence/verify/otp?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Invalid OTP");
+              this.otpVerified = true;
+              this.view = "setup-create";
+            } catch (err) {
+              this.error = err.message || "Invalid OTP";
+            } finally {
+              this.otpVerifying = false;
+            }
+          },
+
+          // ── SETUP: create password ────────────────────
+          async setupCreatePassword() {
+            this.error = "";
+            if (!this.newPassword) {
+              this.error = "Please enter a new password";
+              return;
+            }
+            if (this.newPassword !== this.confirmPassword) {
+              this.error = "Passwords do not match";
+              return;
+            }
+            this.submitting = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Injury_Intelligence/create/password?email=${encodeURIComponent(this.email)}&password=${encodeURIComponent(this.newPassword)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok)
+                throw new Error(json.detail || "Failed to create password");
+              this.password = this.newPassword;
+              this.view = "login";
+              await this.login();
+            } catch (err) {
+              this.error = err.message || "Failed to create password";
+            } finally {
+              this.submitting = false;
+            }
+          },
+
+          // ── FORGOT: send OTP ──────────────────────────
+          async forgotSendOtp() {
+            this.error = "";
+            if (!this.email || !this.email.includes("@")) {
+              this.error = "Please enter your email first";
+              return;
+            }
+            this.otpSending = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Injury_Intelligence/forgot/password?email=${encodeURIComponent(this.email)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Failed to send OTP");
+              this.otpSent = true;
+              this.view = "forgot-verify";
+            } catch (err) {
+              this.error = err.message || "Failed to send OTP";
+            } finally {
+              this.otpSending = false;
+            }
+          },
+
+          // ── FORGOT: verify OTP (local, real check at reset) ──
+          async forgotVerifyOtp() {
+            this.error = "";
+            if (!this.otp) {
+              this.error = "Please enter the OTP";
+              return;
+            }
+            this.otpVerifying = true;
+            setTimeout(() => {
+              this.otpVerified = true;
+              this.view = "forgot-reset";
+              this.otpVerifying = false;
+            }, 400);
+          },
+
+          // ── FORGOT: reset password ────────────────────
+          async forgotResetPassword() {
+            this.error = "";
+            if (!this.newPassword) {
+              this.error = "Please enter a new password";
+              return;
+            }
+            if (this.newPassword !== this.confirmPassword) {
+              this.error = "Passwords do not match";
+              return;
+            }
+            this.submitting = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Injury_Intelligence/reset/password?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}&new_password=${encodeURIComponent(this.newPassword)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok)
+                throw new Error(json.detail || "Failed to reset password");
+              this.password = this.newPassword;
+              this.view = "login";
+              await this.login();
+            } catch (err) {
+              this.error = err.message || "Failed to reset password";
+            } finally {
+              this.submitting = false;
+            }
+          },
+
+          // ── LOGOUT ────────────────────────────────────
+          logout() {
+            localStorage.removeItem("jwtinjury");
+            localStorage.removeItem("injuryEmail");
+            this.loggedIn = false;
+            appState.loggedIn = false;
+            this.email = "";
+            this.password = "";
+            appState.email = "";
+            this.emailValid = false;
+            this.error = "";
+            this.view = "login";
+            this._resetOtpState();
+          },
+        };
+      }
+
+      function injuryApp() {
+        return {
+          isLoggedIn: false,
+          userEmail: "",
+
+          init() {
+            // Load login state
+            const token = localStorage.getItem("jwtinjury");
+            const email = localStorage.getItem("injuryEmail");
+            console.log("[injuryApp.init] Token:", token, "Email:", email);
+            if (token && email) {
+              this.isLoggedIn = true;
+              this.userEmail = email;
+              console.log("[injuryApp.init] Set isLoggedIn to true");
+            } else {
+              console.log(
+                "[injuryApp.init] No token/email, keeping isLoggedIn false",
+              );
+            }
+
+            // Log current state and element display
+            console.log("[injuryApp.init] Final isLoggedIn:", this.isLoggedIn);
+            console.log(
+              "[injuryApp.init] Main app element display:",
+              document.querySelector('[x-data="injuryApp()"]')?.style.display,
+            );
+
+            // Listen for login success
+            window.addEventListener("login-success", () => {
+              this.isLoggedIn = true;
+              this.userEmail = localStorage.getItem("injuryEmail");
+              console.log(
+                "[injuryApp] Login success event - isLoggedIn:",
+                this.isLoggedIn,
+              );
+            });
+
+            // Listen for logout
+            window.addEventListener("logout-success", () => {
+              console.log("[injuryApp] Logout success event received");
+              this.isLoggedIn = false;
+              this.userEmail = "";
+              console.log(
+                "[injuryApp] After logout - isLoggedIn:",
+                this.isLoggedIn,
+              );
+            });
+          },
+
+          logout() {
+            console.log("[injuryApp.logout] Starting logout");
+            localStorage.removeItem("jwtinjury");
+            localStorage.removeItem("injuryEmail");
+            console.log("[injuryApp.logout] localStorage cleared");
+            // Dispatch logout event for all apps to listen
+            window.dispatchEvent(new Event("logout-success"));
+            console.log("[injuryApp.logout] logout-success event dispatched");
+            // Reset state
+            this.isLoggedIn = false;
+            this.userEmail = "";
+            console.log(
+              "[injuryApp.logout] State reset - isLoggedIn:",
+              this.isLoggedIn,
+            );
+            // Small delay to ensure event is processed
+            setTimeout(() => {
+              console.log("[injuryApp.logout] Reloading page");
+              location.reload();
+            }, 100);
+          },
+        };
+      }
+
+      // ============ FEATURE 1: ACTIVE USERS COUNT ============
+      async function loadActiveUsers() {
+        try {
+          const token = localStorage.getItem("jwtinjury");
+          if (!token) return;
+
+          const response = await fetch(
+            `${API_BASE_URL}/Injury_Intelligence/active-today`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "ngrok-skip-browser-warning": "true",
+              },
+            },
+          );
+
+          const data = await response.json();
+
+          if (Array.isArray(data)) {
+            // Update active users count
+            const count = data.length;
+            const countElement = document.getElementById("active-count");
+            if (countElement) {
+              countElement.textContent = count;
+            }
+
+            // Populate active users list
+            const usersList = document.getElementById("active-users-list");
+            if (usersList) {
+              if (count === 0) {
+                usersList.innerHTML =
+                  '<div style="padding: 8px 0; color: #666;">No active users</div>';
+              } else {
+                usersList.innerHTML = data
+                  .map(
+                    (user) => `
+                  <div style="
+                    padding: 10px 8px;
+                    border-bottom: 1px solid rgba(241, 196, 15, 0.2);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 16px;
+                  ">
+                    <span style="color: #f1c40f; font-weight: 500; flex: 1;">${user.email}</span>
+                    <span style="color: #aaa; font-size: 12px; white-space: nowrap; flex-shrink: 0;">${formatLastActive(user.last_active)}</span>
+                  </div>
+                `,
+                  )
+                  .join("");
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load active users:", error);
+        }
+      }
+
+      function formatLastActive(dateStr) {
+        try {
+          const date = new Date(dateStr);
+          const now = new Date();
+          const diffMs = now - date;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMs / 3600000);
+          const diffDays = Math.floor(diffMs / 86400000);
+
+          if (diffMins < 1) return "just now";
+          if (diffMins < 60) return `${diffMins}m ago`;
+          if (diffHours < 24) return `${diffHours}h ago`;
+          if (diffDays < 7) return `${diffDays}d ago`;
+
+          return date.toLocaleDateString();
+        } catch (e) {
+          return dateStr;
+        }
+      }
+
+      document
+        .getElementById("active-users-btn")
+        .addEventListener("click", () => {
+          const popover = document.getElementById("active-users-popover");
+          const isOpening = !popover.classList.contains("open");
+          popover.classList.toggle("open");
+          if (isOpening) {
+            loadActiveUsers();
+          }
+        });
+
+      // Close active users popover when clicking outside
+      document.addEventListener("click", function (event) {
+        const popover = document.getElementById("active-users-popover");
+        const btn = document.getElementById("active-users-btn");
+        if (!btn.contains(event.target) && !popover.contains(event.target)) {
+          popover.style.display = "none";
+        }
+      });
+
+      // ============ FEATURE 2: SAVE MESSAGE AS TEMPLATE ============
+      function openSaveTemplateModal() {
+        const modal = document.getElementById("save-template-modal");
+        const nameInput = document.getElementById("template-name-input");
+        const descInput = document.getElementById("template-description-input");
+        const messageDiv = document.getElementById("template-modal-message");
+        const saveBtn = document.getElementById("save-template-btn");
+
+        modal.style.display = "flex";
+        nameInput.value = "";
+        descInput.value = "";
+        messageDiv.style.display = "none";
+        messageDiv.textContent = "";
+
+        // Reset button state
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Template";
+
+        nameInput.focus();
+      }
+
+      function closeSaveTemplateModal() {
+        const modal = document.getElementById("save-template-modal");
+        modal.style.display = "none";
+        currentMessageToSave = "";
+      }
+
+      async function saveMsgAsTemplate(event) {
+        event.preventDefault();
+
+        const nameInput = document.getElementById("template-name-input");
+        const descInput = document.getElementById("template-description-input");
+        const saveBtn = document.getElementById("save-template-btn");
+        const messageDiv = document.getElementById("template-modal-message");
+
+        const templateName = nameInput.value.trim();
+        const templateDesc = descInput.value.trim();
+        const templateText = currentMessageToSave;
+
+        if (!templateName || !templateDesc) {
+          messageDiv.style.display = "block";
+          messageDiv.style.color = "#e74c3c";
+          messageDiv.textContent = "Please fill in all fields";
+          return;
+        }
+
+        try {
+          saveBtn.disabled = true;
+          saveBtn.textContent = "Saving...";
+          messageDiv.style.display = "block";
+          messageDiv.style.color = "#f1c40f";
+          messageDiv.textContent = "Saving...";
+
+          const token = localStorage.getItem("jwtinjury");
+          const payload = new URLSearchParams();
+          payload.append("template_name", templateName);
+          payload.append("description", templateDesc);
+          payload.append("tags", "injury-intelligence");
+          payload.append("template_text", templateText);
+
+          const response = await fetch(
+            `${API_BASE_URL}/Injury_Intelligence/templates`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "ngrok-skip-browser-warning": "true",
+              },
+              body: payload,
+            },
+          );
+
+          if (response.ok) {
+            messageDiv.style.color = "#2ecc71";
+            messageDiv.textContent = "✓ Template saved successfully";
+            // Clear images and links after saving
+            uploadedImages = [];
+            imageLinks = [];
+            setTimeout(() => {
+              closeSaveTemplateModal();
+            }, 1500);
+          } else {
+            const errorData = await response.json();
+            messageDiv.style.color = "#e74c3c";
+            messageDiv.textContent = `Error: ${errorData.detail || "Failed to save template"}`;
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save Template";
+          }
+        } catch (error) {
+          messageDiv.style.color = "#e74c3c";
+          messageDiv.textContent = `Error: ${error.message}`;
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save Template";
+        }
+      }
+
+      // Global array to store templates
+      let cachedTemplates = [];
+
+      // ============ FEATURE 3: LOAD TEMPLATES ============
+      async function loadTemplates() {
+        try {
+          const token = localStorage.getItem("jwtinjury");
+          if (!token) return;
+
+          const response = await fetch(
+            `${API_BASE_URL}/Injury_Intelligence/templates`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "ngrok-skip-browser-warning": "true",
+              },
+            },
+          );
+
+          const templates = await response.json();
+          cachedTemplates = templates; // Store templates globally
+
+          const templatesList = document.getElementById("templates-list");
+          if (!Array.isArray(templates) || templates.length === 0) {
+            templatesList.innerHTML =
+              '<div style="padding: 8px 0; color: #666;">No templates yet</div>';
+            return;
+          }
+
+          templatesList.innerHTML = templates
+            .map(
+              (template, index) => `
+            <div
+              style="
+                padding: 12px 8px;
+                border-bottom: 1px solid rgba(241, 196, 15, 0.2);
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 12px;
+                transition: all 0.2s;
+                border-radius: 4px;
+              "
+              onmouseover="this.style.background='rgba(241, 196, 15, 0.1)'"
+              onmouseout="this.style.background='transparent'"
+            >
+              <div
+                onclick="selectTemplate(${index})"
+                style="
+                  flex: 1;
+                  cursor: pointer;
+                "
+              >
+                <div style="color: #f1c40f; font-weight: 600; font-size: 13px;">${escapeHtml(template.template_name || template.name)}</div>
+                <div style="color: #888; font-size: 12px; margin-top: 4px;">${escapeHtml(template.description)}</div>
+              </div>
+              <button
+                onclick="deleteTemplate(${template.template_id || template.id}, event)"
+                style="
+                  background: none;
+                  border: none;
+                  color: #e74c3c;
+                  cursor: pointer;
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                  transition: all 0.2s;
+                  font-size: 18px;
+                  flex-shrink: 0;
+                "
+                title="Delete template"
+                onmouseover="this.style.background='rgba(231, 76, 60, 0.2)'"
+                onmouseout="this.style.background='none'"
+              >🗑️</button>
+            </div>
+          `,
+            )
+            .join("");
+        } catch (error) {
+          console.error("Failed to load templates:", error);
+          const templatesList = document.getElementById("templates-list");
+          templatesList.innerHTML =
+            '<div style="padding: 8px 0; color: #e74c3c;">Failed to load templates</div>';
+        }
+      }
+
+      function toggleTemplatesPopover(event) {
+        event.stopPropagation();
+        const popover = document.getElementById("templates-popover");
+        const btn = document.getElementById("templates-btn");
+
+        if (popover.style.display === "none" || popover.style.display === "") {
+          popover.style.display = "block";
+          // Show loading and fetch templates
+          const templatesList = document.getElementById("templates-list");
+          templatesList.innerHTML =
+            '<div style="padding: 8px 0; color: #666;">Loading...</div>';
+          loadTemplates();
+
+          // Change button to show loader
+          btn.innerHTML =
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 0.8s linear infinite;"><circle cx="12" cy="12" r="10"></circle></svg>';
+        } else {
+          popover.style.display = "none";
+          btn.innerHTML =
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>';
+        }
+      }
+
+      function selectTemplate(templateIndex) {
+        const input = document.getElementById("message-input");
+
+        // Get template from cached array
+        const template = cachedTemplates[templateIndex];
+        if (!template) {
+          console.error("Template not found at index:", templateIndex);
+          return;
+        }
+
+        // Extract text from template
+        let textContent = "";
+        uploadedImages = [];
+        imageLinks = [];
+
+        // Handle different response formats
+        if (template.content_parts && Array.isArray(template.content_parts)) {
+          // New format with content_parts
+          template.content_parts.forEach((part) => {
+            if (part.type === "input_text") {
+              textContent += part.text || "";
+            } else if (part.type === "input_image" && part.image_url) {
+              imageLinks.push(part.image_url);
+            }
+          });
+        } else {
+          // Old format - use Full Text or template_text field
+          textContent = template["Full Text"] || template.template_text || "";
+        }
+
+        input.value = textContent;
+
+        // Update attachment indicators if images/links are present
+        if (imageLinks.length > 0) {
+          updateAttachmentIndicators();
+        }
+
+        // Close popover
+        const popover = document.getElementById("templates-popover");
+        const btn = document.getElementById("templates-btn");
+        popover.style.display = "none";
+        btn.innerHTML =
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>';
+
+        // Focus on input
+        input.focus();
+      }
+
+      async function deleteTemplate(templateId, event) {
+        event.stopPropagation();
+
+        // Store template ID in global variable for confirmation
+        window.templateToDelete = templateId;
+        openDeleteTemplateModal();
+      }
+
+      function openDeleteTemplateModal() {
+        const modal = document.getElementById("delete-template-modal");
+        const messageDiv = document.getElementById("delete-template-message");
+        const deleteBtn = document.getElementById("confirm-delete-btn");
+
+        modal.style.display = "flex";
+        messageDiv.style.display = "none";
+        messageDiv.textContent = "";
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = "Delete";
+      }
+
+      function closeDeleteTemplateModal() {
+        const modal = document.getElementById("delete-template-modal");
+        modal.style.display = "none";
+        window.templateToDelete = null;
+      }
+
+      async function confirmDeleteTemplate() {
+        const templateId = window.templateToDelete;
+        if (!templateId) return;
+
+        const deleteBtn = document.getElementById("confirm-delete-btn");
+        const messageDiv = document.getElementById("delete-template-message");
+
+        try {
+          deleteBtn.disabled = true;
+          deleteBtn.textContent = "Deleting...";
+          messageDiv.style.display = "block";
+          messageDiv.style.color = "#f1c40f";
+          messageDiv.textContent = "Deleting...";
+
+          const token = localStorage.getItem("jwtinjury");
+          if (!token) return;
+
+          const response = await fetch(
+            `${API_BASE_URL}/Injury_Intelligence/templates/${templateId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "ngrok-skip-browser-warning": "true",
+              },
+            },
+          );
+
+          if (response.ok) {
+            messageDiv.style.color = "#2ecc71";
+            messageDiv.textContent = "✓ Template deleted successfully";
+            setTimeout(() => {
+              closeDeleteTemplateModal();
+              loadTemplates();
+            }, 1500);
+          } else {
+            messageDiv.style.color = "#e74c3c";
+            messageDiv.textContent = "Failed to delete template";
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = "Delete";
+          }
+        } catch (error) {
+          console.error("Failed to delete template:", error);
+          messageDiv.style.color = "#e74c3c";
+          messageDiv.textContent = "Error: " + error.message;
+          deleteBtn.disabled = false;
+          deleteBtn.textContent = "Delete";
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Close templates popover when clicking outside
+      document.addEventListener("click", function (event) {
+        const popover = document.getElementById("templates-popover");
+        const btn = document.getElementById("templates-btn");
+
+        // Don't close if clicking on the button or popover itself
+        if (btn && btn.contains(event.target)) return;
+        if (popover && popover.contains(event.target)) return;
+
+        if (popover && popover.style.display === "block") {
+          popover.style.display = "none";
+          if (btn) {
+            btn.innerHTML =
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>';
+          }
+        }
+      });
+
+      // Initialize active users on page load when logged in
+      function initializeFeatures() {
+        const token = localStorage.getItem("jwtinjury");
+        if (token) {
+          loadActiveUsers();
+        }
+      }
+
+      // Check authentication and initialize features
+      document.addEventListener("DOMContentLoaded", initializeFeatures);
+      window.addEventListener("login-success", initializeFeatures);
+    </script>
+  </body>
+</html>

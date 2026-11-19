@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VICP Case Outcome Predictor</title>
+    <link rel="icon" type="image/webp"
+        href="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp" />
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+      /* ── existing app styles (unchanged) ── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --gold: #f1c40f;
+        --gold-dim: #c9a80c;
+        --dark: #0d0d0d;
+        --card: #161616;
+        --card2: #1e1e1e;
+        --border: #2a2a2a;
+        --text: #e8e8e8;
+        --muted: #888;
+        --red: #e74c3c;
+        --green: #2ecc71;
+      }
+      body {
+        font-family: "Montserrat", sans-serif;
+        background: var(--dark);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      .video-background {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background: radial-gradient(
+          ellipse at 20% 50%,
+          #1a1200 0%,
+          #0d0d0d 60%
+        );
+      }
+      .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        background: rgba(0, 0, 0, 0.45);
+      }
+
+      /* ── LOGIN PAGE ── */
+      .login-page-wrapper {
+        position: relative;
+        z-index: 10;
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+      }
+      .login-page-content {
+        width: 100%;
+        max-width: 420px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      .login-logo-section {
+        text-align: center;
+      }
+      .login-logo-section img {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+        margin-bottom: 0.75rem;
+      }
+      .login-logo-section h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--gold);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .login-logo-section p {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 0.25rem;
+      }
+
+      /* card used by ALL login views */
+      .login-form-card {
+        width: 100%;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.75rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+      }
+      .login-form-card h2 {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--gold);
+        letter-spacing: 0.5px;
+      }
+      .login-form-card p.sub {
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .login-form-card p.sub span {
+        color: var(--gold);
+      }
+
+      .login-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .login-form-group label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--gold);
+      }
+      .login-form-group input {
+        background: #111;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .login-form-group input:focus {
+        border-color: var(--gold);
+      }
+      .login-form-group input::placeholder {
+        color: #444;
+      }
+
+      .login-email-status {
+        display: none;
+        font-size: 0.78rem;
+        color: var(--muted);
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .login-email-status.visible {
+        display: flex;
+      }
+      .status-icon {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .status-icon.checking {
+        background: var(--gold);
+        animation: pulse 0.8s infinite;
+      }
+      .status-icon.valid {
+        background: var(--green);
+      }
+      .status-icon.invalid {
+        background: var(--red);
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 0.8rem;
+        border: none;
+        border-radius: 8px;
+        background: var(--gold);
+        color: #000;
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          opacity 0.2s;
+      }
+      .login-btn:hover:not(:disabled) {
+        background: var(--gold-dim);
+      }
+      .login-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .login-btn-spinner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .login-error-message {
+        background: rgba(231, 76, 60, 0.12);
+        border: 1px solid rgba(231, 76, 60, 0.4);
+        border-radius: 8px;
+        padding: 0.65rem 0.9rem;
+        color: #f08080;
+        font-size: 0.82rem;
+        font-weight: 500;
+      }
+
+      /* back link */
+      .back-link {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.82rem;
+        color: var(--muted);
+        transition: color 0.2s;
+        text-align: center;
+        width: 100%;
+      }
+      .back-link:hover {
+        color: var(--gold);
+      }
+
+      /* forgot-password small link */
+      .forgot-link {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.8rem;
+        color: var(--gold);
+        text-decoration: underline;
+        transition: opacity 0.2s;
+        text-align: right;
+      }
+      .forgot-link:hover {
+        opacity: 0.75;
+      }
+
+      /* ── SPINNER ── */
+      .spinner {
+        display: inline-block;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+      .spinner-inline {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(0, 0, 0, 0.3);
+        border-top-color: #000;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ── MAIN APP ── */
+      .app-container {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .app-header {
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+      }
+      .header-title h1 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .user-email-label {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .logout-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.4rem 0.9rem;
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .logout-btn:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+
+      .main-content {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        max-width: 860px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .form-card,
+      .results-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.75rem;
+      }
+      .form-card h2 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 0.25rem;
+      }
+      .subtitle {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-bottom: 1.25rem;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .field-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--gold);
+      }
+      .field-group select {
+        background: #111;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.88rem;
+        padding: 0.65rem 0.9rem;
+        outline: none;
+      }
+      .field-group select:focus {
+        border-color: var(--gold);
+      }
+      .checkbox-single {
+        margin-bottom: 1rem;
+      }
+      .section-heading {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.75rem;
+      }
+      .checks-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+      }
+      .checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+        cursor: pointer;
+      }
+      .checkbox-row input[type="checkbox"] {
+        display: none;
+      }
+      .custom-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border);
+        border-radius: 4px;
+        flex-shrink: 0;
+        margin-top: 2px;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+        position: relative;
+      }
+      .checkbox-row input:checked ~ .custom-checkbox {
+        background: var(--gold);
+        border-color: var(--gold);
+      }
+      .checkbox-row input:checked ~ .custom-checkbox::after {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 1px;
+        width: 5px;
+        height: 9px;
+        border: 2px solid #000;
+        border-top: none;
+        border-left: none;
+        transform: rotate(45deg);
+      }
+      .cb-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: block;
+      }
+      .cb-hint {
+        font-size: 0.75rem;
+        color: var(--muted);
+        display: block;
+      }
+      .submit-btn {
+        width: 100%;
+        padding: 0.9rem;
+        background: var(--gold);
+        border: none;
+        border-radius: 8px;
+        color: #000;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .submit-btn:hover:not(:disabled) {
+        background: var(--gold-dim);
+      }
+      .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .error-banner {
+        display: none;
+        margin-top: 0.75rem;
+        background: rgba(231, 76, 60, 0.12);
+        border: 1px solid rgba(231, 76, 60, 0.4);
+        border-radius: 8px;
+        padding: 0.65rem 0.9rem;
+        color: #f08080;
+        font-size: 0.82rem;
+      }
+      .error-banner.visible {
+        display: block;
+      }
+      .success-banner {
+        display: none;
+        margin-top: 0.75rem;
+        background: rgba(46, 204, 113, 0.12);
+        border: 1px solid rgba(46, 204, 113, 0.4);
+        border-radius: 8px;
+        padding: 0.65rem 0.9rem;
+        color: #5dde8e;
+        font-size: 0.82rem;
+      }
+      .success-banner.visible {
+        display: block;
+      }
+      .results-card {
+        display: none;
+      }
+      .results-card.visible {
+        display: block;
+      }
+      .results-card h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 1rem;
+      }
+      .text-result {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .text-result:last-child {
+        border-bottom: none;
+      }
+      .tr-key {
+        font-size: 0.8rem;
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .tr-val {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+      .expander {
+        margin-top: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .expander-header {
+        padding: 0.75rem 1rem;
+        background: var(--card2);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+      .expander-chevron {
+        transition: transform 0.3s;
+      }
+      .expander-chevron.open {
+        transform: rotate(180deg);
+      }
+      .expander-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s ease;
+      }
+      .expander-body.open {
+        max-height: 600px;
+      }
+      pre#raw-json {
+        padding: 1rem;
+        font-size: 0.78rem;
+        color: #aaa;
+        white-space: pre-wrap;
+        background: #0a0a0a;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="video-background"></div>
+    <div class="overlay"></div>
+
+    <!-- ══════════════════════════════════════════
+         LOGIN PAGE  (Alpine loginApp())
+    ══════════════════════════════════════════ -->
+    <div
+      id="login-page-wrapper"
+      class="login-page-wrapper"
+      x-data="loginApp()"
+      style="display: none"
+    >
+      <div class="login-page-content">
+        <!-- Logo -->
+        <div class="login-logo-section">
+          <img
+            src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+            alt="Logo"
+          />
+          <h1>VICP Predictor</h1>
+          <p>Case Outcome &amp; Award Prediction Platform</p>
+        </div>
+
+        <!-- ── VIEW: login ── -->
+        <div class="login-form-card" x-show="view === 'login'">
+          <h2>Login</h2>
+          <div x-show="error" class="login-error-message" x-text="error"></div>
+
+          <div class="login-form-group">
+            <label for="login-email">Email Address</label>
+            <input
+              type="email"
+              id="login-email"
+              x-model="email"
+              @input.debounce.500="verifyEmail()"
+              @keydown.enter="emailValid && password && login()"
+              placeholder="Enter your email"
+            />
+            <div
+              class="login-email-status"
+              :class="{ visible: emailChecking || emailValid !== null }"
+            >
+              <span
+                class="status-icon"
+                :class="emailChecking ? 'checking' : (emailValid ? 'valid' : 'invalid')"
+              ></span>
+              <span
+                x-text="emailChecking ? 'Checking...' : (emailValid ? 'Email verified' : 'Email not found')"
+              ></span>
+            </div>
+          </div>
+
+          <div
+            x-show="emailValid && passwordCreated"
+            x-transition
+            class="login-form-group"
+          >
+            <label>Password</label>
+            <input
+              type="password"
+              x-model="password"
+              @keydown.enter="emailValid && password && login()"
+              placeholder="Enter your password"
+            />
+          </div>
+
+          <div style="text-align: right">
+            <!-- SHOW FORGOT PASSWORD ONLY IF PASSWORD EXISTS -->
+            <template x-if="emailValid && passwordCreated">
+              <button
+                type="button"
+                class="forgot-link"
+                @click="_resetOtpState(); view = 'forgot'; forgotSendOtp()"
+              >
+                Forgot Password?
+              </button>
+            </template>
+
+            <!-- SHOW SET PASSWORD IF PASSWORD DOES NOT EXIST -->
+            <template x-if="emailValid && !passwordCreated">
+              <button
+                type="button"
+                class="forgot-link"
+                @click="_resetOtpState(); view = 'setup-otp'; setupSendOtp()"
+              >
+                Set Password
+              </button>
+            </template>
+          </div>
+
+          <button
+            class="login-btn"
+            x-show="passwordCreated"
+            @click="login()"
+            :disabled="!emailValid || !password || loggingIn"
+          >
+            <span x-show="!loggingIn">LOGIN</span>
+            <span x-show="loggingIn" class="login-btn-spinner">
+              <span class="spinner-inline"></span> Logging in...
+            </span>
+          </button>
+          <button
+            class="login-btn"
+            x-show="emailValid && !passwordCreated"
+            @click="_resetOtpState(); view = 'setup-otp'; setupSendOtp()"
+            :disabled="loggingIn || otpSending"
+          >
+            <span x-show="!loggingIn && !otpSending">SET PASSWORD</span>
+            <span x-show="loggingIn || otpSending" class="login-btn-spinner">
+              <span class="spinner-inline"></span> Sending OTP...
+            </span>
+          </button>
+        </div>
+
+        <!-- ── VIEW: setup-otp (new account — send OTP) ── -->
+        <div class="login-form-card" x-show="view === 'setup-otp'">
+          <h2>Set Up Account</h2>
+          <p class="sub">
+            No password found for <span x-text="email"></span>. We'll send a
+            one-time code to get started.
+          </p>
+          <div x-show="error" class="login-error-message" x-text="error"></div>
+
+          <button
+            class="login-btn"
+            @click="setupSendOtp()"
+            :disabled="otpSending || otpSent"
+          >
+            <span x-show="!otpSending && !otpSent">Send OTP to Email</span>
+            <span x-show="otpSending" class="login-btn-spinner"
+              ><span class="spinner-inline"></span> Sending…</span
+            >
+            <span x-show="otpSent">OTP Sent ✓ — Enter Below</span>
+          </button>
+
+          <template x-if="otpSent">
+            <div style="display: flex; flex-direction: column; gap: 1rem">
+              <div class="login-form-group">
+                <label>Enter OTP</label>
+                <input
+                  type="text"
+                  x-model="otp"
+                  @keydown.enter="setupVerifyOtp()"
+                  placeholder="6-digit OTP"
+                />
+              </div>
+              <button
+                class="login-btn"
+                @click="setupVerifyOtp()"
+                :disabled="otpVerifying"
+              >
+                <span x-show="!otpVerifying">Verify OTP</span>
+                <span x-show="otpVerifying" class="login-btn-spinner"
+                  ><span class="spinner-inline"></span> Verifying…</span
+                >
+              </button>
+            </div>
+          </template>
+
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: setup-create (create password) ── -->
+        <div class="login-form-card" x-show="view === 'setup-create'">
+          <h2>Create Password</h2>
+          <p class="sub">OTP verified! Now set your account password.</p>
+          <div x-show="error" class="login-error-message" x-text="error"></div>
+
+          <div class="login-form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              x-model="newPassword"
+              placeholder="Enter new password"
+            />
+          </div>
+          <div class="login-form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              x-model="confirmPassword"
+              @keydown.enter="setupCreatePassword()"
+              placeholder="Confirm new password"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="setupCreatePassword()"
+            :disabled="submitting"
+          >
+            <span x-show="!submitting">Create Password &amp; Login</span>
+            <span x-show="submitting" class="login-btn-spinner"
+              ><span class="spinner-inline"></span> Setting up…</span
+            >
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot (auto-sends OTP) ── -->
+        <div class="login-form-card" x-show="view === 'forgot'">
+          <h2>Forgot Password</h2>
+          <p class="sub">
+            Sending a password reset OTP to <span x-text="email"></span>…
+          </p>
+          <div x-show="error" class="login-error-message" x-text="error"></div>
+
+          <div
+            x-show="otpSending"
+            style="display: flex; justify-content: center; padding: 1rem"
+          >
+            <span
+              class="spinner"
+              style="
+                width: 22px;
+                height: 22px;
+                border: 3px solid #333;
+                border-top-color: var(--gold);
+              "
+            ></span>
+          </div>
+          <button
+            x-show="!otpSending && error"
+            class="login-btn"
+            @click="forgotSendOtp()"
+          >
+            Retry Send OTP
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot-verify (enter OTP) ── -->
+        <div class="login-form-card" x-show="view === 'forgot-verify'">
+          <h2>Enter OTP</h2>
+          <p class="sub">
+            OTP sent to <span x-text="email"></span>. Enter it below.
+          </p>
+          <div x-show="error" class="login-error-message" x-text="error"></div>
+
+          <div class="login-form-group">
+            <label>OTP</label>
+            <input
+              type="text"
+              x-model="otp"
+              @keydown.enter="forgotVerifyOtp()"
+              placeholder="6-digit OTP"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="forgotVerifyOtp()"
+            :disabled="otpVerifying"
+          >
+            <span x-show="!otpVerifying">Verify OTP</span>
+            <span x-show="otpVerifying" class="login-btn-spinner"
+              ><span class="spinner-inline"></span> Verifying…</span
+            >
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot-reset (new password) ── -->
+        <div class="login-form-card" x-show="view === 'forgot-reset'">
+          <h2>Reset Password</h2>
+          <p class="sub">Enter your new password below.</p>
+          <div x-show="error" class="login-error-message" x-text="error"></div>
+
+          <div class="login-form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              x-model="newPassword"
+              placeholder="Enter new password"
+            />
+          </div>
+          <div class="login-form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              x-model="confirmPassword"
+              @keydown.enter="forgotResetPassword()"
+              placeholder="Confirm new password"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="forgotResetPassword()"
+            :disabled="submitting"
+          >
+            <span x-show="!submitting">Reset Password &amp; Login</span>
+            <span x-show="submitting" class="login-btn-spinner"
+              ><span class="spinner-inline"></span> Resetting…</span
+            >
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+      </div>
+      <!-- /login-page-content -->
+    </div>
+    <!-- /login-page-wrapper -->
+
+    <!-- ══════════════════════════════════════════
+         MAIN APP
+    ══════════════════════════════════════════ -->
+    <div id="main-app-wrapper" class="app-container" style="display: none">
+      <header class="app-header">
+        <div class="header-left">
+          <img
+            class="logo"
+            src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+            alt="Ramos Law"
+          />
+          <div class="header-title">
+            <h1>VICP Case Outcome &amp; Award Predictor</h1>
+          </div>
+        </div>
+        <div class="header-right">
+          <span class="user-email-label" id="header-email"></span>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </header>
+
+      <div class="main-content">
+        <!-- Form Card -->
+        <div class="form-card">
+          <h2>Case Characteristics</h2>
+          <p class="subtitle">
+            Enter case details below to generate a model-based prediction.
+          </p>
+          <div class="grid-2">
+            <div class="field-group">
+              <label for="injury">Injury Type</label>
+              <select id="injury">
+                <option value="SIRVA">SIRVA</option>
+                <option value="GBS">GBS</option>
+                <option value="STROKE">Stroke</option>
+                <option value="Neuropathy">Neuropathy</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="vaccine">Vaccine</label>
+              <select id="vaccine">
+                <option value="flu">Flu</option>
+                <option value="hpv">HPV</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="checkbox-single">
+            <label class="checkbox-row" for="procedure_present">
+              <input type="checkbox" id="procedure_present" checked />
+              <span class="custom-checkbox"></span>
+              <div class="checkbox-text-group">
+                <span class="cb-label"
+                  >Medical procedure(s) clearly documented</span
+                >
+                <span class="cb-hint"
+                  >Was a surgical or invasive procedure mentioned?</span
+                >
+              </div>
+            </label>
+          </div>
+          <div class="section-heading">Case Process Signals</div>
+          <div class="checks-grid">
+            <label class="checkbox-row" for="stipulation_flag">
+              <input type="checkbox" id="stipulation_flag" />
+              <span class="custom-checkbox"></span>
+              <div class="checkbox-text-group">
+                <span class="cb-label">Stipulation present</span>
+                <span class="cb-hint"
+                  >Case resolved via settlement agreement</span
+                >
+              </div>
+            </label>
+            <label class="checkbox-row" for="has_hearing">
+              <input type="checkbox" id="has_hearing" />
+              <span class="custom-checkbox"></span>
+              <div class="checkbox-text-group">
+                <span class="cb-label">Hearing conducted</span>
+                <span class="cb-hint"
+                  >Formal hearing before special master</span
+                >
+              </div>
+            </label>
+            <label class="checkbox-row" for="has_expert">
+              <input type="checkbox" id="has_expert" />
+              <span class="custom-checkbox"></span>
+              <div class="checkbox-text-group">
+                <span class="cb-label">Expert testimony present</span>
+                <span class="cb-hint">Indicates contested medical issues</span>
+              </div>
+            </label>
+            <label class="checkbox-row" for="has_motion">
+              <input type="checkbox" id="has_motion" checked />
+              <span class="custom-checkbox"></span>
+              <div class="checkbox-text-group">
+                <span class="cb-label">Motion practice present</span>
+                <span class="cb-hint"
+                  >Any procedural / legal motions filed</span
+                >
+              </div>
+            </label>
+          </div>
+          <button
+            class="submit-btn"
+            id="predict-btn"
+            onclick="submitPrediction()"
+          >
+            Predict Case Outcome
+          </button>
+          <div class="error-banner" id="error-banner"></div>
+          <div class="success-banner" id="success-banner">
+            ✓ Prediction complete!
+          </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="results-card" id="results-card">
+          <h3>Prediction Result</h3>
+          <div id="metrics-container" class="metrics-grid"></div>
+          <div
+            id="attorney-hours-container"
+            class="attorney-hours-row"
+            style="display: none"
+          >
+            <div class="metric-box">
+              <div class="metric-label">Estimated Attorney Hours</div>
+              <div class="metric-value" id="attorney-hours-value">—</div>
+            </div>
+          </div>
+          <div id="text-results-container"></div>
+          <div class="result-timestamp" id="result-timestamp"></div>
+          <div class="expander">
+            <div class="expander-header" onclick="toggleExpander()">
+              <span>Raw Result Dictionary</span>
+              <span class="expander-chevron" id="expander-chevron">▾</span>
+            </div>
+            <div class="expander-body" id="expander-body">
+              <pre id="raw-json"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      const API_BASE_URL = "";
+      /* ───────── AUTH GUARD ───────── */
+      function checkAuthToken() {
+        const token = localStorage.getItem("jwtvicpmodel");
+        const loginEl = document.getElementById("login-page-wrapper");
+        const appEl = document.getElementById("main-app-wrapper");
+        if (token) {
+          loginEl.style.display = "none";
+          appEl.style.display = "flex";
+          const email = localStorage.getItem("vicpModelEmail") || "";
+          document.getElementById("header-email").textContent = email;
+        } else {
+          loginEl.style.display = "flex";
+          appEl.style.display = "none";
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem("jwtvicpmodel");
+        localStorage.removeItem("vicpModelEmail");
+        document.getElementById("results-card").classList.remove("visible");
+        clearError();
+        document.getElementById("success-banner").classList.remove("visible");
+        checkAuthToken();
+      }
+
+      document.addEventListener("DOMContentLoaded", checkAuthToken);
+      window.addEventListener("login-success", () =>
+        setTimeout(checkAuthToken, 100),
+      );
+
+      /* ───────── LOGIN APP (Alpine) ───────── */
+      function loginApp() {
+        return {
+          /* state */
+          email: "",
+          password: "",
+          error: "",
+          loggedIn: false,
+          loggingIn: false,
+          emailValid: null,
+          emailChecking: false,
+          view: "login",
+          otp: "",
+          newPassword: "",
+          confirmPassword: "",
+          otpSending: false,
+          otpSent: false,
+          otpVerifying: false,
+          otpVerified: false,
+          submitting: false,
+          passwordCreated: false,
+
+          /* ── helpers ── */
+          _resetOtpState() {
+            this.otp = "";
+            this.newPassword = "";
+            this.confirmPassword = "";
+            this.otpSending = false;
+            this.otpSent = false;
+            this.otpVerifying = false;
+            this.otpVerified = false;
+            this.submitting = false;
+            this.error = "";
+          },
+          _headers() {
+            return { "ngrok-skip-browser-warning": "true" };
+          },
+
+          /* ── 1. verify email ── */
+          async verifyEmail() {
+            if (!this.email) {
+              this.emailValid = null;
+              this.emailChecking = false;
+              return;
+            }
+            this.emailChecking = true;
+            this.passwordCreated = false;
+            this.error = "";
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/vicp_prediction/verify-email?email=${encodeURIComponent(this.email)}`,
+                { headers: this._headers() },
+              );
+              const json = await res.json();
+              this.emailValid = json.valid;
+              this.passwordCreated = json.password_created || false;
+              if (!json.valid)
+                this.error =
+                  "Access denied: Your email is not on the authorized list.";
+            } catch {
+              this.emailValid = false;
+              this.passwordCreated = false;
+              this.error =
+                "Access denied: Your email is not on the authorized list.";
+            } finally {
+              this.emailChecking = false;
+            }
+          },
+
+          /* ── 2. login (handles "no password" redirect) ── */
+          async login() {
+            this.error = "";
+            if (!this.emailValid) {
+              this.error = "Email not authorized";
+              return;
+            }
+            if (!this.passwordCreated) {
+              this._resetOtpState();
+              this.view = "setup-otp";
+              await this.setupSendOtp();
+              return;
+            }
+            if (!this.password) {
+              this.error = "Please enter password";
+              return;
+            }
+            this.loggingIn = true;
+            try {
+              const body = new URLSearchParams();
+              body.append("username", this.email);
+              body.append("password", this.password);
+              const res = await fetch(`${API_BASE_URL}/vicp_prediction/login`, {
+                method: "POST",
+                body,
+                headers: this._headers(),
+              });
+              const json = await res.json();
+
+              if (!res.ok && json.detail === "Please create password first") {
+                this._resetOtpState();
+                this.view = "setup-otp";
+                return;
+              }
+              if (!res.ok) throw new Error(json.detail || "Login failed");
+
+              localStorage.setItem("jwtvicpmodel", json.access_token);
+              localStorage.setItem("vicpModelEmail", this.email);
+              window.dispatchEvent(new CustomEvent("login-success"));
+            } catch (err) {
+              this.error = err.message || "Something went wrong";
+            } finally {
+              this.loggingIn = false;
+            }
+          },
+
+          /* ── SETUP: send OTP ── */
+          async setupSendOtp() {
+            this.error = "";
+            this.otpSending = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/vicp_prediction/send/otp?email=${encodeURIComponent(this.email)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Failed to send OTP");
+              this.otpSent = true;
+            } catch (err) {
+              this.error = err.message || "Failed to send OTP";
+            } finally {
+              this.otpSending = false;
+            }
+          },
+
+          /* ── SETUP: verify OTP ── */
+          async setupVerifyOtp() {
+            this.error = "";
+            if (!this.otp) {
+              this.error = "Please enter the OTP";
+              return;
+            }
+            this.otpVerifying = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/vicp_prediction/verify/otp?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Invalid OTP");
+              this.otpVerified = true;
+              this.view = "setup-create";
+            } catch (err) {
+              this.error = err.message || "Invalid OTP";
+            } finally {
+              this.otpVerifying = false;
+            }
+          },
+
+          /* ── SETUP: create password ── */
+          async setupCreatePassword() {
+            this.error = "";
+
+            if (!this.newPassword) {
+              this.error = "Please enter a new password";
+              return;
+            }
+
+            if (this.newPassword !== this.confirmPassword) {
+              this.error = "Passwords do not match";
+              return;
+            }
+
+            this.submitting = true;
+
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/vicp_prediction/create/password?email=${encodeURIComponent(this.email)}&password=${encodeURIComponent(this.newPassword)}`,
+                {
+                  method: "POST",
+                  headers: this._headers(),
+                },
+              );
+
+              const json = await res.json();
+
+              if (!res.ok) {
+                throw new Error(json.detail || "Failed to create password");
+              }
+
+              // PASSWORD CREATED SUCCESSFULLY
+              this.passwordCreated = true;
+
+              // CLEAR SETUP STATE
+              this._resetOtpState();
+
+              // GO BACK TO LOGIN UI
+              this.view = "login";
+
+              // PREFILL PASSWORD FIELD
+              this.password = this.newPassword;
+
+              // CLEAR TEMP PASSWORD FIELDS
+              this.newPassword = "";
+              this.confirmPassword = "";
+            } catch (err) {
+              this.error = err.message || "Failed to create password";
+            } finally {
+              this.submitting = false;
+            }
+          },
+
+          /* ── FORGOT: send OTP ── */
+          async forgotSendOtp() {
+            this.error = "";
+            if (!this.email || !this.email.includes("@")) {
+              this.error = "Please enter your email first";
+              return;
+            }
+            this.otpSending = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/vicp_prediction/forgot/password?email=${encodeURIComponent(this.email)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Failed to send OTP");
+              this.otpSent = true;
+              this.view = "forgot-verify";
+            } catch (err) {
+              this.error = err.message || "Failed to send OTP";
+            } finally {
+              this.otpSending = false;
+            }
+          },
+
+          /* ── FORGOT: verify OTP (local, real check on reset) ── */
+          async forgotVerifyOtp() {
+            this.error = "";
+            if (!this.otp) {
+              this.error = "Please enter the OTP";
+              return;
+            }
+            this.otpVerifying = true;
+            // OTP stored locally; actual verification happens at reset endpoint
+            setTimeout(() => {
+              this.otpVerified = true;
+              this.view = "forgot-reset";
+              this.otpVerifying = false;
+            }, 400);
+          },
+
+          /* ── FORGOT: reset password ── */
+          async forgotResetPassword() {
+            this.error = "";
+            if (!this.newPassword) {
+              this.error = "Please enter a new password";
+              return;
+            }
+            if (this.newPassword !== this.confirmPassword) {
+              this.error = "Passwords do not match";
+              return;
+            }
+            this.submitting = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/vicp_prediction/reset/password?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}&new_password=${encodeURIComponent(this.newPassword)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok)
+                throw new Error(json.detail || "Failed to reset password");
+              this.password = this.newPassword;
+              this.view = "login";
+              await this.login();
+            } catch (err) {
+              this.error = err.message || "Failed to reset password";
+            } finally {
+              this.submitting = false;
+            }
+          },
+        };
+      }
+
+      /* ───────── HELPERS ───────── */
+      function getVal(id) {
+        return document.getElementById(id).value;
+      }
+      function getCheck(id) {
+        return document.getElementById(id).checked;
+      }
+      function setError(msg) {
+        const el = document.getElementById("error-banner");
+        el.textContent = "⚠ " + msg;
+        el.classList.add("visible");
+      }
+      function clearError() {
+        document.getElementById("error-banner").classList.remove("visible");
+      }
+      function showSuccess() {
+        const el = document.getElementById("success-banner");
+        el.classList.add("visible");
+        setTimeout(() => el.classList.remove("visible"), 3000);
+      }
+
+      /* ───────── API CALL ───────── */
+      async function submitPrediction() {
+        clearError();
+        const btn = document.getElementById("predict-btn");
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-inline"></span>Predicting...';
+        const params = new URLSearchParams({
+          injury: getVal("injury"),
+          vaccine: getVal("vaccine"),
+          procedure_present: getCheck("procedure_present"),
+          stipulation_flag: getCheck("stipulation_flag"),
+          has_expert: getCheck("has_expert"),
+          has_hearing: getCheck("has_hearing"),
+          has_motion: getCheck("has_motion"),
+        });
+        const token = localStorage.getItem("jwtvicpmodel");
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/vicp_prediction/predict?${params.toString()}`,
+            {
+              method: "POST",
+              headers: {
+                "ngrok-skip-browser-warning": "true",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+            },
+          );
+          if (!response.ok) throw new Error("Request failed");
+          const result = await response.json();
+          renderResults(result);
+          showSuccess();
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = "Predict Case Outcome";
+        }
+      }
+
+      /* ───────── FORMAT ───────── */
+      function formatNumber(key, value) {
+        const k = key.toLowerCase();
+        if (k.includes("percent")) return value.toFixed(2);
+        if (k.includes("award") || k.includes("fee"))
+          return "$" + Number(value).toLocaleString();
+        if (k.includes("hour")) return Math.round(value).toLocaleString();
+        return value;
+      }
+      function escapeHtml(text) {
+        const d = document.createElement("div");
+        d.textContent = text;
+        return d.innerHTML;
+      }
+
+      const KEY_ORDER = [
+        "probability_of_compensation (%)",
+        "predicted_outcome",
+        "expected_award_range",
+        "predicted_award (point estimate)",
+        "estimated_attorney_hours",
+        "estimated_attorney_fees",
+      ];
+
+      /* ───────── RENDER RESULTS ───────── */
+      function renderResults(result) {
+        const textEl = document.getElementById("text-results-container");
+        textEl.innerHTML = "";
+        const orderedKeys = [
+          ...KEY_ORDER.filter((k) => k in result),
+          ...Object.keys(result).filter((k) => !KEY_ORDER.includes(k)),
+        ];
+        for (const key of orderedKeys) {
+          const value = result[key];
+          const label = key
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+          const block = document.createElement("div");
+          block.className = "text-result";
+          block.innerHTML = `<div class="tr-key">${escapeHtml(label)}</div><div class="tr-val">${escapeHtml(typeof value === "number" ? formatNumber(key, value) : String(value))}</div>`;
+          textEl.appendChild(block);
+        }
+
+            document.getElementById("raw-json").textContent = JSON.stringify(result, null, 2);
+        document.getElementById("results-card").classList.add("visible");
+            document.getElementById("results-card").scrollIntoView({ behavior: "smooth" });
+      }
+
+      /* ───────── EXPANDER ───────── */
+      function toggleExpander() {
+        document.getElementById("expander-body").classList.toggle("open");
+        document.getElementById("expander-chevron").classList.toggle("open");
+      }
+    </script>
+  </body>
+
+</html>

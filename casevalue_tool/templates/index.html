@@ -1,0 +1,2899 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Case Value App - Ramos Law</title>
+    <link
+      rel="icon"
+      type="image/webp"
+      href="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind for auth UI — preflight disabled so existing styles are untouched -->
+    <script>
+      window.tailwind = {
+        config: {
+          corePlugins: { preflight: false },
+          darkMode: "class",
+          theme: {
+            extend: { fontFamily: { sans: ["Montserrat", "system-ui"] } },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --gold: #f1c40f;
+        --gold-dark: #d4ac0d;
+        --gold-dim: rgba(241, 196, 15, 0.11);
+        --gold-border: rgba(241, 196, 15, 0.25);
+        --bg-dark: #0b0b0b;
+        --card-bg: rgba(22, 22, 22, 0.95);
+        --border: rgba(241, 196, 15, 0.18);
+        --muted: #9ca3af;
+        --danger: #ef4444;
+        --success: #22c55e;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        font-family: "Montserrat", sans-serif;
+        min-height: 100vh;
+        background-color: var(--bg-dark);
+        color: var(--gold);
+      }
+
+      .video-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url("https://static.vecteezy.com/system/resources/previews/007/596/744/non_2x/abstract-digital-glossy-particles-and-lines-connected-3d-illustration-on-black-background-free-photo.jpg");
+        background-size: cover;
+        background-position: center top;
+        z-index: -2;
+      }
+
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.85);
+        z-index: -1;
+      }
+
+      /* ══════════════════════════════════════
+         AUTH OVERLAY (Same as Executive Dashboard)
+      ══════════════════════════════════════ */
+      #auth-overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        overflow-y: auto;
+        z-index: 200;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+      }
+
+      /* ── Card ── */
+      .dark-theme-card {
+        background: rgba(20, 20, 20, 0.97);
+        border-radius: 20px;
+        box-shadow:
+          0 10px 40px rgba(0, 0, 0, 0.65),
+          0 0 30px rgba(241, 196, 15, 0.06);
+        border: 1px solid rgba(241, 196, 15, 0.18);
+        color: #f1c40f;
+        backdrop-filter: blur(14px);
+      }
+
+      /* ── Input ── */
+      .dark-theme-input {
+        background: rgba(0, 0, 0, 0.65) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        width: 100%;
+        height: 52px;
+        padding: 0 16px;
+        font-size: 0.95rem;
+        font-family: "Montserrat", sans-serif;
+        outline: none;
+        transition: all 0.25s ease;
+      }
+
+      .dark-theme-input:focus {
+        border-color: rgba(241, 196, 15, 0.7) !important;
+        box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.12) !important;
+        background: rgba(0, 0, 0, 0.9) !important;
+      }
+
+      .dark-theme-input::placeholder {
+        color: #a0a0a0 !important;
+        opacity: 0.85;
+      }
+
+      /* ── Buttons ── */
+      .dark-theme-btn-primary {
+        background: linear-gradient(
+          135deg,
+          #f1c40f 0%,
+          #d4ac0d 100%
+        ) !important;
+        color: #000 !important;
+        font-weight: 700 !important;
+        border: none !important;
+        border-radius: 12px !important;
+        height: 52px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        letter-spacing: 0.3px;
+      }
+
+      .dark-theme-btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(241, 196, 15, 0.25) !important;
+        background: linear-gradient(
+          135deg,
+          #ffd93d 0%,
+          #f1c40f 100%
+        ) !important;
+      }
+
+      .dark-theme-btn-primary:disabled {
+        opacity: 0.45 !important;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .dark-theme-btn-ghost {
+        background: transparent !important;
+        color: #f1c40f !important;
+        border: 1px solid rgba(241, 196, 15, 0.3) !important;
+        border-radius: 12px !important;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.25s ease;
+      }
+
+      .dark-theme-btn-ghost:hover {
+        border-color: rgba(241, 196, 15, 0.6) !important;
+        background: rgba(241, 196, 15, 0.08) !important;
+      }
+
+      /* ── Error / Success ── */
+      .error-message {
+        color: #e74c3c;
+        background-color: rgba(231, 76, 60, 0.1);
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 0.88rem;
+      }
+
+      .success-message {
+        color: #2ecc71;
+        background-color: rgba(46, 204, 113, 0.1);
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 0.88rem;
+      }
+
+      /* ── Auth Header ── */
+      .auth-header-text {
+        text-align: center;
+        margin-top: 10px;
+        margin-bottom: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .auth-header-text img {
+        width: 88px;
+        height: 88px;
+        object-fit: contain;
+        margin-bottom: 16px;
+        filter: drop-shadow(0 0 14px rgba(241, 196, 15, 0.4));
+      }
+
+      .auth-header-text h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-shadow: 0 0 18px rgba(241, 196, 15, 0.3);
+        color: #f1c40f;
+        margin: 0 0 6px 0;
+      }
+
+      .auth-header-text p {
+        color: #9ca3af;
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      /* ── OTP Input Row ── */
+      .otp-inputs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .otp-input {
+        width: 52px;
+        height: 56px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.65) !important;
+        color: #f1c40f !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        outline: none;
+        font-family: "Montserrat", sans-serif;
+        transition: all 0.25s ease;
+      }
+
+      .otp-input:focus {
+        border-color: rgba(241, 196, 15, 0.7) !important;
+        box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.12) !important;
+        background: rgba(0, 0, 0, 0.9) !important;
+      }
+
+      /* ── Spinner (auth) ── */
+      .auth-loader {
+        border: 3px solid rgba(241, 196, 15, 0.15);
+        border-radius: 50%;
+        border-top: 3px solid #f1c40f;
+        width: 22px;
+        height: 22px;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+      }
+
+      /* ── Step indicator ── */
+      .step-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+
+      .step-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #333;
+        transition:
+          background 0.3s,
+          transform 0.3s;
+      }
+
+      .step-dot.active {
+        background: #f1c40f;
+        transform: scale(1.3);
+      }
+
+      .step-dot.done {
+        background: #2ecc71;
+      }
+
+      /* ── Password strength ── */
+      .strength-bar-wrap {
+        display: flex;
+        gap: 4px;
+        margin-top: 8px;
+      }
+
+      .strength-seg {
+        flex: 1;
+        height: 4px;
+        border-radius: 4px;
+        background: #333;
+        transition: background 0.3s;
+      }
+
+      .strength-seg.filled-weak {
+        background: #e74c3c;
+      }
+
+      .strength-seg.filled-medium {
+        background: #f39c12;
+      }
+
+      .strength-seg.filled-strong {
+        background: #2ecc71;
+      }
+
+      /* ── Resend timer ── */
+      .resend-link {
+        color: #f1c40f;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.85rem;
+        text-decoration: underline;
+        padding: 0;
+      }
+
+      .resend-link:disabled {
+        color: #666;
+        cursor: default;
+        text-decoration: none;
+      }
+
+      /* ── Eye toggle ── */
+      .input-wrap {
+        position: relative;
+      }
+
+      .eye-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #a0a0a0;
+        padding: 0;
+        line-height: 1;
+      }
+
+      .eye-btn:hover {
+        color: #f1c40f;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ── MAIN APP CONTAINER ── */
+      #main-app {
+        width: 100%;
+        min-height: 100vh;
+      }
+
+      .app-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+
+      /* PeakTrac Dark Card */
+      .dark-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        color: #fff;
+        overflow: hidden;
+        padding: 28px;
+      }
+
+      .brand-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 16px;
+      }
+
+      .brand-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .user-pill {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--gold-dim);
+        border: 1px solid var(--gold-border);
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--gold);
+      }
+
+      .user-pill-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gold);
+      }
+
+      .btn-logout {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 7px;
+        padding: 6px 14px;
+        cursor: pointer;
+        font-family: inherit;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+      }
+
+      .btn-logout:hover {
+        color: #fff;
+        border-color: var(--gold-border);
+      }
+
+      .brand-header h1 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--gold);
+        margin: 0;
+      }
+
+      .brand-sub {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+        margin-top: 2px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      label {
+        color: var(--gold);
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      /* PeakTrac Inputs */
+      .app-container input {
+        background-color: rgba(15, 15, 15, 0.9);
+        border: 1px solid rgba(241, 196, 15, 0.25);
+        color: #fff;
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        width: 100%;
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+        font-family: "Montserrat", sans-serif;
+      }
+
+      .app-container input:focus {
+        outline: none;
+        border-color: var(--gold);
+        box-shadow: 0 0 8px rgba(241, 196, 15, 0.3);
+        background-color: rgba(0, 0, 0, 0.95);
+        color: #fff;
+      }
+
+      /* Buttons */
+      .btn-gold {
+        background-color: var(--gold);
+        color: #111;
+        font-weight: 700;
+        border: none;
+        padding: 10px 22px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .btn-gold:hover {
+        background-color: var(--gold-dark);
+        color: #000;
+        box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
+      }
+
+      .btn-gold:disabled {
+        background-color: #444;
+        color: #888;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      /* Status Boxes */
+      .status {
+        margin-top: 18px;
+        padding: 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+
+      .status.success {
+        background-color: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+      }
+
+      .status.error {
+        background-color: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+      }
+
+      /* Content Layouts */
+      .section {
+        margin-top: 24px;
+      }
+
+      .section h3 {
+        font-size: 1.1rem;
+        color: var(--gold);
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .details {
+        margin-top: 20px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .detail-row {
+        background: rgba(15, 15, 15, 0.8);
+        border: 1px solid var(--border);
+        padding: 12px 16px;
+        border-radius: 8px;
+        color: #e0e0e0;
+        font-size: 0.88rem;
+      }
+
+      .label {
+        font-weight: 700;
+        color: var(--gold);
+        margin-right: 8px;
+      }
+
+      a {
+        color: #60a5fa;
+        word-break: break-all;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .download-link {
+        display: inline-block;
+        padding: 6px 14px;
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.82rem;
+        transition: all 0.2s;
+      }
+
+      .download-link:hover {
+        background: #22c55e;
+        color: #000;
+        text-decoration: none;
+      }
+
+      /* Pre Boxes */
+      pre {
+        background: #000;
+        color: #d1d5db;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        overflow-x: auto;
+        white-space: pre-wrap;
+        min-height: 140px;
+        line-height: 1.5;
+        font-family: monospace;
+        font-size: 0.85rem;
+      }
+
+      #formattedMemo {
+        background: rgba(10, 10, 10, 0.95);
+        color: #f3f4f6;
+        border: 1px solid var(--border);
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        padding: 20px;
+      }
+
+      #ocrText {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      #debugSection {
+        display: none;
+      }
+
+      #result {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .small-note {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      /* Scrollbars */
+      pre,
+      #ocrText,
+      #result {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(241, 196, 15, 0.55) #121212;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #121212;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--gold);
+        border-radius: 10px;
+      }
+
+      @media (max-width: 600px) {
+        .brand-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 14px;
+        }
+
+        .brand-header-right {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="video-background"></div>
+    <div class="overlay"></div>
+
+    <!-- ═══════════ AUTH OVERLAY ═══════════ -->
+    <div id="auth-overlay" style="display: none">
+      <div
+        id="auth-app"
+        class="w-full max-w-[40rem] relative z-10 mx-auto mt-6 md:mt-10"
+        style="display: none"
+      >
+        <!-- ── Header ── -->
+        <div class="auth-header-text">
+          <img
+            src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+            alt="Ramos Law"
+          />
+          <h1>Case Value App</h1>
+          <p>Settlement Intelligence — Authorized Access</p>
+        </div>
+
+        <!-- ════════════════
+               STEP: LOGIN
+          ════════════════ -->
+        <div
+          id="step-login"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <h2
+            class="text-[32px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Login
+          </h2>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2">Email</label>
+            <input
+              type="email"
+              id="email-input"
+              placeholder="Enter your email"
+              class="dark-theme-input"
+            />
+            <p
+              id="email-error"
+              class="error-message mt-2"
+              style="display: none"
+            ></p>
+          </div>
+
+          <!-- Password — shown after email verified & password is set -->
+          <div id="password-field-wrap" style="display: none">
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="password-input"
+                placeholder="Enter your password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="login-eye-btn" type="button">
+                <svg
+                  id="login-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="login-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div class="text-right mt-1">
+              <button id="forgot-pw-link" class="resend-link text-xs">
+                Forgot password?
+              </button>
+            </div>
+          </div>
+
+          <p id="login-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="login-continue-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="login-btn-text">Continue</span>
+            <span
+              id="login-btn-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Please wait...
+            </span>
+          </button>
+        </div>
+
+        <!-- ════════════════
+               STEP: OTP (new user)
+          ════════════════ -->
+        <div
+          id="step-otp"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+          </div>
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Enter OTP
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            A 6-digit code was sent to
+            <span
+              id="otp-email-display"
+              class="text-[#f1c40f] font-semibold"
+            ></span>
+          </p>
+
+          <div class="otp-inputs">
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-0"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-1"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-2"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-3"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-4"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-5"
+            />
+          </div>
+
+          <p id="otp-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="otp-verify-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="otp-verify-text">Verify OTP</span>
+            <span
+              id="otp-verify-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Verifying...
+            </span>
+          </button>
+
+          <div class="text-center text-sm text-[#aaa]">
+            Didn't receive it?
+            <button id="resend-otp-btn" class="resend-link ml-1">
+              <span id="resend-otp-label">Resend OTP</span>
+              <span id="resend-otp-timer" style="display: none"
+                >Resend in <span id="resend-timer-count"></span>s</span
+              >
+            </button>
+          </div>
+
+          <button
+            id="otp-back-btn"
+            class="dark-theme-btn-ghost w-full py-2 font-medium text-sm"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <!-- ════════════════
+               STEP: CREATE PASSWORD (new user)
+          ════════════════ -->
+        <div
+          id="step-create-password"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+          </div>
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Create Password
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            Set a strong password for your account
+          </p>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >New Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="new-password-input"
+                placeholder="Create a password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="create-eye-btn" type="button">
+                <svg
+                  id="create-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="create-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              id="create-strength-bar-wrap"
+              class="strength-bar-wrap"
+              style="display: none"
+            >
+              <div id="create-seg-1" class="strength-seg"></div>
+              <div id="create-seg-2" class="strength-seg"></div>
+              <div id="create-seg-3" class="strength-seg"></div>
+              <div id="create-seg-4" class="strength-seg"></div>
+            </div>
+            <p
+              id="create-strength-label"
+              class="text-xs mt-1 text-[#aaa]"
+              style="display: none"
+            ></p>
+          </div>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >Confirm Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="confirm-password-input"
+                placeholder="Confirm your password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="confirm-eye-btn" type="button">
+                <svg
+                  id="confirm-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="confirm-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p
+              id="create-pwd-mismatch"
+              class="error-message mt-2"
+              style="display: none"
+            >
+              Passwords do not match.
+            </p>
+          </div>
+
+          <p
+            id="create-pwd-error"
+            class="error-message"
+            style="display: none"
+          ></p>
+
+          <button
+            id="create-pwd-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="create-pwd-btn-text">Set Password &amp; Login</span>
+            <span
+              id="create-pwd-btn-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Setting password...
+            </span>
+          </button>
+        </div>
+
+        <!-- ════════════════
+               STEP: FORGOT PASSWORD — enter email
+          ════════════════ -->
+        <div
+          id="step-forgot"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Forgot Password
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            Enter your registered email and we'll send you an OTP to reset your
+            password.
+          </p>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2">Email</label>
+            <input
+              type="email"
+              id="forgot-email-input"
+              placeholder="Enter your email"
+              class="dark-theme-input"
+            />
+          </div>
+
+          <p id="forgot-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="forgot-send-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="forgot-send-text">Send OTP</span>
+            <span
+              id="forgot-send-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Sending...
+            </span>
+          </button>
+
+          <button
+            id="forgot-back-btn"
+            class="dark-theme-btn-ghost w-full py-2 font-medium text-sm"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ════════════════
+               STEP: FORGOT OTP — verify
+          ════════════════ -->
+        <div
+          id="step-forgot-otp"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+          </div>
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Verify OTP
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            OTP sent to
+            <span
+              id="fotp-email-display"
+              class="text-[#f1c40f] font-semibold"
+            ></span>
+          </p>
+
+          <div class="otp-inputs">
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-0"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-1"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-2"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-3"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-4"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-5"
+            />
+          </div>
+
+          <p id="fotp-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="fotp-verify-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="fotp-verify-text">Verify OTP</span>
+            <span
+              id="fotp-verify-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Verifying...
+            </span>
+          </button>
+
+          <div class="text-center text-sm text-[#aaa]">
+            Didn't receive it?
+            <button id="resend-fotp-btn" class="resend-link ml-1">
+              <span id="resend-fotp-label">Resend OTP</span>
+              <span id="resend-fotp-timer" style="display: none"
+                >Resend in <span id="resend-ftimer-count"></span>s</span
+              >
+            </button>
+          </div>
+
+          <button
+            id="fotp-back-btn"
+            class="dark-theme-btn-ghost w-full py-2 font-medium text-sm"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <!-- ════════════════
+               STEP: RESET PASSWORD
+          ════════════════ -->
+        <div
+          id="step-reset-password"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+          </div>
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Reset Password
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            Choose a new password for your account
+          </p>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >New Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="reset-new-password-input"
+                placeholder="New password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="reset-eye-btn" type="button">
+                <svg
+                  id="reset-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="reset-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              id="reset-strength-bar-wrap"
+              class="strength-bar-wrap"
+              style="display: none"
+            >
+              <div id="reset-seg-1" class="strength-seg"></div>
+              <div id="reset-seg-2" class="strength-seg"></div>
+              <div id="reset-seg-3" class="strength-seg"></div>
+              <div id="reset-seg-4" class="strength-seg"></div>
+            </div>
+            <p
+              id="reset-strength-label"
+              class="text-xs mt-1 text-[#aaa]"
+              style="display: none"
+            ></p>
+          </div>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >Confirm Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="reset-confirm-input"
+                placeholder="Confirm password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="reset-confirm-eye-btn" type="button">
+                <svg
+                  id="reset-confirm-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="reset-confirm-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p
+              id="reset-pwd-mismatch"
+              class="error-message mt-2"
+              style="display: none"
+            >
+              Passwords do not match.
+            </p>
+          </div>
+
+          <p id="reset-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="reset-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="reset-btn-text">Reset Password &amp; Login</span>
+            <span
+              id="reset-btn-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Resetting...
+            </span>
+          </button>
+        </div>
+
+        <!-- ════════════════
+               STEP: SUCCESS
+          ════════════════ -->
+        <div
+          id="step-success"
+          class="dark-theme-card p-6 space-y-5 text-center"
+          style="display: none"
+        >
+          <div class="flex justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="60"
+              height="60"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="#2ecc71"
+              stroke-width="1.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 class="text-[26px] font-extrabold uppercase text-[#2ecc71]">
+            Authenticated!
+          </h2>
+          <p class="text-[#aaa] text-sm">
+            Logged in as
+            <span
+              id="success-email"
+              class="text-[#f1c40f] font-semibold"
+            ></span>
+          </p>
+          <p class="text-[#aaa] text-xs">Redirecting…</p>
+        </div>
+      </div>
+      <!-- /auth-app -->
+    </div>
+    <!-- /auth-overlay -->
+
+    <!-- ═══════════ MAIN APPLICATION ═══════════ -->
+    <div id="main-app" style="display: none">
+      <div class="app-container">
+        <div class="dark-card">
+          <div class="brand-header">
+            <div class="brand-header-left">
+              <img
+                src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+                alt="Logo"
+                style="height: 36px"
+              />
+              <div>
+                <h1>Case Value App</h1>
+                <div class="brand-sub">Settlement Intelligence · Ramos Law</div>
+              </div>
+            </div>
+            <div class="brand-header-right">
+              <div class="user-pill" id="userPill">
+                <div class="user-pill-dot"></div>
+                <span id="userEmailDisplay">—</span>
+              </div>
+              <button type="button" class="btn-logout" onclick="doLogout()">
+                Logout
+              </button>
+            </div>
+          </div>
+
+          <label for="caseNumber">Case Number</label>
+          <input id="caseNumber" placeholder="Example: 207281" />
+
+          <button id="runButton" class="btn-gold" onclick="runCase()">
+            Run Workflow
+          </button>
+
+          <div id="status" class="status">Waiting for case number.</div>
+
+          <div class="section" id="summaryStatusSection" style="display: none">
+            <div class="detail-row">
+              <span class="label">Result:</span>
+              <span id="summaryStatusText"></span>
+            </div>
+          </div>
+
+          <div class="details" id="details" style="display: none">
+            <div class="detail-row">
+              <span class="label">Selected File:</span>
+              <span id="selectedFile"></span>
+            </div>
+
+            <div class="detail-row">
+              <span class="label">Web URL:</span>
+              <a id="webUrl" href="#" target="_blank">Open file</a>
+            </div>
+
+            <div class="detail-row" id="pdfDownloadRow" style="display: none">
+              <span class="label">Generated PDF:</span>
+              <a
+                id="pdfDownloadLink"
+                class="download-link"
+                href="#"
+                target="_blank"
+                >Download PDF</a
+              >
+            </div>
+
+            <div class="detail-row" id="docxDownloadRow" style="display: none">
+              <span class="label">Generated DOCX:</span>
+              <a
+                id="docxDownloadLink"
+                class="download-link"
+                href="#"
+                target="_blank"
+                >Download DOCX</a
+              >
+            </div>
+          </div>
+
+          <div class="section" id="memoSection" style="display: none">
+            <h3>Formatted Settlement Memorandum</h3>
+            <pre id="formattedMemo">No formatted memo yet.</pre>
+          </div>
+
+          <div class="section" id="ocrSection" style="display: none">
+            <h3>Raw OCR Text</h3>
+            <pre id="ocrText">No OCR result yet.</pre>
+          </div>
+
+          <div class="section" id="debugSection">
+            <h3>Technical Details</h3>
+            <pre id="result">No response yet.</pre>
+            <div class="small-note">Internal debugging only.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "";
+
+      /* ══════════════════════════════════════════════════════
+         AUTH STATE MANAGEMENT
+      ══════════════════════════════════════════════════════ */
+      const authState = {
+        step: "login",
+        email: "",
+        password: "",
+        newPassword: "",
+        confirmPassword: "",
+        otpValue: "",
+        forgotOtp: "",
+        error: "",
+        emailError: "",
+        loading: false,
+        showPasswordField: false,
+        showPwd: false,
+        showConfirmPwd: false,
+        strengthScore: 0,
+        resendTimer: 0,
+        _resendInterval: null,
+        _isNewUser: false,
+      };
+
+      function getToken() {
+        return (
+          localStorage.getItem("caseValueToken") ||
+          localStorage.getItem("execDashToken")
+        );
+      }
+
+      function getEmail() {
+        return (
+          localStorage.getItem("caseValueEmail") ||
+          localStorage.getItem("execDashEmail")
+        );
+      }
+
+      function authHeaders(extra) {
+        const token = getToken();
+        return Object.assign(
+          {
+            Accept: "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          token ? { Authorization: "Bearer " + token } : {},
+          extra || {},
+        );
+      }
+
+      /* ══════════════════════════════════════════════════════
+         AUTH RENDER — syncs DOM to authState
+      ══════════════════════════════════════════════════════ */
+      function $show(id, visible) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = visible ? "" : "none";
+      }
+      function $text(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      }
+      function $disabled(id, disabled) {
+        const el = document.getElementById(id);
+        if (el) el.disabled = disabled;
+      }
+      function $type(id, type) {
+        const el = document.getElementById(id);
+        if (el) el.type = type;
+      }
+
+      function render() {
+        const allSteps = [
+          "login",
+          "otp",
+          "create-password",
+          "forgot",
+          "forgot-otp",
+          "reset-password",
+          "success",
+        ];
+        allSteps.forEach((s) => $show("step-" + s, authState.step === s));
+
+        $text("otp-email-display", authState.email);
+        $text("fotp-email-display", authState.email);
+        $text("success-email", authState.email);
+
+        // LOGIN STEP
+        $show("email-error", !!authState.emailError);
+        $text("email-error", authState.emailError);
+        $show("password-field-wrap", authState.showPasswordField);
+        $show("login-error", !!authState.error && authState.step === "login");
+        $text("login-error", authState.error);
+        $disabled(
+          "login-continue-btn",
+          !authState.email ||
+            authState.loading ||
+            (authState.showPasswordField && !authState.password),
+        );
+        $text(
+          "login-btn-text",
+          authState.showPasswordField ? "Login" : "Continue",
+        );
+        $show("login-btn-text", !authState.loading);
+        $show("login-btn-loading", authState.loading);
+        $type("password-input", authState.showPwd ? "text" : "password");
+        $show("login-eye-open", !authState.showPwd);
+        $show("login-eye-closed", authState.showPwd);
+        $text(
+          "forgot-pw-link",
+          authState._isNewUser ? "Set Password" : "Forgot password?",
+        );
+
+        // OTP STEP
+        $show("otp-error", !!authState.error && authState.step === "otp");
+        $text("otp-error", authState.error);
+        $disabled(
+          "otp-verify-btn",
+          authState.otpValue.length < 6 || authState.loading,
+        );
+        $show("otp-verify-text", !authState.loading);
+        $show("otp-verify-loading", authState.loading);
+        $disabled(
+          "resend-otp-btn",
+          authState.resendTimer > 0 || authState.loading,
+        );
+        $show("resend-otp-label", authState.resendTimer === 0);
+        $show("resend-otp-timer", authState.resendTimer > 0);
+        $text("resend-timer-count", authState.resendTimer);
+
+        // CREATE PASSWORD STEP
+        $type("new-password-input", authState.showPwd ? "text" : "password");
+        $show("create-eye-open", !authState.showPwd);
+        $show("create-eye-closed", authState.showPwd);
+        $show("create-strength-bar-wrap", authState.newPassword.length > 0);
+        $show("create-strength-label", authState.newPassword.length > 0);
+        if (authState.newPassword.length > 0) {
+          for (let seg = 1; seg <= 4; seg++) {
+            const el = document.getElementById("create-seg-" + seg);
+            if (el) {
+              el.className = "strength-seg";
+              const cls = strengthClass(seg);
+              if (cls) el.classList.add(cls);
+            }
+          }
+          const lbl = document.getElementById("create-strength-label");
+          if (lbl) {
+            lbl.textContent = strengthLabel();
+            lbl.className =
+              "text-xs mt-1 " +
+              (authState.strengthScore >= 3 ? "text-[#2ecc71]" : "text-[#aaa]");
+          }
+        }
+        $type(
+          "confirm-password-input",
+          authState.showConfirmPwd ? "text" : "password",
+        );
+        $show("confirm-eye-open", !authState.showConfirmPwd);
+        $show("confirm-eye-closed", authState.showConfirmPwd);
+        $show(
+          "create-pwd-mismatch",
+          !!(
+            authState.confirmPassword &&
+            authState.newPassword !== authState.confirmPassword
+          ),
+        );
+        $show(
+          "create-pwd-error",
+          !!authState.error && authState.step === "create-password",
+        );
+        $text("create-pwd-error", authState.error);
+        $disabled(
+          "create-pwd-btn",
+          !authState.newPassword ||
+            authState.newPassword !== authState.confirmPassword ||
+            authState.strengthScore < 2 ||
+            authState.loading,
+        );
+        $show("create-pwd-btn-text", !authState.loading);
+        $show("create-pwd-btn-loading", authState.loading);
+
+        // FORGOT STEP
+        $show("forgot-error", !!authState.error && authState.step === "forgot");
+        $text("forgot-error", authState.error);
+        $disabled("forgot-send-btn", !authState.email || authState.loading);
+        $show("forgot-send-text", !authState.loading);
+        $show("forgot-send-loading", authState.loading);
+
+        // FORGOT OTP STEP
+        $show(
+          "fotp-error",
+          !!authState.error && authState.step === "forgot-otp",
+        );
+        $text("fotp-error", authState.error);
+        $disabled(
+          "fotp-verify-btn",
+          authState.otpValue.length < 6 || authState.loading,
+        );
+        $show("fotp-verify-text", !authState.loading);
+        $show("fotp-verify-loading", authState.loading);
+        $disabled(
+          "resend-fotp-btn",
+          authState.resendTimer > 0 || authState.loading,
+        );
+        $show("resend-fotp-label", authState.resendTimer === 0);
+        $show("resend-fotp-timer", authState.resendTimer > 0);
+        $text("resend-ftimer-count", authState.resendTimer);
+
+        // RESET PASSWORD STEP
+        $type(
+          "reset-new-password-input",
+          authState.showPwd ? "text" : "password",
+        );
+        $show("reset-eye-open", !authState.showPwd);
+        $show("reset-eye-closed", authState.showPwd);
+        $show("reset-strength-bar-wrap", authState.newPassword.length > 0);
+        $show("reset-strength-label", authState.newPassword.length > 0);
+        if (authState.newPassword.length > 0) {
+          for (let seg = 1; seg <= 4; seg++) {
+            const el = document.getElementById("reset-seg-" + seg);
+            if (el) {
+              el.className = "strength-seg";
+              const cls = strengthClass(seg);
+              if (cls) el.classList.add(cls);
+            }
+          }
+          const lbl = document.getElementById("reset-strength-label");
+          if (lbl) {
+            lbl.textContent = strengthLabel();
+            lbl.className =
+              "text-xs mt-1 " +
+              (authState.strengthScore >= 3 ? "text-[#2ecc71]" : "text-[#aaa]");
+          }
+        }
+        $type(
+          "reset-confirm-input",
+          authState.showConfirmPwd ? "text" : "password",
+        );
+        $show("reset-confirm-eye-open", !authState.showConfirmPwd);
+        $show("reset-confirm-eye-closed", authState.showConfirmPwd);
+        $show(
+          "reset-pwd-mismatch",
+          !!(
+            authState.confirmPassword &&
+            authState.newPassword !== authState.confirmPassword
+          ),
+        );
+        $show(
+          "reset-error",
+          !!authState.error && authState.step === "reset-password",
+        );
+        $text("reset-error", authState.error);
+        $disabled(
+          "reset-btn",
+          !authState.newPassword ||
+            authState.newPassword !== authState.confirmPassword ||
+            authState.strengthScore < 2 ||
+            authState.loading,
+        );
+        $show("reset-btn-text", !authState.loading);
+        $show("reset-btn-loading", authState.loading);
+
+        // Show auth-app container
+        document.getElementById("auth-app").style.display = "";
+      }
+
+      /* ══════════════════════════════════════════════════════
+         LOGIN FLOW
+      ══════════════════════════════════════════════════════ */
+      async function handleLoginEmailNext() {
+        authState.emailError = "";
+        authState.error = "";
+        if (!authState.email) return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/casevalue_tool/verify-email?email=${encodeURIComponent(authState.email)}`,
+            { headers: { "ngrok-skip-browser-warning": "true" } },
+          );
+          const data = await res.json();
+          if (!res.ok || !data.valid) {
+            authState.emailError =
+              data.detail ||
+              "This email is not registered. Please contact your administrator.";
+            return;
+          }
+          if (
+            data.password_created === false ||
+            data.password_created === "false"
+          ) {
+            authState._isNewUser = true;
+            await _sendOtp();
+            authState.step = "otp";
+            setTimeout(() => document.getElementById("otp-0")?.focus(), 0);
+          } else {
+            authState._isNewUser = false;
+            authState.showPasswordField = true;
+          }
+        } catch (e) {
+          authState.emailError =
+            "Unable to reach the server. Please try again.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function doLogin() {
+        authState.error = "";
+        if (!authState.email || !authState.password) return;
+        authState.loading = true;
+        render();
+        try {
+          const body = new FormData();
+          body.append("username", authState.email);
+          body.append("password", authState.password);
+          const res = await fetch(`${API_BASE_URL}/casevalue_tool/login`, {
+            method: "POST",
+            headers: { "ngrok-skip-browser-warning": "true" },
+            body,
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error =
+              data.detail || "Incorrect password. Please try again.";
+            return;
+          }
+          _onAuthSuccess(data);
+        } catch (e) {
+          authState.error = "Unable to reach the server. Please try again.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      /* ══════════════════════════════════════════════════════
+         NEW USER — OTP + CREATE PASSWORD
+      ══════════════════════════════════════════════════════ */
+      async function _sendOtp() {
+        await fetch(
+          `${API_BASE_URL}/casevalue_tool/send/otp?email=${encodeURIComponent(authState.email)}`,
+          { method: "POST", body: "" },
+        );
+        _startResendTimer();
+      }
+
+      async function resendOtp() {
+        authState.error = "";
+        resetOtp("otp");
+        authState.loading = true;
+        render();
+        try {
+          await _sendOtp();
+        } catch (e) {
+          authState.error = "Failed to resend OTP.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function doVerifyOtp() {
+        authState.error = "";
+        if (authState.otpValue.length < 6) return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/casevalue_tool/verify/otp?email=${encodeURIComponent(authState.email)}&otp=${authState.otpValue}`,
+            { method: "POST", body: "" },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error = data.detail || "Invalid OTP. Please try again.";
+            return;
+          }
+          authState.step = "create-password";
+        } catch (e) {
+          authState.error = "Unable to reach the server.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function doCreatePassword() {
+        authState.error = "";
+        if (
+          !authState.newPassword ||
+          authState.newPassword !== authState.confirmPassword
+        )
+          return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/casevalue_tool/create/password?email=${encodeURIComponent(authState.email)}&password=${encodeURIComponent(authState.newPassword)}`,
+            { method: "POST", body: "" },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error = data.detail || "Failed to set password.";
+            return;
+          }
+          await _autoLogin();
+        } catch (e) {
+          authState.error = "Unable to reach the server.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      /* ══════════════════════════════════════════════════════
+         FORGOT PASSWORD FLOW
+      ══════════════════════════════════════════════════════ */
+      function goForgotPassword() {
+        resetAuthState();
+        authState.step = "forgot";
+        setTimeout(() => {
+          const el = document.getElementById("forgot-email-input");
+          if (el) el.value = authState.email;
+        }, 0);
+        render();
+      }
+
+      async function doSendForgotOtp() {
+        authState.error = "";
+        if (!authState.email) return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/casevalue_tool/forgot/password?email=${encodeURIComponent(authState.email)}`,
+            { method: "POST", body: "" },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error = data.detail || "Failed to send OTP.";
+            return;
+          }
+          _startResendTimer();
+          authState.step = "forgot-otp";
+          setTimeout(() => document.getElementById("fotp-0")?.focus(), 0);
+        } catch (e) {
+          authState.error = "Unable to reach the server.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function resendForgotOtp() {
+        authState.error = "";
+        resetOtp("fotp");
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/casevalue_tool/forgot/password?email=${encodeURIComponent(authState.email)}`,
+            { method: "POST", body: "" },
+          );
+          if (res.ok) _startResendTimer();
+          else authState.error = "Failed to resend OTP.";
+        } catch (e) {
+          authState.error = "Failed to resend OTP.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function doVerifyForgotOtp() {
+        authState.error = "";
+        if (authState.otpValue.length < 6) return;
+        authState.forgotOtp = authState.otpValue;
+        authState.step = "reset-password";
+        resetOtp("fotp");
+        render();
+      }
+
+      async function doResetPassword() {
+        authState.error = "";
+        if (
+          !authState.newPassword ||
+          authState.newPassword !== authState.confirmPassword
+        )
+          return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/casevalue_tool/reset/password?email=${encodeURIComponent(authState.email)}&otp=${authState.forgotOtp}&new_password=${encodeURIComponent(authState.newPassword)}`,
+            { method: "POST", body: "" },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error = data.detail || "Failed to reset password.";
+            return;
+          }
+          await _autoLogin();
+        } catch (e) {
+          authState.error = "Unable to reach the server.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      /* ══════════════════════════════════════════════════════
+         AUTH HELPERS & SESSION
+      ══════════════════════════════════════════════════════ */
+      async function _autoLogin() {
+        const body = new FormData();
+        body.append("username", authState.email);
+        body.append("password", authState.newPassword || authState.password);
+        try {
+          const res = await fetch(`${API_BASE_URL}/casevalue_tool/login`, {
+            method: "POST",
+            headers: { "ngrok-skip-browser-warning": "true" },
+            body,
+          });
+          const data = await res.json();
+          if (res.ok) {
+            _onAuthSuccess(data);
+            return;
+          }
+        } catch (_) {}
+        authState.step = "login";
+        authState.showPasswordField = true;
+        authState.password = "";
+        authState.error = "Password set! Please log in.";
+        render();
+      }
+
+      function _onAuthSuccess(data) {
+        authState.step = "success";
+        const token = data.access_token || data.token || "";
+        render();
+        setTimeout(() => {
+          onLoginSuccess(token, authState.email);
+        }, 600);
+      }
+
+      function onLoginSuccess(token, email) {
+        localStorage.setItem("caseValueToken", token);
+        localStorage.setItem("caseValueEmail", email);
+        showApp();
+      }
+
+      function showLogin() {
+        const app = document.getElementById("main-app");
+        if (app) app.style.display = "none";
+        document.getElementById("auth-overlay").style.display = "flex";
+        resetAuthState();
+        authState.step = "login";
+        authState.email = "";
+        const emailInput = document.getElementById("email-input");
+        if (emailInput) emailInput.value = "";
+        const passwordInput = document.getElementById("password-input");
+        if (passwordInput) passwordInput.value = "";
+        render();
+      }
+
+      function showApp() {
+        document.getElementById("auth-overlay").style.display = "none";
+        const app = document.getElementById("main-app");
+        if (app) app.style.display = "";
+        const userDisplay = document.getElementById("userEmailDisplay");
+        if (userDisplay)
+          userDisplay.textContent = getEmail() || "Authorized User";
+      }
+
+      function restoreSession() {
+        const token = getToken();
+        if (!token) return false;
+        showApp();
+        return true;
+      }
+
+      function doLogout() {
+        localStorage.removeItem("caseValueToken");
+        localStorage.removeItem("caseValueEmail");
+        localStorage.removeItem("execDashToken");
+        localStorage.removeItem("execDashEmail");
+        showLogin();
+      }
+
+      // OTP Box Helpers
+      function otpMove(e, i, prefix) {
+        prefix = prefix || "otp";
+        const val = e.target.value.replace(/\D/g, "").slice(-1);
+        e.target.value = val;
+        _rebuildOtp(prefix);
+        if (val && i < 5)
+          document.getElementById(`${prefix}-${i + 1}`)?.focus();
+        render();
+      }
+      function otpKeydown(e, i, prefix) {
+        prefix = prefix || "otp";
+        if (e.key === "Backspace" && !e.target.value && i > 0) {
+          document.getElementById(`${prefix}-${i - 1}`)?.focus();
+        }
+      }
+      function otpPaste(e, prefix) {
+        prefix = prefix || "otp";
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData)
+          .getData("text")
+          .replace(/\D/g, "")
+          .slice(0, 6);
+        text.split("").forEach((ch, i) => {
+          const el = document.getElementById(`${prefix}-${i}`);
+          if (el) el.value = ch;
+        });
+        _rebuildOtp(prefix);
+        document
+          .getElementById(`${prefix}-${Math.min(text.length, 5)}`)
+          ?.focus();
+        render();
+      }
+      function _rebuildOtp(prefix) {
+        prefix = prefix || "otp";
+        let s = "";
+        for (let i = 0; i < 6; i++)
+          s += document.getElementById(`${prefix}-${i}`)?.value || "";
+        authState.otpValue = s;
+      }
+      function resetOtp(prefix) {
+        prefix = prefix || "otp";
+        authState.otpValue = "";
+        for (let i = 0; i < 6; i++) {
+          const el = document.getElementById(`${prefix}-${i}`);
+          if (el) el.value = "";
+        }
+        setTimeout(() => document.getElementById(`${prefix}-0`)?.focus(), 0);
+      }
+
+      // Resend Timer
+      function _startResendTimer(seconds) {
+        seconds = seconds || 60;
+        clearInterval(authState._resendInterval);
+        authState.resendTimer = seconds;
+        authState._resendInterval = setInterval(() => {
+          if (authState.resendTimer > 0) authState.resendTimer--;
+          else clearInterval(authState._resendInterval);
+          render();
+        }, 1000);
+      }
+
+      // Password Strength
+      function checkStrength() {
+        const p = authState.newPassword;
+        let score = 0;
+        if (p.length >= 8) score++;
+        if (/[A-Z]/.test(p)) score++;
+        if (/[0-9]/.test(p)) score++;
+        if (/[^A-Za-z0-9]/.test(p)) score++;
+        authState.strengthScore = score;
+      }
+      function strengthClass(seg) {
+        if (authState.strengthScore === 0) return "";
+        const map = [
+          "",
+          "filled-weak",
+          "filled-weak",
+          "filled-medium",
+          "filled-strong",
+        ];
+        return seg <= authState.strengthScore
+          ? map[authState.strengthScore]
+          : "";
+      }
+      function strengthLabel() {
+        return (
+          ["", "Weak", "Fair", "Good", "Strong"][authState.strengthScore] || ""
+        );
+      }
+
+      // Full auth reset
+      function resetAuthState() {
+        authState.password = "";
+        authState.newPassword = "";
+        authState.confirmPassword = "";
+        authState.error = "";
+        authState.emailError = "";
+        authState.showPasswordField = false;
+        authState.showPwd = false;
+        authState.showConfirmPwd = false;
+        authState.strengthScore = 0;
+        authState.otpValue = "";
+        authState.forgotOtp = "";
+        authState._isNewUser = false;
+        clearInterval(authState._resendInterval);
+        authState.resendTimer = 0;
+      }
+
+      /* ══════════════════════════════════════════════════════
+         DOM INITIALIZATION & EVENT LISTENERS
+      ══════════════════════════════════════════════════════ */
+      window.addEventListener("DOMContentLoaded", () => {
+        // Wire up all auth UI event listeners
+        const emailInput = document.getElementById("email-input");
+        if (emailInput) {
+          emailInput.addEventListener("input", (e) => {
+            authState.email = e.target.value;
+            render();
+          });
+          emailInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              if (authState.showPasswordField) doLogin();
+              else handleLoginEmailNext();
+            }
+          });
+        }
+        const passwordInput = document.getElementById("password-input");
+        if (passwordInput) {
+          passwordInput.addEventListener("input", (e) => {
+            authState.password = e.target.value;
+            render();
+          });
+          passwordInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doLogin();
+          });
+        }
+        const loginEyeBtn = document.getElementById("login-eye-btn");
+        if (loginEyeBtn)
+          loginEyeBtn.addEventListener("click", () => {
+            authState.showPwd = !authState.showPwd;
+            render();
+          });
+        const forgotPwLink = document.getElementById("forgot-pw-link");
+        if (forgotPwLink)
+          forgotPwLink.addEventListener("click", async () => {
+            if (authState._isNewUser) {
+              authState.error = "";
+              authState.loading = true;
+              render();
+              try {
+                await _sendOtp();
+                authState.step = "otp";
+                setTimeout(() => document.getElementById("otp-0")?.focus(), 0);
+              } catch (e) {
+                authState.error = "Failed to send OTP. Please try again.";
+              } finally {
+                authState.loading = false;
+                render();
+              }
+            } else {
+              goForgotPassword();
+            }
+          });
+        const loginContinueBtn = document.getElementById("login-continue-btn");
+        if (loginContinueBtn)
+          loginContinueBtn.addEventListener("click", () => {
+            if (authState.showPasswordField) doLogin();
+            else handleLoginEmailNext();
+          });
+
+        // OTP step
+        for (let i = 0; i < 6; i++) {
+          const box = document.getElementById(`otp-${i}`);
+          if (box) {
+            box.addEventListener("input", (e) => otpMove(e, i, "otp"));
+            box.addEventListener("keydown", (e) => otpKeydown(e, i, "otp"));
+            box.addEventListener("paste", (e) => otpPaste(e, "otp"));
+          }
+        }
+        const otpVerifyBtn = document.getElementById("otp-verify-btn");
+        if (otpVerifyBtn)
+          otpVerifyBtn.addEventListener("click", () => {
+            doVerifyOtp();
+          });
+        const resendOtpBtn = document.getElementById("resend-otp-btn");
+        if (resendOtpBtn)
+          resendOtpBtn.addEventListener("click", () => {
+            resendOtp();
+          });
+        const otpBackBtn = document.getElementById("otp-back-btn");
+        if (otpBackBtn)
+          otpBackBtn.addEventListener("click", () => {
+            authState.step = "login";
+            resetAuthState();
+            render();
+          });
+
+        // Create password step
+        const newPwdInput = document.getElementById("new-password-input");
+        if (newPwdInput) {
+          newPwdInput.addEventListener("input", (e) => {
+            authState.newPassword = e.target.value;
+            checkStrength();
+            render();
+          });
+          newPwdInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doCreatePassword();
+          });
+        }
+        const createEyeBtn = document.getElementById("create-eye-btn");
+        if (createEyeBtn)
+          createEyeBtn.addEventListener("click", () => {
+            authState.showPwd = !authState.showPwd;
+            render();
+          });
+        const confirmPwdInput = document.getElementById(
+          "confirm-password-input",
+        );
+        if (confirmPwdInput) {
+          confirmPwdInput.addEventListener("input", (e) => {
+            authState.confirmPassword = e.target.value;
+            render();
+          });
+          confirmPwdInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doCreatePassword();
+          });
+        }
+        const confirmEyeBtn = document.getElementById("confirm-eye-btn");
+        if (confirmEyeBtn)
+          confirmEyeBtn.addEventListener("click", () => {
+            authState.showConfirmPwd = !authState.showConfirmPwd;
+            render();
+          });
+        const createPwdBtn = document.getElementById("create-pwd-btn");
+        if (createPwdBtn)
+          createPwdBtn.addEventListener("click", () => {
+            doCreatePassword();
+          });
+
+        // Forgot password step
+        const forgotEmailInput = document.getElementById("forgot-email-input");
+        if (forgotEmailInput) {
+          forgotEmailInput.addEventListener("input", (e) => {
+            authState.email = e.target.value;
+            render();
+          });
+          forgotEmailInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doSendForgotOtp();
+          });
+        }
+        const forgotSendBtn = document.getElementById("forgot-send-btn");
+        if (forgotSendBtn)
+          forgotSendBtn.addEventListener("click", () => {
+            doSendForgotOtp();
+          });
+        const forgotBackBtn = document.getElementById("forgot-back-btn");
+        if (forgotBackBtn)
+          forgotBackBtn.addEventListener("click", () => {
+            authState.step = "login";
+            resetAuthState();
+            render();
+            setTimeout(() => {
+              const el = document.getElementById("email-input");
+              if (el) el.value = authState.email;
+            }, 0);
+          });
+
+        // Forgot OTP step
+        for (let i = 0; i < 6; i++) {
+          const box = document.getElementById(`fotp-${i}`);
+          if (box) {
+            box.addEventListener("input", (e) => otpMove(e, i, "fotp"));
+            box.addEventListener("keydown", (e) => otpKeydown(e, i, "fotp"));
+            box.addEventListener("paste", (e) => otpPaste(e, "fotp"));
+          }
+        }
+        const fotpVerifyBtn = document.getElementById("fotp-verify-btn");
+        if (fotpVerifyBtn)
+          fotpVerifyBtn.addEventListener("click", () => {
+            doVerifyForgotOtp();
+          });
+        const resendFotpBtn = document.getElementById("resend-fotp-btn");
+        if (resendFotpBtn)
+          resendFotpBtn.addEventListener("click", () => {
+            resendForgotOtp();
+          });
+        const fotpBackBtn = document.getElementById("fotp-back-btn");
+        if (fotpBackBtn)
+          fotpBackBtn.addEventListener("click", () => {
+            authState.step = "forgot";
+            resetOtp("fotp");
+            render();
+          });
+
+        // Reset password step
+        const resetNewPwdInput = document.getElementById(
+          "reset-new-password-input",
+        );
+        if (resetNewPwdInput) {
+          resetNewPwdInput.addEventListener("input", (e) => {
+            authState.newPassword = e.target.value;
+            checkStrength();
+            render();
+          });
+          resetNewPwdInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doResetPassword();
+          });
+        }
+        const resetEyeBtn = document.getElementById("reset-eye-btn");
+        if (resetEyeBtn)
+          resetEyeBtn.addEventListener("click", () => {
+            authState.showPwd = !authState.showPwd;
+            render();
+          });
+        const resetConfirmInput = document.getElementById(
+          "reset-confirm-input",
+        );
+        if (resetConfirmInput) {
+          resetConfirmInput.addEventListener("input", (e) => {
+            authState.confirmPassword = e.target.value;
+            render();
+          });
+          resetConfirmInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doResetPassword();
+          });
+        }
+        const resetConfirmEyeBtn = document.getElementById(
+          "reset-confirm-eye-btn",
+        );
+        if (resetConfirmEyeBtn)
+          resetConfirmEyeBtn.addEventListener("click", () => {
+            authState.showConfirmPwd = !authState.showConfirmPwd;
+            render();
+          });
+        const resetBtn = document.getElementById("reset-btn");
+        if (resetBtn)
+          resetBtn.addEventListener("click", () => {
+            doResetPassword();
+          });
+
+        if (!restoreSession()) {
+          showLogin();
+        }
+      });
+
+      /* ══════════════════════════════════════════════════════
+         CASE VALUE APP WORKFLOW LOGIC
+      ══════════════════════════════════════════════════════ */
+      function formatMemoValue(value) {
+        if (!value) return "";
+
+        if (typeof value === "object") {
+          return JSON.stringify(value, null, 2)
+            .replace(/\\n/g, "\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+        }
+
+        return String(value)
+          .replace(/\\n/g, "\n")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+      }
+
+      async function pollCaseStatus(caseNumber) {
+        const runButton = document.getElementById("runButton");
+        const status = document.getElementById("status");
+        const result = document.getElementById("result");
+
+        const details = document.getElementById("details");
+        const selectedFile = document.getElementById("selectedFile");
+        const webUrl = document.getElementById("webUrl");
+
+        const pdfDownloadRow = document.getElementById("pdfDownloadRow");
+        const pdfDownloadLink = document.getElementById("pdfDownloadLink");
+
+        const docxDownloadRow = document.getElementById("docxDownloadRow");
+        const docxDownloadLink = document.getElementById("docxDownloadLink");
+
+        const memoSection = document.getElementById("memoSection");
+        const formattedMemo = document.getElementById("formattedMemo");
+
+        const summaryStatusSection = document.getElementById(
+          "summaryStatusSection",
+        );
+        const summaryStatusText = document.getElementById("summaryStatusText");
+
+        let attempts = 0;
+        const maxAttempts = 180; // 30 x 10 seconds = 5 minutes
+
+        while (attempts < maxAttempts) {
+          attempts += 1;
+
+          status.className = "status";
+          status.textContent = `Processing case... checking status ${attempts}/${maxAttempts}`;
+
+          await new Promise((resolve) => setTimeout(resolve, 10000));
+
+          try {
+            const response = await fetch(
+              `${API_BASE_URL}/casevalue_tool/case-status/${caseNumber}`,
+              {
+                headers: authHeaders(),
+              },
+            );
+            const data = await response.json();
+
+            result.textContent = JSON.stringify(data, null, 2);
+
+            if (data.status === "success" && data.workflowResult) {
+              const wr = data.workflowResult;
+
+              status.className = "status success";
+              status.textContent = "Workflow completed successfully.";
+
+              summaryStatusSection.style.display = "block";
+              summaryStatusText.textContent =
+                "CaseValue summary completed. You can review the memo below or download the PDF or DOCX.";
+
+              selectedFile.textContent =
+                wr.selectedFile || "Generated by CaseValue API";
+
+              if (wr.webUrl) {
+                webUrl.href = wr.webUrl;
+                webUrl.textContent = wr.webUrl;
+              } else {
+                webUrl.href = "#";
+                webUrl.textContent = "Not returned";
+              }
+
+              if (wr.docxUrl) {
+                docxDownloadLink.href = wr.docxUrl;
+                docxDownloadLink.textContent = "Download DOCX";
+                docxDownloadRow.style.display = "block";
+              }
+              details.style.display = "grid";
+
+              if (wr.pdfUrl) {
+                pdfDownloadLink.href = wr.pdfUrl;
+                pdfDownloadLink.textContent = "Download PDF";
+                pdfDownloadRow.style.display = "block";
+              }
+
+              if (wr.formattedMemo || wr.finalSummary) {
+                const memoValue = wr.formattedMemo || wr.finalSummary || "";
+                const cleanMemo = formatMemoValue(memoValue);
+
+                formattedMemo.textContent =
+                  cleanMemo || "No formatted memo returned.";
+                memoSection.style.display = "block";
+              }
+
+              runButton.disabled = false;
+              return;
+            }
+
+            if (data.status === "error") {
+              const message = data.message || "CaseValue returned an error.";
+              const lowerMessage = message.toLowerCase();
+
+              const isEarlyFolderError =
+                lowerMessage.includes("casefolder is not present") ||
+                lowerMessage.includes("case folder is not present") ||
+                lowerMessage.includes("case folder not found");
+
+              if (isEarlyFolderError && attempts < maxAttempts) {
+                status.className = "status";
+                status.textContent = `Workflow is still running... checking status ${attempts}/${maxAttempts}`;
+
+                summaryStatusSection.style.display = "block";
+                summaryStatusText.textContent =
+                  "The workflow is still checking SharePoint. Please wait while the case finishes processing.";
+
+                selectedFile.textContent = "Checking SharePoint";
+                webUrl.href = "#";
+                webUrl.textContent = "Not returned";
+                details.style.display = "grid";
+
+                continue;
+              }
+
+              status.className = "status error";
+              status.textContent = message;
+
+              summaryStatusSection.style.display = "block";
+              summaryStatusText.textContent = message;
+
+              if (isEarlyFolderError) {
+                selectedFile.textContent = "Case folder not found";
+              } else {
+                selectedFile.textContent = "No settlement memorandum PDF found";
+              }
+
+              webUrl.href = "#";
+              webUrl.textContent = "Not returned";
+              details.style.display = "grid";
+
+              pdfDownloadRow.style.display = "none";
+              pdfDownloadLink.href = "#";
+
+              runButton.disabled = false;
+              return;
+            }
+          } catch (error) {
+            status.className = "status error";
+            status.textContent = "Status check failed.";
+
+            summaryStatusSection.style.display = "block";
+            summaryStatusText.textContent =
+              "The status check failed. Please try again or check n8n executions.";
+
+            result.textContent = error.message;
+            runButton.disabled = false;
+            return;
+          }
+        }
+
+        status.className = "status error";
+        status.textContent =
+          "No settlement memorandum PDF was found for this case.";
+
+        summaryStatusSection.style.display = "block";
+        summaryStatusText.textContent =
+          "The case folder may exist, but no settlement memorandum / SM Final PDF was found within the expected processing time. Please confirm the settlement memo has been uploaded to the case folder.";
+
+        selectedFile.textContent = "No settlement memorandum PDF found";
+        webUrl.href = "#";
+        webUrl.textContent = "Not returned";
+        details.style.display = "grid";
+
+        pdfDownloadRow.style.display = "none";
+        pdfDownloadLink.href = "#";
+
+        runButton.disabled = false;
+      }
+
+      async function runCase() {
+        const caseNumberInput = document.getElementById("caseNumber");
+        const runButton = document.getElementById("runButton");
+        const status = document.getElementById("status");
+        const result = document.getElementById("result");
+
+        const details = document.getElementById("details");
+        const selectedFile = document.getElementById("selectedFile");
+        const webUrl = document.getElementById("webUrl");
+
+        const pdfDownloadRow = document.getElementById("pdfDownloadRow");
+        const pdfDownloadLink = document.getElementById("pdfDownloadLink");
+
+        const memoSection = document.getElementById("memoSection");
+        const formattedMemo = document.getElementById("formattedMemo");
+
+        const ocrSection = document.getElementById("ocrSection");
+        const ocrText = document.getElementById("ocrText");
+
+        const summaryStatusSection = document.getElementById(
+          "summaryStatusSection",
+        );
+        const summaryStatusText = document.getElementById("summaryStatusText");
+
+        const docxDownloadRow = document.getElementById("docxDownloadRow");
+        const docxDownloadLink = document.getElementById("docxDownloadLink");
+
+        const caseNumber = caseNumberInput.value.trim();
+
+        if (!caseNumber) {
+          status.className = "status error";
+          status.textContent = "Please enter a case number.";
+          return;
+        }
+
+        runButton.disabled = true;
+
+        details.style.display = "none";
+        memoSection.style.display = "none";
+        ocrSection.style.display = "none";
+        summaryStatusSection.style.display = "none";
+
+        status.className = "status";
+        status.textContent = "Starting workflow. Please wait...";
+
+        docxDownloadRow.style.display = "none";
+        docxDownloadLink.href = "#";
+
+        summaryStatusSection.style.display = "block";
+        summaryStatusText.textContent =
+          "Processing case. This may take several minutes.";
+
+        result.textContent = "";
+        formattedMemo.textContent = "";
+        ocrText.textContent = "";
+
+        selectedFile.textContent = "";
+        webUrl.href = "#";
+        webUrl.textContent = "Open file";
+
+        pdfDownloadRow.style.display = "none";
+        pdfDownloadLink.href = "#";
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/casevalue_tool/run-case`,
+            {
+              method: "POST",
+              headers: authHeaders({
+                "Content-Type": "application/json",
+              }),
+              body: JSON.stringify({
+                caseNumber: caseNumber,
+              }),
+            },
+          );
+
+          const data = await response.json();
+
+          result.textContent = JSON.stringify(data, null, 2);
+
+          if (response.ok && data.workflowResult) {
+            const wr = data.workflowResult;
+
+            if (data.status === "processing" || wr.status === "processing") {
+              status.className = "status";
+              status.textContent =
+                "Workflow started. Waiting for CaseValue result...";
+
+              summaryStatusSection.style.display = "block";
+              summaryStatusText.textContent =
+                "Processing case. This may take several minutes.";
+
+              selectedFile.textContent = "Processing";
+              webUrl.href = "#";
+              webUrl.textContent = "Not returned";
+              details.style.display = "grid";
+
+              await pollCaseStatus(caseNumber);
+              return;
+            }
+
+            status.className = "status success";
+            status.textContent = "Workflow completed successfully.";
+
+            if (wr.docxUrl) {
+              docxDownloadLink.href = wr.docxUrl;
+              docxDownloadLink.textContent = "Download DOCX";
+              docxDownloadRow.style.display = "block";
+            }
+
+            summaryStatusSection.style.display = "block";
+            summaryStatusText.textContent =
+              "CaseValue summary completed. You can review the memo below or download the PDF.";
+
+            selectedFile.textContent =
+              wr.selectedFile || wr.fileName || "Not returned";
+
+            if (wr.webUrl) {
+              webUrl.href = wr.webUrl;
+              webUrl.textContent = wr.webUrl;
+            } else {
+              webUrl.href = "#";
+              webUrl.textContent = "Not returned";
+            }
+
+            details.style.display = "grid";
+
+            if (wr.pdfUrl) {
+              pdfDownloadLink.href = wr.pdfUrl;
+              pdfDownloadLink.textContent = "Download PDF";
+              pdfDownloadRow.style.display = "block";
+            }
+
+            if (wr.formattedMemo || wr.finalSummary) {
+              const memoValue = wr.formattedMemo || wr.finalSummary || "";
+              const cleanMemo = formatMemoValue(memoValue);
+
+              formattedMemo.textContent =
+                cleanMemo || "No formatted memo returned.";
+              memoSection.style.display = "block";
+            }
+
+            if (wr.ocrText || wr.ocrPreview) {
+              const cleanText = String(wr.ocrText || wr.ocrPreview || "")
+                .replace(/\\n/g, "\n")
+                .replace(/\n{3,}/g, "\n\n")
+                .trim();
+
+              ocrText.textContent = cleanText || "No OCR text returned.";
+              ocrSection.style.display = "block";
+            }
+
+            runButton.disabled = false;
+          } else {
+            status.className = "status error";
+            status.textContent = data.message || "Workflow returned an error.";
+
+            summaryStatusSection.style.display = "block";
+            summaryStatusText.textContent =
+              data.message || "Workflow returned an error.";
+
+            runButton.disabled = false;
+          }
+        } catch (error) {
+          status.className = "status error";
+          status.textContent = "Request failed.";
+
+          summaryStatusSection.style.display = "block";
+          summaryStatusText.textContent =
+            "The request failed. Please check Flask and n8n.";
+
+          result.textContent = error.message;
+          runButton.disabled = false;
+        }
+      }
+
+      document
+        .getElementById("caseNumber")
+        .addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            runCase();
+          }
+        });
+    </script>
+  </body>
+</html>

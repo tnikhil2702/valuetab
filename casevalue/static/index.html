@@ -1,0 +1,2028 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CaseValue</title>
+    <link
+      rel="icon"
+      type="image/webp"
+      href="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+    />
+
+    <!-- Marked.js -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+        theme: {
+          extend: { fontFamily: { sans: ["Montserrat", "system-ui"] } },
+        },
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root {
+      --gold: #f1c40f;
+      --gold-dim: #d4ac0d;
+      --gold-faint: rgba(241, 196, 15, 0.08);
+      --gold-border: rgba(241, 196, 15, 0.18);
+      --bg: #0c0c0c;
+      --surface: #141414;
+      --surface2: #1a1a1a;
+      --surface3: #222;
+      --text-muted: #888;
+      --text-dim: #555;
+      --red: #e74c3c;
+      --green: #2ecc71;
+      --blue: #3498db;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body,
+    html {
+      font-family: "Montserrat", sans-serif;
+      background-color: var(--bg);
+      color: var(--gold);
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ── Background ── */
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url("https://static.vecteezy.com/system/resources/previews/007/596/744/non_2x/abstract-digital-glossy-particles-and-lines-connected-3d-illustration-on-black-background-free-photo.jpg");
+      background-size: cover;
+      background-position: center top 150px;
+      z-index: -2;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.82);
+      z-index: -1;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background-color: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--gold-border);
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ── Inputs ── */
+    .inp {
+      background: #000 !important;
+      color: #fff !important;
+      border: 1px solid #3a3a3a !important;
+      border-radius: 7px !important;
+      transition: border-color 0.2s;
+      font-family: "Montserrat", sans-serif;
+    }
+
+    .inp:focus {
+      outline: none;
+      border-color: var(--gold) !important;
+    }
+
+    .inp::placeholder {
+      color: #555 !important;
+    }
+
+    /* ── Buttons ── */
+    .btn-gold {
+      background: var(--gold) !important;
+      color: #000 !important;
+      font-weight: 700 !important;
+      border: none !important;
+      border-radius: 7px !important;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.12s;
+      font-family: "Montserrat", sans-serif;
+      letter-spacing: 0.03em;
+    }
+
+    .btn-gold:hover:not(:disabled) {
+      background: var(--gold-dim) !important;
+    }
+
+    .btn-gold:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-gold:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* ── Error / success ── */
+    .error-message {
+      color: var(--red);
+      background: rgba(231, 76, 60, 0.1);
+      border: 1px solid rgba(231, 76, 60, 0.25);
+      padding: 10px 14px;
+      border-radius: 7px;
+      margin-top: 8px;
+      font-size: 0.85rem;
+    }
+
+    .error-box {
+      background: rgba(231, 76, 60, 0.1);
+      border: 1px solid var(--red);
+      border-radius: 10px;
+      padding: 24px;
+      color: var(--red);
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(241, 196, 15, 0.25);
+      border-radius: 50%;
+      border-top-color: var(--gold);
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── HEADER BAR ── */
+    .header-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background: rgba(12, 12, 12, 0.97);
+      border-bottom: 1px solid var(--gold-border);
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-logo img {
+      height: 32px;
+    }
+
+    .header-logo h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      margin: 0;
+      letter-spacing: 0.04em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* ── Active users btn ── */
+    .active-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      border: 1px solid var(--gold-border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      color: #ccc;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      font-family: "Montserrat", sans-serif;
+    }
+
+    .active-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        opacity: 1;
+        box-shadow: 0 0 5px var(--green);
+      }
+
+      50% {
+        opacity: 0.7;
+        box-shadow: 0 0 12px var(--green);
+      }
+    }
+
+    /* ── Menu ── */
+    .menu-container {
+      position: relative;
+    }
+
+    .menu-button {
+      background: none;
+      border: 1px solid var(--gold-border);
+      border-radius: 6px;
+      color: var(--gold);
+      width: 34px;
+      height: 34px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .menu-button:hover {
+      background: var(--gold-faint);
+    }
+
+    .menu-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface2);
+      border: 1px solid var(--gold-border);
+      border-radius: 8px;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      min-width: 140px;
+      overflow: hidden;
+    }
+
+    .menu-popover button {
+      display: block;
+      width: 100%;
+      padding: 12px 18px;
+      background: none;
+      border: none;
+      color: var(--red);
+      text-align: left;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.15s;
+      font-family: "Montserrat", sans-serif;
+      font-weight: 600;
+    }
+
+    .menu-popover button:hover {
+      background: rgba(231, 76, 60, 0.1);
+    }
+
+    /* ── Active users popover ── */
+    .active_user_popover_style {
+      position: fixed;
+      top: 68px;
+      left: 330px;
+      background: var(--surface2);
+      border: 1px solid var(--gold-border);
+      border-radius: 10px;
+      padding: 0;
+      min-width: 240px;
+      z-index: 2000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+
+    .popover-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gold-border);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(241, 196, 15, 0.05);
+    }
+
+    .popover-body {
+      padding: 8px 0;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    /* ── Login page ── */
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-inner {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .login-logo-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .login-logo-area img {
+
+      height: 64px;
+      margin-bottom: 12px;
+    }
+
+    .login-logo-area h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(241, 196, 15, 0.3);
+      margin: 0;
+    }
+
+    .login-logo-area p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin: 6px 0 0;
+    }
+
+    /* ── Dashboard ── */
+    .dash-wrap {
+      padding: 80px 24px 40px;
+      /* max-width: 1100px; */
+      margin: 0 auto;
+    }
+
+    /* Stat cards */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--gold-border);
+      border-radius: 10px;
+      padding: 20px 20px 16px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(241, 196, 15, 0.35);
+      box-shadow: 0 4px 20px rgba(241, 196, 15, 0.07);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--gold);
+      font-family: "JetBrains Mono", monospace;
+      line-height: 1;
+    }
+
+    .stat-icon {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .stat-icon.gold {
+      background: rgba(241, 196, 15, 0.12);
+    }
+
+    .stat-icon.green {
+      background: rgba(46, 204, 113, 0.12);
+    }
+
+    .stat-icon.red {
+      background: rgba(231, 76, 60, 0.12);
+    }
+
+    .stat-icon.blue {
+      background: rgba(52, 152, 219, 0.12);
+    }
+
+    /* Main layout: left = recent cases, right = run workflow */
+    .dash-main {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* Recent cases */
+    .recent-panel {
+      background: var(--surface);
+      border: 1px solid var(--gold-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--gold-border);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(241, 196, 15, 0.04);
+    }
+
+    .case-item {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: background 0.15s;
+    }
+
+    .case-item:last-child {
+      border-bottom: none;
+    }
+
+    .case-item:hover {
+      background: rgba(241, 196, 15, 0.03);
+    }
+
+    .case-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    .case-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+
+    .status-badge.success {
+      background: rgba(46, 204, 113, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(46, 204, 113, 0.25);
+    }
+
+    .status-badge.failed {
+      background: rgba(231, 76, 60, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(231, 76, 60, 0.25);
+    }
+
+    .status-badge.pending {
+      background: rgba(52, 152, 219, 0.15);
+      color: var(--blue);
+      border: 1px solid rgba(52, 152, 219, 0.25);
+    }
+
+    .empty-cases {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+
+    .empty-cases .folder-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+      opacity: 0.4;
+    }
+
+    /* Workflow panel */
+    .workflow-panel {
+      background: var(--surface);
+      border: 1px solid var(--gold-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .workflow-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--gold-border);
+      background: rgba(241, 196, 15, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .workflow-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .workflow-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .version-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--gold-faint);
+      border: 1px solid var(--gold-border);
+      color: var(--gold);
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .workflow-body {
+      padding: 24px 20px;
+    }
+
+    .field-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .run-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Processing card */
+    .processing-card {
+      padding: 28px;
+    }
+
+    .progress-bar-track {
+      height: 6px;
+      background: #1e1e1e;
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #a08209, var(--gold));
+      transition: width 1s ease;
+    }
+
+    /* System Online badge */
+    .system-online {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      background: rgba(46, 204, 113, 0.1);
+      border: 1px solid rgba(46, 204, 113, 0.2);
+      border-radius: 20px;
+      padding: 5px 12px;
+    }
+
+    /* Footer */
+    .dash-footer {
+      text-align: center;
+      padding: 32px 0 16px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .dash-footer span {
+      color: var(--gold);
+      opacity: 0.6;
+    }
+
+    /* ── Billing report styles (unchanged) ── */
+    .billing-report-preview {
+      background: #e8e8e8;
+      color: #000;
+      max-height: 600px;
+      overflow: auto;
+      padding: 24px;
+    }
+
+    .billing-report-page {
+      background: #fff;
+      color: #000;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 28px 34px;
+      box-shadow: 0 0 0 1px #cfcfcf;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .billing-logo-wrap {
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+    }
+
+    .billing-logo-wrap img {
+      width: 100%;
+      max-width: none;
+      margin-left: 0;
+      display: block;
+    }
+
+    .billing-meta {
+      margin-top: 8px;
+      margin-bottom: 12px;
+      font-size: 10px;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .billing-meta div {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .billing-title {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      margin: 8px 0 12px;
+      text-decoration: underline;
+    }
+
+    .billing-section {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-decoration: underline;
+      margin: 12px 0 4px;
+      line-height: 1.2;
+    }
+
+    .billing-header-row {
+      display: flex;
+      font-size: 10px;
+      font-weight: 700;
+      text-decoration: underline;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+
+    .billing-header-row .col-label {
+      flex: 0 0 160px;
+    }
+
+    .billing-header-row .col-desc {
+      flex: 1;
+    }
+
+    .billing-header-row .col-collected {
+      flex: 0 0 120px;
+      text-align: right;
+    }
+
+    .billing-header-row .col-balance {
+      flex: 0 0 120px;
+      text-align: right;
+    }
+
+    .billing-data-row {
+      display: flex;
+      font-size: 10px;
+      margin-top: 1px;
+    }
+
+    .billing-data-row .col-label {
+      flex: 0 0 160px;
+    }
+
+    .billing-data-row .col-desc {
+      flex: 1;
+    }
+
+    .billing-data-row .col-collected {
+      flex: 0 0 120px;
+      text-align: right;
+    }
+
+    .billing-data-row .col-balance {
+      flex: 0 0 120px;
+      text-align: right;
+    }
+
+    .billing-atty-header {
+      display: flex;
+      font-size: 10px;
+      font-weight: 700;
+      text-decoration: underline;
+      margin-top: 2px;
+    }
+
+    .billing-atty-header .col-name {
+      flex: 1;
+    }
+
+    .billing-atty-header .col-fee {
+      flex: 0 0 100px;
+      text-align: right;
+    }
+
+    .billing-atty-header .col-reduced {
+      flex: 0 0 100px;
+      text-align: right;
+    }
+
+    .billing-atty-header .col-billed {
+      flex: 0 0 120px;
+      text-align: right;
+    }
+
+    .billing-atty-row {
+      display: flex;
+      font-size: 10px;
+      margin-top: 1px;
+    }
+
+    .billing-atty-row .col-name {
+      flex: 1;
+    }
+
+    .billing-atty-row .col-fee {
+      flex: 0 0 100px;
+      text-align: right;
+    }
+
+    .billing-atty-row .col-reduced {
+      flex: 0 0 100px;
+      text-align: right;
+    }
+
+    .billing-atty-row .col-billed {
+      flex: 0 0 120px;
+      text-align: right;
+    }
+
+    .billing-expense-header {
+      display: flex;
+      font-size: 10px;
+      font-style: italic;
+      text-decoration: underline;
+      margin-top: 4px;
+      margin-bottom: 2px;
+    }
+
+    .billing-expense-header .col-provider {
+      flex: 1;
+    }
+
+    .billing-expense-header .col-date {
+      flex: 0 0 90px;
+      text-align: right;
+    }
+
+    .billing-expense-header .col-due {
+      flex: 0 0 90px;
+      text-align: right;
+    }
+
+    .billing-expense-row {
+      display: flex;
+      font-size: 10px;
+      margin-top: 1px;
+      padding-left: 12px;
+    }
+
+    .billing-expense-row .col-provider {
+      flex: 1;
+    }
+
+    .billing-expense-row .col-date {
+      flex: 0 0 90px;
+      text-align: right;
+    }
+
+    .billing-expense-row .col-due {
+      flex: 0 0 90px;
+      text-align: right;
+    }
+
+    .billing-debits-header {
+      display: flex;
+      font-size: 10px;
+      text-decoration: underline;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .billing-debits-header .col-provider {
+      flex: 1;
+    }
+
+    .billing-debits-header .col-date {
+      flex: 0 0 80px;
+      text-align: right;
+    }
+
+    .billing-debits-header .col-total {
+      flex: 0 0 90px;
+      text-align: right;
+    }
+
+    .billing-debits-header .col-paid {
+      flex: 0 0 70px;
+      text-align: right;
+    }
+
+    .billing-debits-header .col-balance {
+      flex: 0 0 80px;
+      text-align: right;
+    }
+
+    .billing-debits-header .col-reduction {
+      flex: 0 0 80px;
+      text-align: right;
+    }
+
+    .billing-debits-header .col-due {
+      flex: 0 0 70px;
+      text-align: right;
+    }
+
+    .billing-debits-row {
+      display: flex;
+      font-size: 10px;
+      margin-top: 1px;
+    }
+
+    .billing-debits-row .col-provider {
+      flex: 1;
+    }
+
+    .billing-debits-row .col-date {
+      flex: 0 0 80px;
+      text-align: right;
+    }
+
+    .billing-debits-row .col-total {
+      flex: 0 0 90px;
+      text-align: right;
+    }
+
+    .billing-debits-row .col-paid {
+      flex: 0 0 70px;
+      text-align: right;
+    }
+
+    .billing-debits-row .col-balance {
+      flex: 0 0 80px;
+      text-align: right;
+    }
+
+    .billing-debits-row .col-reduction {
+      flex: 0 0 80px;
+      text-align: right;
+    }
+
+    .billing-debits-row .col-due {
+      flex: 0 0 70px;
+      text-align: right;
+    }
+
+    .billing-line,
+    .billing-label,
+    .billing-total,
+    .billing-note,
+    .billing-bullet {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .billing-label {
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .billing-line {
+      font-size: 10px;
+      margin-top: 2px;
+    }
+
+    .billing-total {
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .billing-bullet {
+      font-size: 10px;
+      margin-top: 4px;
+      padding-left: 14px;
+      text-indent: -14px;
+    }
+
+    .billing-note {
+      font-size: 10px;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .billing-spacer {
+      height: 5px;
+    }
+
+    /* ── Result page header ── */
+    .result-header-bar {
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a1a1a;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dash-main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stat-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .header-logo h2 {
+        display: none;
+      }
+
+      .run-row {
+        flex-direction: column;
+      }
+
+      .stat-value {
+        font-size: 1.6rem;
+      }
+
+      .dash-wrap {
+        padding: 72px 12px 32px;
+      }
+
+      .active_user_popover_style {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: 68px !important;
+        width: 260px !important;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="video-background"></div>
+  <div class="overlay"></div>
+
+  <!-- ══════════════════════════════════════════════
+         LOGIN SECTION
+    ══════════════════════════════════════════════ -->
+  <div x-data="loginApp()" x-show="!loggedIn" class="login-wrap">
+    <!-- Logo area -->
+    <div class="login-inner">
+      <div class="login-logo-area">
+        <img src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+          alt="CaseValue" />
+        <h1>Value Tab</h1>
+        <p>Secure Access for Authorized Ramos Law Users</p>
+      </div>
+
+      <!-- VIEW: login -->
+      <div class="card p-6 space-y-5" x-show="view === 'login'">
+        <h2 class="text-2xl font-extrabold uppercase tracking-wide text-center" style="color:var(--gold)">Login</h2>
+        <div>
+          <label class="block font-semibold mb-2" style="color:var(--gold); font-size:13px;">Email</label>
+          <input type="email" placeholder="Enter your email" x-model="email" @input.debounce.500="verifyEmail()"
+            @keydown.enter="emailValid && login()" class="inp w-full p-3 text-sm" />
+        </div>
+        <div x-show="emailValid && passwordCreated" x-transition>
+          <label class="block font-semibold mb-2" style="color:var(--gold); font-size:13px;">Password</label>
+          <input type="password" placeholder="Enter your password" x-model="password"
+            @keydown.enter="email && password && login()" class="inp w-full p-3 text-sm" />
+        </div>
+        <div class="text-right" x-show="emailValid && passwordCreated">
+          <button type="button" @click="_resetOtpState(); view = 'forgot'; forgotSendOtp()"
+            class="text-sm underline hover:opacity-80 transition"
+            style="background:none;border:none;color:var(--gold);cursor:pointer;">
+            Forgot Password?
+          </button>
+        </div>
+        <p x-show="error" x-text="error" class="error-message"></p>
+        <button @click="login()" :disabled="!emailValid || !email" class="btn-gold w-full py-3 text-sm">
+          <span x-show="!loggingIn">Login</span>
+          <span x-show="loggingIn" class="flex items-center justify-center gap-2">
+            <span class="spinner"></span> Logging in...
+          </span>
+        </button>
+      </div>
+
+      <!-- VIEW: setup-otp -->
+      <div class="card p-6 space-y-5" x-show="view === 'setup-otp'">
+        <h2 class="text-2xl font-extrabold uppercase tracking-wide text-center" style="color:var(--gold)">Set Password
+        </h2>
+        <p class="text-center text-sm" style="color:var(--text-muted)">No password found for <span
+            style="color:var(--gold)" x-text="email"></span>. We're sending a one-time code to set your password.</p>
+        <p x-show="error" x-text="error" class="error-message"></p>
+        <button @click="setupSendOtp()" :disabled="otpSending || otpSent" class="btn-gold w-full py-3 text-sm"
+          :class="(otpSending || otpSent) ? 'opacity-50 cursor-not-allowed' : ''">
+          <span x-show="!otpSending && !otpSent">Send OTP to Email</span>
+          <span x-show="otpSending" class="flex items-center justify-center gap-2"><span class="spinner"></span>
+            Sending...</span>
+          <span x-show="otpSent">OTP Sent ✓ — Enter Below</span>
+        </button>
+        <template x-if="otpSent">
+          <div class="space-y-4">
+            <div>
+              <label class="block font-semibold mb-2" style="color:var(--gold); font-size:13px;">Enter OTP</label>
+              <input type="text" placeholder="6-digit OTP" x-model="otp" @keydown.enter="setupVerifyOtp()"
+                class="inp w-full p-3 text-sm" />
+            </div>
+            <button @click="setupVerifyOtp()" :disabled="otpVerifying" class="btn-gold w-full py-3 text-sm">
+              <span x-show="!otpVerifying">Verify OTP</span>
+              <span x-show="otpVerifying" class="flex items-center justify-center gap-2"><span class="spinner"></span>
+                Verifying...</span>
+            </button>
+          </div>
+        </template>
+        <button type="button" @click="view = 'login'; _resetOtpState()"
+          class="w-full text-center text-sm hover:opacity-80 transition"
+          style="background:none;border:none;color:var(--text-muted);cursor:pointer;">
+          ← Back to Login
+        </button>
+      </div>
+
+      <!-- VIEW: setup-create -->
+      <div class="card p-6 space-y-5" x-show="view === 'setup-create'">
+        <h2 class="text-2xl font-extrabold uppercase tracking-wide text-center" style="color:var(--gold)">Set Password
+        </h2>
+        <p class="text-center text-sm" style="color:var(--text-muted)">OTP verified! Now set your account password.</p>
+        <div>
+          <label class="block font-semibold mb-2" style="color:var(--gold); font-size:13px;">New Password</label>
+          <input type="password" placeholder="Enter new password" x-model="newPassword"
+            class="inp w-full p-3 text-sm" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-2" style="color:var(--gold); font-size:13px;">Confirm Password</label>
+          <input type="password" placeholder="Confirm new password" x-model="confirmPassword"
+            @keydown.enter="setupCreatePassword()" class="inp w-full p-3 text-sm" />
+        </div>
+        <p x-show="error" x-text="error" class="error-message"></p>
+        <button @click="setupCreatePassword()" :disabled="submitting" class="btn-gold w-full py-3 text-sm">
+          <span x-show="!submitting">Set Password & Login</span>
+          <span x-show="submitting" class="flex items-center justify-center gap-2"><span class="spinner"></span> Setting
+            up...</span>
+        </button>
+      </div>
+
+      <!-- VIEW: forgot -->
+      <div class="card p-6 space-y-5" x-show="view === 'forgot'">
+        <h2 class="text-2xl font-extrabold uppercase tracking-wide text-center" style="color:var(--gold)">Forgot
+          Password</h2>
+        <p class="text-center text-sm" style="color:var(--text-muted)">Sending a password reset OTP to <span
+            style="color:var(--gold)" x-text="email"></span>…</p>
+        <p x-show="error" x-text="error" class="error-message"></p>
+        <div class="flex items-center justify-center py-4" x-show="otpSending">
+          <span class="spinner" style="width:22px;height:22px;border-width:3px;"></span>
+        </div>
+        <button x-show="!otpSending && error" @click="forgotSendOtp()" class="btn-gold w-full py-3 text-sm">Retry Send
+          OTP</button>
+        <button type="button" @click="view = 'login'; _resetOtpState()" class="w-full text-center text-sm"
+          style="background:none;border:none;color:var(--text-muted);cursor:pointer;">
+          ← Back to Login
+        </button>
+      </div>
+
+      <!-- VIEW: forgot-verify -->
+      <div class="card p-6 space-y-5" x-show="view === 'forgot-verify'">
+        <h2 class="text-2xl font-extrabold uppercase tracking-wide text-center" style="color:var(--gold)">Enter OTP</h2>
+        <p class="text-center text-sm" style="color:var(--text-muted)">OTP sent to <span style="color:var(--gold)"
+            x-text="email"></span>. Enter it below.</p>
+        <div>
+          <label class="block font-semibold mb-2" style="color:var(--gold); font-size:13px;">OTP</label>
+          <input type="text" placeholder="6-digit OTP" x-model="otp" @keydown.enter="forgotVerifyOtp()"
+            class="inp w-full p-3 text-sm" />
+        </div>
+        <p x-show="error" x-text="error" class="error-message"></p>
+        <button @click="forgotVerifyOtp()" :disabled="otpVerifying" class="btn-gold w-full py-3 text-sm">
+          <span x-show="!otpVerifying">Verify OTP</span>
+          <span x-show="otpVerifying" class="flex items-center justify-center gap-2"><span class="spinner"></span>
+            Verifying...</span>
+        </button>
+        <button type="button" @click="view = 'login'; _resetOtpState()" class="w-full text-center text-sm"
+          style="background:none;border:none;color:var(--text-muted);cursor:pointer;">
+          ← Back to Login
+        </button>
+      </div>
+
+      <!-- VIEW: forgot-reset -->
+      <div class="card p-6 space-y-5" x-show="view === 'forgot-reset'">
+        <h2 class="text-2xl font-extrabold uppercase tracking-wide text-center" style="color:var(--gold)">Reset Password
+        </h2>
+        <p class="text-center text-sm" style="color:var(--text-muted)">Enter your new password below.</p>
+        <div>
+          <label class="block font-semibold mb-2" style="color:var(--gold); font-size:13px;">New Password</label>
+          <input type="password" placeholder="Enter new password" x-model="newPassword"
+            class="inp w-full p-3 text-sm" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-2" style="color:var(--gold); font-size:13px;">Confirm Password</label>
+          <input type="password" placeholder="Confirm new password" x-model="confirmPassword"
+            @keydown.enter="forgotResetPassword()" class="inp w-full p-3 text-sm" />
+        </div>
+        <p x-show="error" x-text="error" class="error-message"></p>
+        <button @click="forgotResetPassword()" :disabled="submitting" class="btn-gold w-full py-3 text-sm">
+          <span x-show="!submitting">Reset Password & Login</span>
+          <span x-show="submitting" class="flex items-center justify-center gap-2"><span class="spinner"></span>
+            Resetting...</span>
+        </button>
+        <button type="button" @click="view = 'login'; _resetOtpState()" class="w-full text-center text-sm"
+          style="background:none;border:none;color:var(--text-muted);cursor:pointer;">
+          ← Back to Login
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+         MAIN APP (post-login)
+    ══════════════════════════════════════════════ -->
+  <div x-data="caseApp()" x-show="isLoggedIn">
+
+    <!-- HEADER -->
+    <div class="header-bar">
+      <div class="header-logo">
+        <img src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+          alt="CaseValue" />
+        <div>
+          <h2>CASEVALUE DASHBOARD</h2>
+          <div class="workflow-sub">Settlement Memorandum Intelligence</div>
+        </div>
+
+      </div>
+
+      <div class="header-right">
+        <button id="active-users-btn" onclick="toggleActiveUsers()" class="system-online"
+          style="cursor: pointer; font-family: inherit;">
+          <!-- <span class="pulse-dot"></span> -->
+          Active Users <span id="active-user-count">0</span>
+        </button>
+        <!-- Popover -->
+        <div id="active-users-popover" class="active_user_popover_style" style="display:none; left: auto; right: 24px;">
+          <div class="popover-header">Active Users</div>
+          <div class="popover-body" id="active-users-list"></div>
+        </div>
+
+
+        <button class="btn-gold py-2 px-4" @click="resetToHome()">New Case</button>
+        <!-- <div style="text-align:right; line-height:1.3;">
+          <div style="font-size:12px; font-weight:700; color:var(--gold);" x-text="userEmail"></div>
+          <div style="font-size:11px; color:var(--text-muted);">Logged in</div>
+        </div> -->
+        <div class="menu-container" x-data="{ menuOpen: false }">
+          <button class="menu-button" @click="menuOpen = !menuOpen">⋮</button>
+          <div class="menu-popover" x-show="menuOpen" @click.outside="menuOpen = false">
+            <button @click="logout()">Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="dash-wrap" x-show="appView === 'dashboard' || appView=== 'result'">
+
+      <!-- Stat cards -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Cases Run</div>
+          <div class="stat-value" x-text="stats.total_cases ?? '—'"></div>
+          <div class="stat-icon gold" title="Total executions">Σ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Successful</div>
+          <div class="stat-value" style="color:var(--green)" x-text="stats.successful_cases ?? '—'"></div>
+          <div class="stat-icon green" title="total successful executions">✓</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Failed</div>
+          <div class="stat-value" style="color:var(--red)" x-text="stats.failed_cases ?? '—'"></div>
+          <div class="stat-icon red" title="total failed executions">!</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Time</div>
+          <div class="stat-value" style="font-size:1.4rem;"
+            x-text="stats.average_processing_time_seconds != null ? stats.average_processing_time_seconds.toFixed(1) + 's' : '—'">
+          </div>
+          <div class="stat-icon blue" title="average time taken to process each case">⏱</div>
+        </div>
+      </div>
+
+      <!-- Recent cases + workflow -->
+      <div class="dash-main">
+
+        <!-- Recent cases panel -->
+        <div class="recent-panel">
+          <div class="panel-header" title="top 3 recent cases">Recent Cases</div>
+          <template x-if="stats.recent_cases && stats.recent_cases.length > 0">
+            <div>
+              <template x-for="c in stats.recent_cases" :key="c.case_number">
+                <div class="case-item">
+                  <div>
+                    <div class="case-num" x-text="'#' + c.case_number"></div>
+                    <div class="case-time" x-text="formatCaseTime(c.timestamp)"></div>
+                  </div>
+                  <span class="status-badge"
+                    :class="c.status === 'success' || c.status === 'completed' ? 'success' : c.status === 'failed' ? 'failed' : 'pending'"
+                    x-text="c.status"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+          <template x-if="!stats.recent_cases || stats.recent_cases.length === 0">
+            <div class="empty-cases">
+              <div class="folder-icon">📁</div>
+              <div>No cases yet.</div>
+              <div style="margin-top:4px; font-size:12px;">Run one to get started.</div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Workflow panel -->
+        <div class="workflow-panel">
+          <div class="workflow-header">
+            <div>
+              <div class="workflow-title">Run Case Workflow</div>
+              <div class="workflow-sub">Enter a case number to extract and format the settlement memorandum. Typical
+                runtime: 1–3 minutes.</div>
+            </div>
+            <!-- <span class="version-tag">V2.0</span> -->
+          </div>
+          <div class="workflow-body">
+            <div class="field-label">Case Number</div>
+            <div class="run-row">
+              <input type="text" placeholder="Example: 207281" x-model="inputCaseNumber"
+                @keyup.enter="startProcessing()" class="inp flex-1 px-4 py-3 text-sm" style="min-width:0;" />
+              <button @click="startProcessing()" :disabled="!inputCaseNumber.trim() || loading"
+                class="btn-gold px-6 py-3 text-sm font-bold"
+                :class="(!inputCaseNumber.trim() || loading) ? 'opacity-40 cursor-not-allowed' : ''">
+                <span x-show="!loading">RUN WORKFLOW</span>
+                <span x-show="loading" class="flex items-center gap-2">
+                  <span class="spinner"></span> Starting...
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div x-show="appView === 'dashboard'" class="dash-footer">
+        <span>CaseValue</span> · Powered by Ramos Law Injury Intelligence
+      </div>
+    </div>
+
+    <!-- PROCESSING VIEW -->
+    <div class="dash-wrap" x-show="appView === 'processing'" style="max-width:700px; margin:0 auto;">
+      <div class="card processing-card">
+        <div style="text-align:center; margin-bottom:20px;">
+          <div
+            style="font-size:11px; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px;">
+            Case Number</div>
+          <div style="font-size:2rem; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--gold);"
+            x-text="caseNumber"></div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px;">
+            <span style="color:var(--gold)">Status</span>
+            <span style="color:var(--text-muted)">Fetching files from SharePoint and generating summary...</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
+          </div>
+          <div style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:10px;">
+            <span class="spinner"></span>
+            <span style="margin-left:8px;">Processing</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAILED VIEW -->
+    <div class="dash-wrap" x-show="appView === 'failed'" style="max-width:700px; margin:0 auto;">
+      <div class="card p-8 space-y-6">
+        <div style="text-align:center;">
+          <div
+            style="font-size:11px; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px;">
+            Case Number</div>
+          <div style="font-size:2rem; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--gold);"
+            x-text="caseNumber"></div>
+        </div>
+        <div class="error-box text-center">
+          <h3 style="font-size:1.3rem; font-weight:700; margin-bottom:10px;">Processing Failed</h3>
+          <p style="font-size:14px; white-space:pre-line;" x-text="errorMessage"></p>
+        </div>
+        <div style="text-align:center;">
+          <button @click="resetToHome()" class="btn-gold px-6 py-3 text-sm font-bold">← Back to Dashboard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT VIEW -->
+    <div x-show="appView === 'result'">
+      <div class="p-6 max-w-5xl mx-auto space-y-6">
+
+        <div class="card p-6" style="text-align:center;">
+          <div style="font-size:1.6rem; font-weight:800; color:var(--green); margin-bottom:6px;">Processing Complete!
+          </div>
+          <div style="font-size:14px; color:#ccc;" x-text="`Case ${caseNumber} • Completed in ${duration}s`"></div>
+          <div x-show="responseMessage" style="font-size:13px; color:var(--text-muted); margin-top:4px;"
+            x-text="responseMessage"></div>
+        </div>
+
+        <div class="card" style="overflow:hidden;">
+          <div class="result-header-bar">
+            <h3 style="font-size:1.2rem; font-weight:700; color:var(--gold); margin:0;">Final Billing Report</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button x-show="markdownRaw && !errorMessage" @click="downloadPDF()"
+                class="btn-gold flex items-center gap-2 px-5 py-2 text-sm">
+                <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download PDF
+              </button>
+              <button x-show="regenerateMessage" @click="renegrate()" :disabled="loading"
+                class="btn-gold px-5 py-2 text-sm" :class="loading ? 'opacity-40 cursor-not-allowed' : ''">
+                <span x-show="!loading">Regenerate</span>
+                <span x-show="loading" class="flex items-center gap-2"><span class="spinner"></span>
+                  Regenerating...</span>
+              </button>
+              <!-- <button @click="resetToHome()" class="text-sm px-4 py-2 rounded-lg"
+                style="background:var(--surface3); border:1px solid var(--gold-border); color:var(--gold); cursor:pointer; font-family:'Montserrat',sans-serif; font-weight:600;">
+                ← Dashboard
+              </button> -->
+            </div>
+          </div>
+          <div id="billing-report-content" class="billing-report-preview" x-html="markdown"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /caseApp -->
+
+  <!-- ══ SCRIPTS ══ -->
+  <script>
+    const API_BASE_URL = "";
+
+    const appState = { loggedIn: false, email: "" };
+
+    function requireToken() {
+      const token = localStorage.getItem("casevalueToken");
+      if (!token) {
+        alert("Your session has expired. Please log in first.");
+        localStorage.removeItem("casevalueToken");
+        localStorage.removeItem("casevalueEmail");
+        window.dispatchEvent(new Event("logout-success"));
+        location.reload();
+        return null;
+      }
+      return token;
+    }
+
+    function handle401() {
+      alert("Your session has expired. Please log in again.");
+      localStorage.removeItem("casevalueToken");
+      localStorage.removeItem("casevalueEmail");
+      window.dispatchEvent(new Event("logout-success"));
+      location.reload();
+    }
+
+    // ──────────────────────────────────────────────
+    // LOGIN APP
+    // ──────────────────────────────────────────────
+    function loginApp() {
+      return {
+        email: "", password: "", error: "", loggedIn: false, loggingIn: false,
+        emailValid: false, emailChecking: false, view: "login",
+        otp: "", newPassword: "", confirmPassword: "",
+        otpSending: false, otpSent: false, otpVerifying: false,
+        otpVerified: false, submitting: false, passwordCreated: false,
+
+        init() {
+          const token = localStorage.getItem("casevalueToken");
+          const savedEmail = localStorage.getItem("casevalueEmail");
+          if (token && savedEmail) {
+            this.loggedIn = true; appState.loggedIn = true;
+            this.email = savedEmail; appState.email = savedEmail;
+          }
+          window.addEventListener("logout-success", () => {
+            this.loggedIn = false; this.email = ""; this.password = "";
+            this.emailValid = false; this.error = ""; this.view = "login";
+            this._resetOtpState();
+          });
+        },
+
+        _resetOtpState() {
+          this.otp = ""; this.newPassword = ""; this.confirmPassword = "";
+          this.otpSending = false; this.otpSent = false;
+          this.otpVerifying = false; this.otpVerified = false;
+          this.submitting = false; this.error = "";
+        },
+
+        _ngrokHeaders() { return { "ngrok-skip-browser-warning": "true" }; },
+
+        async verifyEmail() {
+          if (!this.email.includes("@")) { this.emailValid = false; this.passwordCreated = false; this.error = ""; return; }
+          this.emailChecking = true; this.error = "";
+          try {
+            const res = await fetch(`${API_BASE_URL}/casevalue/verify-email?email=${encodeURIComponent(this.email)}`, { headers: this._ngrokHeaders() });
+            const json = await res.json();
+            this.emailValid = json.valid;
+            this.passwordCreated = json.password_created || false;
+            if (!json.valid) {
+              this.error = "Access denied: Your email is not on the authorized list.";
+            } else if (!this.passwordCreated) {
+              this._resetOtpState(); this.view = "setup-otp"; this.setupSendOtp();
+            }
+          } catch (err) {
+            this.emailValid = false; this.passwordCreated = false;
+            this.error = "Access denied: Your email is not on the authorized list.";
+          } finally { this.emailChecking = false; }
+        },
+
+        async login() {
+          this.error = "";
+          if (!this.emailValid) { this.error = "Email not authorized"; return; }
+          if (!this.email || !this.email.includes("@")) { this.error = "Please enter a valid email"; return; }
+          if (!this.password) { this.error = "Please enter password"; return; }
+          this.loggingIn = true;
+          try {
+            const data = new URLSearchParams();
+            data.append("username", this.email); data.append("password", this.password);
+            const res = await fetch(`${API_BASE_URL}/casevalue/login`, { method: "POST", body: data, headers: this._ngrokHeaders() });
+            const json = await res.json();
+            if (!res.ok && json.detail === "Please create password first") {
+              this._resetOtpState(); this.view = "setup-otp"; this.loggingIn = false; return;
+            }
+            if (!res.ok) throw new Error(json.detail || "Login failed");
+            localStorage.setItem("casevalueToken", json.access_token);
+            localStorage.setItem("casevalueEmail", this.email);
+            this.loggedIn = true; appState.loggedIn = true; appState.email = this.email;
+            this.error = "";
+            window.dispatchEvent(new CustomEvent("login-success"));
+          } catch (err) {
+            this.error = err.message || "Something went wrong";
+          } finally { this.loggingIn = false; }
+        },
+
+        async setupSendOtp() {
+          this.error = ""; this.otpSending = true;
+          try {
+            const res = await fetch(`${API_BASE_URL}/casevalue/send/otp?email=${encodeURIComponent(this.email)}`, { method: "POST", headers: this._ngrokHeaders() });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.detail || "Failed to send OTP");
+            this.otpSent = true;
+          } catch (err) { this.error = err.message || "Failed to send OTP"; }
+          finally { this.otpSending = false; }
+        },
+
+        async setupVerifyOtp() {
+          this.error = "";
+          if (!this.otp) { this.error = "Please enter the OTP"; return; }
+          this.otpVerifying = true;
+          try {
+            const res = await fetch(`${API_BASE_URL}/casevalue/verify/otp?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}`, { method: "POST", headers: this._ngrokHeaders() });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.detail || "Invalid OTP");
+            this.otpVerified = true; this.view = "setup-create";
+          } catch (err) { this.error = err.message || "Invalid OTP"; }
+          finally { this.otpVerifying = false; }
+        },
+
+        async setupCreatePassword() {
+          this.error = "";
+          if (!this.newPassword) { this.error = "Please enter a new password"; return; }
+          if (this.newPassword !== this.confirmPassword) { this.error = "Passwords do not match"; return; }
+          this.submitting = true;
+          try {
+            const res = await fetch(`${API_BASE_URL}/casevalue/create/password?email=${encodeURIComponent(this.email)}&password=${encodeURIComponent(this.newPassword)}`, { method: "POST", headers: this._ngrokHeaders() });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.detail || "Failed to create password");
+            this.password = this.newPassword; this.view = "login"; await this.login();
+          } catch (err) { this.error = err.message || "Failed to create password"; }
+          finally { this.submitting = false; }
+        },
+
+        async forgotSendOtp() {
+          this.error = "";
+          if (!this.email || !this.email.includes("@")) { this.error = "Please enter your email first"; return; }
+          this.otpSending = true;
+          try {
+            const res = await fetch(`${API_BASE_URL}/casevalue/forgot/password?email=${encodeURIComponent(this.email)}`, { method: "POST", headers: this._ngrokHeaders() });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.detail || "Failed to send OTP");
+            this.otpSent = true; this.view = "forgot-verify";
+          } catch (err) { this.error = err.message || "Failed to send OTP"; }
+          finally { this.otpSending = false; }
+        },
+
+        async forgotVerifyOtp() {
+          this.error = "";
+          if (!this.otp) { this.error = "Please enter the OTP"; return; }
+          this.otpVerifying = true;
+          try { this.otpVerified = true; this.view = "forgot-reset"; }
+          catch (err) { this.error = err.message || "Invalid OTP"; }
+          finally { this.otpVerifying = false; }
+        },
+
+        async forgotResetPassword() {
+          this.error = "";
+          if (!this.newPassword) { this.error = "Please enter a new password"; return; }
+          if (this.newPassword !== this.confirmPassword) { this.error = "Passwords do not match"; return; }
+          this.submitting = true;
+          try {
+            const res = await fetch(`${API_BASE_URL}/casevalue/reset/password?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}&new_password=${encodeURIComponent(this.newPassword)}`, { method: "POST", headers: this._ngrokHeaders() });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.detail || "Failed to reset password");
+            this.password = this.newPassword; this.view = "login"; await this.login();
+          } catch (err) { this.error = err.message || "Failed to reset password"; }
+          finally { this.submitting = false; }
+        },
+
+        logout() {
+          localStorage.removeItem("casevalueToken"); localStorage.removeItem("casevalueEmail");
+          this.loggedIn = false; appState.loggedIn = false;
+          this.email = ""; this.password = ""; appState.email = "";
+          this.emailValid = false; this.error = ""; this.view = "login";
+          this._resetOtpState();
+          window.dispatchEvent(new Event("logout-success"));
+        },
+      };
+    }
+  </script>
+
+  <script>
+    // ──────────────────────────────────────────────
+    // ACTIVE USERS
+    // ──────────────────────────────────────────────
+    function toggleActiveUsers() {
+      const popover = document.getElementById("active-users-popover");
+      const isOpening = popover.style.display !== "block";
+      if (isOpening) loadActiveUsers();
+      popover.style.display = isOpening ? "block" : "none";
+    }
+
+    document.addEventListener("click", (e) => {
+      const btn = document.getElementById("active-users-btn");
+      const pop = document.getElementById("active-users-popover");
+      if (pop && btn && !btn.contains(e.target) && !pop.contains(e.target)) {
+        pop.style.display = "none";
+      }
+    });
+
+    async function loadActiveUsers() {
+      const token = requireToken();
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE_URL}/casevalue/active-today`, {
+          headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" }
+        });
+        if (res.status === 401 || res.status === 403) { handle401(); return; }
+        if (!res.ok) throw new Error("Failed to fetch active users");
+        const data = await res.json();
+        const users = Array.isArray(data) ? data : [];
+        document.getElementById("active-user-count").innerText = users.length;
+        const list = document.getElementById("active-users-list");
+        list.innerHTML = "";
+        if (users.length === 0) {
+          list.innerHTML = "<div style='padding:14px 16px; color:#666; font-size:12px;'>No active users</div>"; return;
+        }
+        users.forEach(user => {
+          const div = document.createElement("div");
+          div.style.cssText = "padding:10px 16px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; justify-content:space-between; align-items:center; gap:12px;";
+          const em = document.createElement("span");
+          em.style.cssText = "color:#f1c40f; font-weight:600; flex:1; font-size:12px;";
+          em.innerText = user.email;
+          const ts = document.createElement("span");
+          ts.style.cssText = "color:#666; font-size:11px; white-space:nowrap; flex-shrink:0;";
+          ts.innerText = formatLastActive(user.last_active);
+          div.appendChild(em); div.appendChild(ts); list.appendChild(div);
+        });
+      } catch (err) { console.error("Active users fetch failed", err); }
+    }
+
+    function formatLastActive(dateStr) {
+      try {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        if (diffMins < 1) return "just now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        return `${diffDays}d ago`;
+      } catch (e) { return ""; }
+    }
+
+    window.addEventListener("login-success", () => loadActiveUsers());
+  </script>
+
+  <script>
+    // ──────────────────────────────────────────────
+    // CASE APP
+    // ──────────────────────────────────────────────
+    function caseApp() {
+      return {
+        markdown: "", markdownRaw: "",
+        isLoggedIn: false, userEmail: "",
+        inputCaseNumber: "", caseNumber: null,
+        appView: "dashboard",   // dashboard | processing | failed | result
+        progress: 0, duration: 0, loading: false,
+        pollInterval: null, startTime: 0,
+        errorMessage: "", regenerateMessage: false, responseMessage: "",
+        stats: { total_cases: null, successful_cases: null, failed_cases: null, average_processing_time_seconds: null, recent_cases: [] },
+
+        init() {
+          const token = localStorage.getItem("casevalueToken");
+          const email = localStorage.getItem("casevalueEmail");
+          if (token && email) {
+            this.isLoggedIn = true;
+            this.userEmail = email;
+            this.fetchStats();
+            loadActiveUsers();
+          }
+          window.addEventListener("login-success", () => {
+            this.isLoggedIn = true;
+            this.userEmail = localStorage.getItem("casevalueEmail");
+            this.fetchStats();
+          });
+        },
+
+        async fetchStats() {
+          const token = requireToken();
+          if (!token) return;
+          try {
+            const res = await fetch(`${API_BASE_URL}/casevalue/dashboard/stats`, {
+              headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" }
+            });
+            if (res.status === 401 || res.status === 403) { handle401(); return; }
+            if (!res.ok) throw new Error("Failed to fetch stats");
+            const data = await res.json();
+            this.stats = data;
+          } catch (err) { console.error("Stats fetch failed", err); }
+        },
+
+        formatCaseTime(ts) {
+          if (!ts) return "";
+          try {
+            const d = new Date(ts);
+            const now = new Date();
+            const diffMs = now - d;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            if (diffMins < 1) return "just now";
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return d.toLocaleDateString();
+          } catch (e) { return ts; }
+        },
+
+        async startProcessing() {
+          if (this.loading || !this.inputCaseNumber.trim()) return;
+          const token = requireToken();
+          if (!token) return;
+          this.caseNumber = this.inputCaseNumber.trim();
+          this.loading = true;
+          this.appView = "processing";
+          this.progress = 20;
+          this.startTime = Date.now();
+          this.errorMessage = "";
+          try {
+            const response = await fetch(`${API_BASE_URL}/casevalue/start-case`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" },
+              body: JSON.stringify({ caseNumber: this.caseNumber }),
+            });
+            if (response.status === 401 || response.status === 403) { handle401(); return; }
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.message || "Failed to start case");
+            }
+            const json = await response.json();
+            this.regenerateMessage = json.message && json.message.includes("Summary retrieved from blob storage");
+            this.responseMessage = json.message || "";
+            this.startPolling();
+          } catch (error) {
+            this.loading = false; this.appView = "failed";
+            this.errorMessage = error.message || "An unexpected error occurred";
+          }
+        },
+
+        async renegrate() {
+          if (this.loading || !this.inputCaseNumber.trim()) return;
+          const token = requireToken();
+          if (!token) return;
+          this.caseNumber = this.inputCaseNumber.trim();
+          this.loading = true; this.appView = "processing";
+          this.progress = 20; this.startTime = Date.now(); this.errorMessage = "";
+          try {
+            const response = await fetch(`${API_BASE_URL}/casevalue/start-case`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" },
+              body: JSON.stringify({ caseNumber: this.caseNumber, regenerate: "true" }),
+            });
+            if (response.status === 401 || response.status === 403) { handle401(); return; }
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.message || "Failed to start case");
+            }
+            this.regenerateMessage = false; this.responseMessage = "";
+            this.startPolling();
+          } catch (error) {
+            this.loading = false; this.appView = "failed";
+            this.errorMessage = error.message || "An unexpected error occurred";
+          }
+        },
+
+        startPolling() {
+          this.pollInterval = setInterval(async () => {
+            try {
+              const token = requireToken();
+              if (!token) { clearInterval(this.pollInterval); return; }
+              const res = await fetch(`${API_BASE_URL}/casevalue/case-result/${this.caseNumber}`, {
+                headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" }
+              });
+              if (res.status === 401 || res.status === 403) { clearInterval(this.pollInterval); handle401(); return; }
+              const data = await res.json();
+              if (data.status === "failed") {
+                clearInterval(this.pollInterval); this.appView = "failed";
+                this.loading = false; this.errorMessage = data.error || "Case not found"; return;
+              }
+              if (data.pdf_status?.value) {
+                clearInterval(this.pollInterval); this.appView = "failed";
+                this.loading = false; this.errorMessage = data.pdf_status.value; return;
+              }
+              if (data.billing_status?.value) {
+                clearInterval(this.pollInterval); this.appView = "failed";
+                this.loading = false; this.errorMessage = data.billing_status.value; return;
+              }
+              if (this.progress < 90) this.progress += Math.random() * 8;
+              if (data.final_summary) {
+                clearInterval(this.pollInterval);
+                this.appView = "result";
+                this.markdownRaw = data.final_summary;
+                this.markdown = this.renderFinalSummary(data.final_summary);
+                this.loading = false; this.progress = 100;
+                this.duration = Math.round((Date.now() - this.startTime) / 1000);
+                this.fetchStats();
+              }
+            } catch (err) {
+              console.error("Polling error:", err);
+              clearInterval(this.pollInterval);
+              this.appView = "failed"; this.loading = false;
+              this.errorMessage = "Failed to fetch case status. Please try again.";
+            }
+          }, 3000);
+        },
+
+        resetToHome() {
+          this.inputCaseNumber = ""; this.caseNumber = null;
+          this.appView = "dashboard"; this.progress = 0; this.duration = 0;
+          this.loading = false; this.errorMessage = "";
+          this.markdown = ""; this.markdownRaw = "";
+          if (this.pollInterval) clearInterval(this.pollInterval);
+          this.fetchStats();
+        },
+
+        escapeHtml(value) {
+          return (value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        },
+
+        renderFinalSummary(summaryText) {
+          const lines = (summaryText || "").split(/\r?\n/);
+          const meta = { date: "", client: "", caseNumber: "" };
+          const contentLines = [];
+          lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!meta.date && trimmed.startsWith("Date:")) { meta.date = trimmed.replace(/^Date:\s*/, ""); return; }
+            if (!meta.client && trimmed.startsWith("Client:")) { meta.client = trimmed.replace(/^Client:\s*/, ""); return; }
+            if (!meta.caseNumber && trimmed.startsWith("Case Number:")) { meta.caseNumber = trimmed.replace(/^Case Number:\s*/, ""); return; }
+            contentLines.push(line);
+          });
+
+          let currentSection = "";
+          let pendingAttyLabel = false;
+
+          const renderedLines = contentLines.map((line, index) => {
+            const e = (s) => this.escapeHtml(s);
+            const trimmed = line.trim().replace(/\[REDACTED\]/gi, "").replace(/\s{2,}/g, " ").trim();
+            if (!trimmed) return '<div class="billing-spacer"></div>';
+            if (trimmed === "SETTLEMENT MEMORANDUM") return '<div class="billing-title">SETTLEMENT MEMORANDUM</div>';
+            if (/^CLIENT ACKNOWLEDGEMENT\s*$/i.test(trimmed)) { currentSection = "CLIENT ACK"; return `<div style="page-break-before:always; margin-top:0;"><div class="billing-title" style="text-align:center; font-size:14px; font-weight:700; margin-top:16px;">${e(trimmed)}</div></div>`; }
+            if (currentSection === "CLIENT ACK" && /^(GENERAL ACKNOWLEDGEMENTS|FULL\s*[–\-]+|PAYMENT OF ATTORNEYS)/i.test(trimmed)) return `<div style="font-size:14px; font-weight:700; text-decoration:underline; margin-top:10px; font-family:Arial,Helvetica,sans-serif;">${e(trimmed)}</div>`;
+            if (/^[A-Z][A-Z\s&\'\-\u2013]+$/.test(trimmed) && trimmed.length <= 60 && !trimmed.includes(":")) { currentSection = trimmed.trim(); return `<div class="billing-section">${e(trimmed)}</div>`; }
+            if (/^Deduct\s+(and|And)\s+Retain\s+to\s+Pay\s+The/i.test(trimmed)) { currentSection = "DEDUCT"; return `<div class="billing-label" style="text-decoration:underline;font-size:10px;font-weight:700;margin-top:8px;">${e(trimmed)}</div>`; }
+            if (/^Deduct\s+(and|And)\s+Retain\s+To\s+Pay\s+To\s+Others/i.test(trimmed)) { currentSection = "OTHER DEBITS"; return `<div class="billing-label" style="text-decoration:underline;font-size:10px;font-weight:700;margin-top:8px;">${e(trimmed)}</div>`; }
+            if (currentSection === "OTHER DEBITS" && /^Other Debits\s*$/i.test(trimmed)) return `<div class="billing-label" style="font-size:10px;font-weight:700;margin-top:4px;">${e(trimmed)}</div>`;
+            if (currentSection === "RECOVERY" && /Collected\s+Balance/i.test(trimmed)) return '<div class="billing-header-row"><span class="col-label"></span><span class="col-desc"></span><span class="col-collected"><u>Collected</u></span><span class="col-balance"><u>Balance</u></span></div>';
+            if (currentSection === "RECOVERY" && /^Total Recovery:/i.test(trimmed)) { const match = trimmed.match(/Total Recovery:\s*(\$[\d,]+\.\d{2})/i); const value = match ? e(match[1]) : ""; return `<div class="billing-data-row" style="font-weight:700; margin-top:4px;"><span class="col-label">Total Recovery:</span><span class="col-desc"></span><span class="col-collected"></span><span class="col-balance">${value}</span></div>`; }
+            if (currentSection === "RECOVERY" && /^\S+.*\$\d{1,3}(,\d{3})*\.\d{2}/.test(trimmed)) {
+              const parts = trimmed.split(/\s{2,}/);
+              if (parts.length < 3) { const match = trimmed.match(/^(.*?)\s+(\$[\d,]+\.\d{2})\s+(\$[\d,]+\.\d{2})$/); if (match) return `<div class="billing-data-row"><span class="col-label">${e(match[1])}</span><span class="col-desc"></span><span class="col-collected">${e(match[2])}</span><span class="col-balance">${e(match[3])}</span></div>`; }
+              const label = e(parts[0] || ""); const desc = e(parts[1] || ""); const collected = e(parts[2] || ""); const balance = e(parts[3] || collected);
+              return `<div class="billing-data-row"><span class="col-label">${label}</span><span class="col-desc">${desc}</span><span class="col-collected">${collected}</span><span class="col-balance">${balance}</span></div>`;
+            }
+            if (/^Attorney Fees:/i.test(trimmed)) {
+              const nextLine = (contentLines[index + 1] || "").trim().replace(/\[REDACTED\]/gi, "").replace(/\s{2,}/g, " ").trim();
+              if (/^(Fee|Reduced|Billed)(\s*(Fee|Reduced|Billed))*$/i.test(nextLine)) { pendingAttyLabel = true; return null; }
+              return '<div class="billing-label" style="font-weight:700; margin-top:6px;">Attorney Fees:</div>';
+            }
+            if (currentSection === "DEDUCT" && /^(Fee|Reduced|Billed)(\s*(Fee|Reduced|Billed))*$/i.test(trimmed)) {
+              const hasFee = /Fee/i.test(trimmed); const hasReduced = /Reduced/i.test(trimmed); const hasBilled = /Billed/i.test(trimmed);
+              const labelContent = pendingAttyLabel ? "Attorney Fees:" : ""; pendingAttyLabel = false;
+              return `<div style="margin-top:6px;"><div class="billing-atty-header"><span class="col-name"><span style="font-weight:700;">${labelContent}</span></span><span class="col-fee">${hasFee ? "<u>Fee</u>" : ""}</span><span class="col-reduced">${hasReduced ? "<u>Reduced</u>" : ""}</span><span class="col-billed">${hasBilled ? "<u>Billed</u>" : ""}</span></div></div>`;
+            }
+            if (currentSection === "DEDUCT" && /^Ramos Law/i.test(trimmed)) {
+              const amounts = trimmed.match(/\$[\d,]+\.\d{2}/g) || [];
+              const fee = amounts[0] || ""; const billed = amounts[amounts.length - 1] || ""; const reduced = amounts.length === 3 ? amounts[1] : "";
+              return `<div class="billing-atty-row"><span class="col-name">Ramos Law</span><span class="col-fee">${e(fee)}</span><span class="col-reduced">${e(reduced)}</span><span class="col-billed">${e(billed)}</span></div>`;
+            }
+            if (currentSection === "DEDUCT" && /^Total Attorney Fees:/i.test(trimmed)) { const match = trimmed.match(/\(?\$[\d,]+\.\d{2}\)?/); const value = match ? e(match[0]) : ""; return `<div class="billing-atty-row" style="font-weight:700; margin-top:4px;"><span class="col-name">Total Attorney Fees:</span><span class="col-fee"></span><span class="col-reduced"></span><span class="col-billed">${value}</span></div>`; }
+            if (currentSection === "CASE EXPENSES" && /^Provider\s*[;:]\s*Memo/i.test(trimmed)) return `<div class="billing-expense-header"><span class="col-provider">Provider ; Memo</span><span class="col-date">Date</span><span class="col-due">Due</span></div>`;
+            if (currentSection === "CASE EXPENSES" && /\$[\d,\-]+\.\d{2}\s*$/.test(trimmed)) {
+              const dateMatch = trimmed.match(/\d{2}\/\d{2}\/\d{4}/); const amountMatch = trimmed.match(/\(?-?\$[\d,]+\.\d{2}\)?$/);
+              const date = dateMatch ? dateMatch[0] : ""; const due = amountMatch ? amountMatch[0] : "";
+              let provider = trimmed; if (date) provider = provider.replace(date, ""); if (due) provider = provider.replace(due, ""); provider = provider.trim();
+              return `<div class="billing-expense-row"><span class="col-provider">${e(provider)}</span><span class="col-date">${e(date)}</span><span class="col-due">${e(due)}</span></div>`;
+            }
+            if (currentSection === "CASE EXPENSES" && /^Total Case Expenses:/i.test(trimmed)) { const match = trimmed.match(/\(?\$[\d,]+\.\d{2}\)?/); const value = match ? e(match[0]) : ""; return `<div class="billing-expense-row" style="font-weight:700; margin-top:4px;"><span class="col-provider">Total Case Expenses:</span><span class="col-date"></span><span class="col-due">${value}</span></div>`; }
+            if (/^Provider\s+Date\s+Total/i.test(trimmed)) return '<div class="billing-debits-header"><span class="col-provider"><u>Provider</u></span><span class="col-date"><u>Date</u></span><span class="col-total"><u>Total Paid</u></span><span class="col-paid"><u>Paid</u></span><span class="col-balance"><u>Balance</u></span><span class="col-reduction"><u>Reduction</u></span><span class="col-due"><u>Due</u></span></div>';
+            if (currentSection === "OTHER DEBITS" && /\$[\d,]+\.\d{2}/.test(trimmed) && !/^Total Other Debits/i.test(trimmed)) {
+              const amounts = []; const amountRegex = /\$[\d,]+\.\d{2}/g; let m;
+              while ((m = amountRegex.exec(trimmed)) !== null) amounts.push(m[0]);
+              const dateMatch = trimmed.match(/\d{2}\/\d{2}\/\d{4}/); const date = dateMatch ? dateMatch[0] : "";
+              let provider = trimmed; if (date) provider = provider.replace(date, ""); amounts.forEach(a => { provider = provider.replace(a, ""); }); provider = provider.trim().replace(/\s{2,}/g, " ");
+              return `<div class="billing-debits-row"><span class="col-provider">${e(provider)}</span><span class="col-date">${e(date)}</span><span class="col-total">${e(amounts[0] || "")}</span><span class="col-paid">${e(amounts[1] || "")}</span><span class="col-balance">${e(amounts[2] || "")}</span><span class="col-reduction">${e(amounts[3] || "")}</span><span class="col-due">${e(amounts[4] || "")}</span></div>`;
+            }
+            if (/^Total Other Debits:/i.test(trimmed)) { const match = trimmed.match(/\(?\$[\d,]+\.\d{2}\)?/); const value = match ? e(match[0]) : ""; return `<div class="billing-debits-row" style="font-weight:700; margin-top:4px;"><span class="col-provider">Total Other Debits:</span><span class="col-date"></span><span class="col-total"></span><span class="col-paid"></span><span class="col-balance"></span><span class="col-reduction"></span><span class="col-due">${value}</span></div>`; }
+            if (/^(Total Deductions:|Net Amount Due to Client:|Total Amount Due to Client:|Less Previously Paid to Client:)/i.test(trimmed)) {
+              let cleaned = trimmed.replace(/\[REDACTED\]/gi, "").replace(/\s{2,}/g, " ").trim();
+              let label = cleaned.split(":")[0].trim() + ":";
+              let valMatch = cleaned.match(/\(?\$[\d,]+\.\d{2}\)?/); let value = valMatch ? valMatch[0] : "";
+              if (!value) { const fallback = cleaned.match(/[\d,]+\.\d{2}/); if (fallback) value = "$" + fallback[0].replace(/^,/, ""); }
+              if (!value) value = "Details are not found in given case folder";
+              let displayLabel = label; if (/^Total Deductions:/i.test(label)) displayLabel = `Total Deductions: (${value})`;
+              return `<div class="billing-debits-row" style="font-weight:700; margin-top:4px;${/^Total Deductions:/i.test(label) ? "background:#f5f5f5;" : ""}"><span class="col-provider">${e(displayLabel)}</span><span class="col-date"></span><span class="col-due" style="margin-right:-20px;">${e(value)}</span><span class="col-total"></span><span class="col-paid"></span><span class="col-balance"></span><span class="col-reduction"></span></div>`;
+            }
+            if (/^[A-Za-z][A-Za-z\s\'\-&]+:\s*$/.test(trimmed) && !/\$/.test(trimmed)) return `<div class="billing-label">${e(trimmed)}</div>`;
+            if (/^(\u2022|\*)/.test(trimmed)) { const className = trimmed.startsWith("*") ? "billing-note" : "billing-bullet"; return `<div class="${className}">${e(trimmed)}</div>`; }
+            return `<div class="billing-line">${e(trimmed)}</div>`;
+          }).filter(l => l !== null);
+
+          const logoMarkup = `<div class="billing-logo-wrap"><img src="/casevalue/static/logo.png" alt="RAMOS LAW INJURY DIVISION" /></div>`;
+          const metaMarkup = `<div class="billing-meta"><div><span>Date:</span><span>${this.escapeHtml(meta.date || "Details are not found in given case folder")}</span></div><div><span>Client:</span><span>${this.escapeHtml(meta.client || "Details are not found in given case folder")}</span></div><div><span>Case Number:</span><span>${this.escapeHtml(meta.caseNumber || "Details are not found in given case folder")}</span></div></div>`;
+          return `<div class="billing-report-page">${logoMarkup}${metaMarkup}${renderedLines.join("")}</div>`;
+        },
+
+        async downloadPDF() {
+          if (!this.markdownRaw) { alert("No report data available"); return; }
+          const source = document.getElementById("billing-report-content");
+          if (!source) { alert("Report preview not found."); return; }
+          const page = source.querySelector(".billing-report-page");
+          if (!page) { alert("Report content not ready yet."); return; }
+          const logoImg = page.querySelector(".billing-logo-wrap img");
+          let logoBase64 = "";
+          if (logoImg && logoImg.src) {
+            try {
+              const resp = await fetch(logoImg.src); const blob = await resp.blob();
+              logoBase64 = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+            } catch (_) { }
+          }
+          let bodyInner = page.innerHTML;
+          if (logoBase64 && logoImg) bodyInner = bodyInner.replace(/(<img[^>]*src=")[^"]*(")/i, `$1${logoBase64}$2`);
+          const printDoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}@page{size:A4 portrait;margin:0;}html,body{width:210mm;background:#fff;font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.4;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.billing-report-page{width:210mm;padding:14mm 16mm;background:#fff;color:#000;}.billing-logo-wrap{margin-bottom:8pt;}.billing-logo-wrap img{width:100%;display:block;}.billing-meta{margin:6pt 0 10pt;font-size:10pt;font-weight:700;line-height:1.6;}.billing-meta div{display:flex;gap:8pt;flex-wrap:wrap;}.billing-title{text-align:center;font-size:14pt;font-weight:700;margin:6pt 0 10pt;text-decoration:underline;}.billing-section{font-size:14pt;font-weight:700;text-transform:uppercase;text-decoration:underline;margin:10pt 0 3pt;}.billing-header-row{display:flex;font-size:10pt;font-weight:700;text-decoration:underline;margin-top:2pt;margin-bottom:2pt;}.billing-header-row .col-label{flex:0 0 50mm;}.billing-header-row .col-desc{flex:1;}.billing-header-row .col-collected{flex:0 0 35mm;text-align:right;}.billing-header-row .col-balance{flex:0 0 35mm;text-align:right;}.billing-data-row{display:flex;font-size:10pt;margin-top:1pt;}.billing-data-row .col-label{flex:0 0 50mm;}.billing-data-row .col-desc{flex:1;}.billing-data-row .col-collected{flex:0 0 35mm;text-align:right;}.billing-data-row .col-balance{flex:0 0 35mm;text-align:right;}.billing-atty-header{display:flex;font-size:10pt;font-weight:700;text-decoration:underline;margin-top:2pt;}.billing-atty-header .col-name{flex:1;}.billing-atty-header .col-fee{flex:0 0 30mm;text-align:right;}.billing-atty-header .col-reduced{flex:0 0 30mm;text-align:right;}.billing-atty-header .col-billed{flex:0 0 35mm;text-align:right;}.billing-atty-row{display:flex;font-size:10pt;margin-top:1pt;}.billing-atty-row .col-name{flex:1;}.billing-atty-row .col-fee{flex:0 0 30mm;text-align:right;}.billing-atty-row .col-reduced{flex:0 0 30mm;text-align:right;}.billing-atty-row .col-billed{flex:0 0 35mm;text-align:right;}.billing-expense-header{display:flex;font-size:10pt;font-style:italic;text-decoration:underline;margin-top:4pt;margin-bottom:2pt;}.billing-expense-header .col-provider{flex:1;}.billing-expense-header .col-date{flex:0 0 28mm;text-align:right;}.billing-expense-header .col-due{flex:0 0 25mm;text-align:right;}.billing-expense-row{display:flex;font-size:10pt;margin-top:1pt;padding-left:4mm;}.billing-expense-row .col-provider{flex:1;}.billing-expense-row .col-date{flex:0 0 28mm;text-align:right;}.billing-expense-row .col-due{flex:0 0 25mm;text-align:right;}.billing-debits-header{display:flex;font-size:10pt;text-decoration:underline;font-style:italic;margin-top:4pt;}.billing-debits-header .col-provider{flex:1;}.billing-debits-header .col-date{flex:0 0 22mm;text-align:right;}.billing-debits-header .col-total{flex:0 0 26mm;text-align:right;}.billing-debits-header .col-paid{flex:0 0 20mm;text-align:right;}.billing-debits-header .col-balance{flex:0 0 24mm;text-align:right;}.billing-debits-header .col-reduction{flex:0 0 24mm;text-align:right;}.billing-debits-header .col-due{flex:0 0 20mm;text-align:right;}.billing-debits-row{display:flex;font-size:10pt;margin-top:1pt;}.billing-debits-row .col-provider{flex:1;}.billing-debits-row .col-date{flex:0 0 22mm;text-align:right;}.billing-debits-row .col-total{flex:0 0 26mm;text-align:right;}.billing-debits-row .col-paid{flex:0 0 20mm;text-align:right;}.billing-debits-row .col-balance{flex:0 0 24mm;text-align:right;}.billing-debits-row .col-reduction{flex:0 0 24mm;text-align:right;}.billing-debits-row .col-due{flex:0 0 20mm;text-align:right;}.billing-label{font-size:10pt;font-weight:700;margin-top:4pt;}.billing-line{font-size:10pt;margin-top:2pt;white-space:pre-wrap;word-break:break-word;}.billing-total{font-size:10pt;font-weight:700;margin-top:4pt;white-space:pre-wrap;word-break:break-word;}.billing-bullet{font-size:10pt;margin-top:4pt;padding-left:12pt;text-indent:-12pt;white-space:pre-wrap;word-break:break-word;}.billing-note{font-size:10pt;margin-top:4pt;font-style:italic;white-space:pre-wrap;word-break:break-word;}.billing-spacer{height:5pt;}</style></head><body><div class="billing-report-page">${bodyInner}</div></body></html>`;
+          const iframe = document.createElement("iframe");
+          iframe.style.cssText = "position:fixed;top:-10000px;left:-10000px;width:210mm;height:297mm;border:none;opacity:0;pointer-events:none;";
+          document.body.appendChild(iframe);
+          await new Promise(resolve => { iframe.onload = resolve; iframe.contentDocument.open(); iframe.contentDocument.write(printDoc); iframe.contentDocument.close(); });
+          const imgs = Array.from(iframe.contentDocument.querySelectorAll("img"));
+          await Promise.all(imgs.map(img => img.complete ? Promise.resolve() : new Promise(res => { img.onload = res; img.onerror = res; })));
+          await new Promise(res => setTimeout(res, 300));
+          iframe.contentWindow.focus(); iframe.contentWindow.print();
+          setTimeout(() => { try { document.body.removeChild(iframe); } catch (_) { } }, 2000);
+        },
+
+        logout() {
+          localStorage.removeItem("casevalueToken"); localStorage.removeItem("casevalueEmail");
+          window.dispatchEvent(new Event("logout-success")); location.reload();
+        },
+      };
+    }
+    window.loginApp = loginApp;
+    window.caseApp = caseApp;
+  </script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+
+</html>

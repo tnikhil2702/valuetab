@@ -1,0 +1,2868 @@
+﻿﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demand Optimizer - Legal Document Processing</title>
+    <link
+      rel="icon"
+      type="image/webp"
+      href="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        font-family: "Montserrat", sans-serif;
+        height: 100%;
+        background-color: #111;
+        color: #f1c40f;
+      }
+      .video-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url("https://static.vecteezy.com/system/resources/previews/007/596/744/non_2x/abstract-digital-glossy-particles-and-lines-connected-3d-illustration-on-black-background-free-photo.jpg");
+        background-size: cover;
+        background-position: center top 150px;
+        z-index: -2;
+      }
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.75);
+        z-index: -1;
+      }
+
+      .container {
+        max-width: 1200px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .card {
+        background-color: #111;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(241, 196, 15, 0.1);
+        border: 1px solid #333;
+      }
+
+      .card-header {
+        background-color: #222;
+        border-bottom: 1px solid #444;
+        color: #f1c40f;
+        font-weight: 600;
+      }
+
+      .file-list {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .file-item {
+        cursor: pointer;
+        padding: 8px 15px;
+        border-bottom: 1px solid #333;
+        color: #eee;
+      }
+
+      .file-item:hover {
+        background-color: #222;
+      }
+
+      .file-item.active {
+        background-color: #222;
+        border-left: 3px solid #f1c40f;
+      }
+
+      .header-bar {
+        background-color: rgba(17, 17, 17, 0.8);
+        color: #f1c40f;
+        padding: 15px 0;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #333;
+      }
+
+      .user-info {
+        font-size: 0.9rem;
+        color: #aaa;
+      }
+
+      input[type="text"],
+      input[type="file"],
+      select,
+      .form-control {
+        background-color: #000 !important;
+        color: #fff !important;
+        border: 1px solid #444 !important;
+        border-radius: 6px;
+      }
+
+      input::placeholder,
+      select {
+        color: #777 !important;
+        opacity: 0.7;
+      }
+
+      .btn-primary {
+        background-color: #f1c40f !important;
+        color: #000 !important;
+        font-weight: bold;
+        border: none !important;
+      }
+
+      .btn-primary:hover {
+        background-color: #d4ac0d !important;
+      }
+
+      #process-btn-container {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        margin: 40px 0;
+        flex-direction: column;
+        min-height: 60px;
+        width: 100%;
+      }
+
+      #process-btn {
+        background-color: #f1c40f !important;
+        color: #000 !important;
+        font-weight: bold;
+        border: none !important;
+        padding: 12px 60px !important;
+        font-size: 1.1rem !important;
+        cursor: pointer;
+        display: inline-block !important;
+        visibility: visible !important;
+        z-index: 10 !important;
+        text-decoration: none !important;
+        line-height: 1.5;
+      }
+
+      #process-btn:hover {
+        background-color: #d4ac0d !important;
+      }
+
+      #upload-new-files-btn {
+        background-color: #f1c40f !important;
+        color: #000 !important;
+        font-weight: bold;
+        border: none !important;
+        padding: 10px 30px !important;
+        font-size: 0.95rem !important;
+        cursor: pointer;
+        display: inline-block !important;
+        visibility: visible !important;
+        z-index: 10 !important;
+        text-decoration: none !important;
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+
+      #upload-new-files-btn:hover {
+        background-color: #d4ac0d !important;
+      }
+
+      .btn-secondary {
+        background-color: #333 !important;
+        color: #f1c40f !important;
+        border: 1px solid #f1c40f !important;
+      }
+
+      .btn-secondary:hover {
+        background-color: #444 !important;
+      }
+
+      .text-muted {
+        color: #aaa !important;
+      }
+
+      .form-label {
+        color: #f1c40f;
+      }
+
+      /* Custom select styling */
+      select option {
+        background-color: #000;
+        color: #fff;
+      }
+
+      .header-logo {
+        max-height: 50px;
+        margin-right: 15px;
+      }
+
+      /* Processing overlay */
+      #processing-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+
+      #processing-overlay h2 {
+        color: #f1c40f;
+        margin-bottom: 20px;
+      }
+
+      /* Loading spinner */
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(241, 196, 15, 0.3);
+        border-radius: 50%;
+        border-top-color: #f1c40f;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Markdown Report Styling */
+      .report-content {
+        color: #eee;
+        line-height: 1.6;
+      }
+
+      .report-content h1,
+      .report-content h2,
+      .report-content h3,
+      .report-content h4,
+      .report-content h5,
+      .report-content h6 {
+        color: #f1c40f;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+
+      .report-content h1 {
+        font-size: 2rem;
+        border-bottom: 2px solid #f1c40f;
+        padding-bottom: 10px;
+      }
+
+      .report-content h2 {
+        font-size: 1.5rem;
+      }
+
+      .report-content h3 {
+        font-size: 1.2rem;
+      }
+
+      .report-content p {
+        margin-bottom: 12px;
+        color: #ddd;
+      }
+
+      .report-content strong {
+        color: #f1c40f;
+        font-weight: 600;
+      }
+
+      .report-content em {
+        color: #aaa;
+        font-style: italic;
+      }
+
+      .report-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background-color: #000;
+        border: 1px solid #444;
+      }
+
+      .report-content table thead {
+        background-color: #222;
+        border-bottom: 2px solid #f1c40f;
+      }
+
+      .report-content table th {
+        color: #f1c40f;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-right: 1px solid #444;
+      }
+
+      .report-content table th:last-child {
+        border-right: none;
+      }
+
+      .report-content table td {
+        color: #ddd;
+        padding: 10px 12px;
+        border-right: 1px solid #444;
+        border-bottom: 1px solid #333;
+      }
+
+      .report-content table td:last-child {
+        border-right: none;
+      }
+
+      .report-content table tbody tr:hover {
+        background-color: #111;
+      }
+
+      .report-content ul,
+      .report-content ol {
+        margin-left: 20px;
+        margin-bottom: 12px;
+      }
+
+      .report-content li {
+        margin-bottom: 8px;
+        color: #ddd;
+      }
+
+      .report-content code {
+        background-color: #000;
+        color: #f1c40f;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+      }
+
+      .report-content pre {
+        background-color: #000;
+        color: #f1c40f;
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid #444;
+        overflow-x: auto;
+        margin-bottom: 12px;
+        font-family: "Courier New", monospace;
+      }
+
+      .report-content blockquote {
+        border-left: 4px solid #f1c40f;
+        padding-left: 15px;
+        margin-left: 0;
+        color: #aaa;
+        font-style: italic;
+      }
+
+      .report-content hr {
+        border: none;
+        border-top: 1px solid #444;
+        margin: 20px 0;
+      }
+
+      .report-content a {
+        color: #f1c40f;
+        text-decoration: none;
+        border-bottom: 1px dotted #f1c40f;
+      }
+
+      .report-content a:hover {
+        color: #d4ac0d;
+      }
+
+      /* Selected Files Display */
+      #selected-files-container {
+        display: none;
+        margin-bottom: 20px;
+      }
+
+      .selected-files-card {
+        background-color: #111;
+        border: 1px solid #333;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(241, 196, 15, 0.1);
+      }
+
+      .selected-files-card .card-header {
+        background-color: #222;
+        border-bottom: 1px solid #444;
+        color: #f1c40f;
+        font-weight: 600;
+        padding: 15px;
+      }
+
+      .selected-files-list {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px 0;
+      }
+
+      .selected-file-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        border-bottom: 1px solid #333;
+        color: #ddd;
+      }
+
+      .selected-file-item:last-child {
+        border-bottom: none;
+      }
+
+      .selected-file-item:hover {
+        background-color: #1a1a1a;
+      }
+
+      .selected-file-name {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      .selected-file-name .filename {
+        color: #fff;
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+
+      .selected-file-name .file-time {
+        color: #aaa;
+        font-size: 0.85rem;
+      }
+
+      .selected-file-remove {
+        background-color: transparent;
+        border: 1px solid #e74c3c;
+        color: #e74c3c;
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        margin-left: 10px;
+        transition: all 0.2s;
+      }
+
+      .selected-file-remove:hover {
+        background-color: #e74c3c;
+        color: #fff;
+      }
+
+      /* Chat Floating Window */
+      #chat-floating-icon {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background-color: #f1c40f;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3);
+        z-index: 100;
+        transition: all 0.3s;
+      }
+
+      #chat-floating-icon:hover {
+        background-color: #d4ac0d;
+        box-shadow: 0 6px 16px rgba(241, 196, 15, 0.5);
+        transform: scale(1.1);
+      }
+
+      /* Chat Window */
+      #chat-window {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 450px;
+        height: 500px;
+        background-color: #111;
+        border: 1px solid #333;
+        border-radius: 12px;
+        display: none;
+        flex-direction: column;
+        z-index: 101;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      #chat-window.fullscreen {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+      }
+
+      .chat-window-header {
+        background-color: #222;
+        border-bottom: 1px solid #444;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 12px 12px 0 0;
+      }
+
+      #chat-window.fullscreen .chat-window-header {
+        border-radius: 0;
+      }
+
+      .chat-window-title {
+        color: #f1c40f;
+        font-weight: 600;
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .chat-window-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .chat-window-btn {
+        background-color: transparent;
+        border: none;
+        color: #f1c40f;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 5px 10px;
+        transition: all 0.2s;
+      }
+
+      .chat-window-btn:hover {
+        color: #d4ac0d;
+        transform: scale(1.1);
+      }
+
+      .chat-messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .chat-message {
+        display: flex;
+        margin-bottom: 12px;
+      }
+
+      .chat-message.user {
+        justify-content: flex-end;
+      }
+
+      .chat-message.assistant {
+        justify-content: flex-start;
+      }
+
+      .chat-bubble {
+        max-width: 85%;
+        padding: 10px 15px;
+        border-radius: 12px;
+        word-wrap: break-word;
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+
+      .chat-message.user .chat-bubble {
+        background-color: #f1c40f;
+        color: #000;
+        font-weight: 500;
+      }
+
+      .chat-message.assistant .chat-bubble {
+        background-color: #222;
+        color: #ddd;
+        border: 1px solid #444;
+      }
+
+      .chat-message.welcome .chat-bubble {
+        background-color: #333;
+        color: #aaa;
+        text-align: center;
+        font-style: italic;
+        max-width: 100%;
+      }
+
+      .chat-input-area {
+        padding: 12px;
+        border-top: 1px solid #444;
+        display: flex;
+        gap: 8px;
+      }
+
+      #chat-message-input {
+        flex: 1;
+        background-color: #000;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.9rem;
+      }
+
+      #chat-message-input:focus {
+        outline: none;
+        border-color: #f1c40f;
+        box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.2);
+      }
+
+      #chat-send-btn {
+        background-color: #f1c40f;
+        color: #000;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      #chat-send-btn:hover:not(:disabled) {
+        background-color: #d4ac0d;
+      }
+
+      #chat-send-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* LOGIN PAGE STYLES */
+      .login-page-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+      }
+
+      .login-page-content {
+        width: 100%;
+        max-width: 600px;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .login-logo-section {
+        margin-bottom: 3rem;
+      }
+
+      .login-logo-section img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 2rem;
+        display: inline-block;
+      }
+
+      .login-page-content h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #f1c40f;
+        margin: 0 0 1rem 0;
+        letter-spacing: 2px;
+      }
+
+      .login-page-content > p {
+        font-size: 1rem;
+        color: #aaa;
+        margin: 0 0 2rem 0;
+      }
+
+      .login-form-card {
+        background-color: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      }
+
+      .login-form-card h2 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #f1c40f;
+        margin: 0 0 2rem 0;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .login-form-group {
+        margin-bottom: 2rem;
+        text-align: left;
+      }
+
+      .login-form-group label {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #f1c40f;
+        margin-bottom: 0.75rem;
+      }
+
+      .login-form-group input[type="email"] {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+        background-color: #000;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 6px;
+        font-family: "Montserrat", sans-serif;
+        transition: border-color 0.3s ease;
+      }
+
+      .login-form-group input[type="email"]:focus {
+        outline: none;
+        border-color: #f1c40f;
+        box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.1);
+      }
+
+      .login-form-group input[type="email"]::placeholder {
+        color: #666;
+      }
+
+      .login-email-status {
+        display: flex;
+        align-items: center;
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .login-email-status.visible {
+        opacity: 1;
+      }
+
+      .login-email-status .status-icon {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+      }
+
+      .login-email-status .status-icon.checking {
+        background-color: #3498db;
+        animation: pulse 1.5s infinite;
+      }
+
+      .login-email-status .status-icon.valid {
+        background-color: #2ecc71;
+      }
+
+      .login-email-status .status-icon.invalid {
+        background-color: #e74c3c;
+      }
+
+      .login-error-message {
+        color: #e74c3c;
+        background-color: rgba(231, 76, 60, 0.1);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 0.875rem;
+        font-size: 1rem;
+        font-weight: 700;
+        background-color: #d4ac0d;
+        color: #000;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .login-btn:hover:not(:disabled) {
+        background-color: #f1c40f;
+        box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3);
+      }
+
+      .login-btn:disabled {
+        background-color: #666;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .login-btn-spinner {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+
+      @media (max-width: 768px) {
+        .header-bar .header_bar_top1 {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .header-bar .header_bar_top1 h2 {
+          font-size: 18px !important;
+          font-weight: 600 !important;
+        }
+        .header-bar .header_bar_top2 {
+          padding: 0 !important;
+          align-items: flex-start !important;
+        }
+        .header_bar_top1 img {
+          max-height: 40px !important;
+          margin-right: 0 !important;
+        }
+        .top_header_space_oth {
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 8px !important;
+        }
+        #process-btn {
+          padding: 12px 25px !important;
+        }
+      }
+
+      /* =========================
+   LOGIN PAGE STYLES
+========================= */
+
+      :root {
+        --gold: #f1c40f;
+        --gold-dark: #d4ac0d;
+        --bg-dark: #111111;
+        --card-bg: rgba(20, 20, 20, 0.96);
+        --border: rgba(241, 196, 15, 0.18);
+        --muted: #9ca3af;
+        --danger: #ef4444;
+        --success: #22c55e;
+      }
+
+      /* Wrapper */
+      .login-page-wrapper {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 999;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(6px);
+      }
+
+      /* Content */
+      .login-page-content {
+        width: 100%;
+        max-width: 520px;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Logo Section */
+      .login-logo-section {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+
+      .login-logo-section img {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+        margin-bottom: 18px;
+        filter: drop-shadow(0 0 14px rgba(241, 196, 15, 0.35));
+      }
+
+      .login-page-content h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--gold);
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+        text-shadow: 0 0 18px rgba(241, 196, 15, 0.25);
+      }
+
+      .login-logo-section p {
+        font-size: 0.95rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* Card */
+      .login-form-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 34px;
+        box-shadow:
+          0 10px 40px rgba(0, 0, 0, 0.6),
+          0 0 30px rgba(241, 196, 15, 0.06);
+        backdrop-filter: blur(14px);
+      }
+
+      /* Card Heading */
+      .login-form-card h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--gold);
+        text-align: center;
+        margin-bottom: 24px;
+        letter-spacing: 1px;
+      }
+
+      /* Form Group */
+      .login-form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+
+      .login-form-group label {
+        display: block;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--gold);
+        margin-bottom: 8px;
+      }
+
+      /* Inputs */
+      .login-form-group input {
+        width: 100%;
+        height: 52px;
+        padding: 0 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.65);
+        color: #fff;
+        font-size: 0.95rem;
+        font-family: "Montserrat", sans-serif;
+        transition: all 0.25s ease;
+      }
+
+      .login-form-group input::placeholder {
+        color: #777;
+      }
+
+      .login-form-group input:focus {
+        outline: none;
+        border-color: rgba(241, 196, 15, 0.7);
+        box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.12);
+        background: rgba(0, 0, 0, 0.9);
+      }
+
+      /* Email Status */
+      .login-email-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        font-size: 0.82rem;
+        opacity: 0;
+        transition: 0.25s ease;
+      }
+
+      .login-email-status.visible {
+        opacity: 1;
+      }
+
+      .status-icon {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .status-icon.checking {
+        background: #3b82f6;
+        animation: pulse 1s infinite;
+      }
+
+      .status-icon.valid {
+        background: var(--success);
+      }
+
+      .status-icon.invalid {
+        background: var(--danger);
+      }
+
+      .status-text {
+        color: #d1d5db;
+      }
+
+      /* Error */
+      .login-error-message {
+        margin-bottom: 18px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: #fca5a5;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      /* Button */
+      .login-btn {
+        width: 100%;
+        height: 52px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(
+          135deg,
+          var(--gold) 0%,
+          var(--gold-dark) 100%
+        );
+        color: #000;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-transform: uppercase;
+        margin-top: 6px;
+      }
+
+      .login-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(241, 196, 15, 0.22);
+      }
+
+      .login-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Spinner */
+      .login-btn-spinner {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .spinner {
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      /* Forgot Link */
+      .forgot-link {
+        background: none;
+        border: none;
+        color: var(--gold);
+        font-size: 0.82rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity 0.2s;
+      }
+
+      .forgot-link:hover {
+        opacity: 0.75;
+      }
+
+      /* Back Link */
+      .back-link {
+        width: 100%;
+        margin-top: 16px;
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .back-link:hover {
+        color: var(--gold);
+      }
+
+      /* Sub Text */
+      .login-sub {
+        color: var(--muted);
+        text-align: center;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 22px;
+      }
+
+      .login-sub span {
+        color: var(--gold);
+        font-weight: 600;
+      }
+
+      /* Animation */
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.5;
+          transform: scale(0.95);
+        }
+
+        50% {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        100% {
+          opacity: 0.5;
+          transform: scale(0.95);
+        }
+      }
+
+      /* Mobile */
+      @media (max-width: 768px) {
+        .login-page-wrapper {
+          padding: 16px;
+          align-items: flex-start;
+          padding-top: 40px;
+        }
+
+        .login-form-card {
+          padding: 24px;
+          border-radius: 18px;
+        }
+
+        .login-form-card h2 {
+          font-size: 1.6rem;
+        }
+
+        .login-page-content h1 {
+          font-size: 1.5rem;
+        }
+
+        .login-logo-section img {
+          width: 72px;
+          height: 72px;
+        }
+
+        .login-form-group input {
+          height: 48px;
+        }
+
+        .login-btn {
+          height: 48px;
+          font-size: 0.9rem;
+        }
+      }
+
+      /* Hide Alpine-controlled elements until Alpine initialises */
+      [x-cloak] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="video-background"></div>
+    <div class="overlay"></div>
+
+    <!-- LOGIN PAGE -->
+    <div
+      id="login-page-wrapper"
+      class="login-page-wrapper"
+      x-data="loginApp()"
+      x-init="init()"
+    >
+      <div class="login-page-content">
+        <!-- LOGO AND TITLE -->
+        <div class="login-logo-section">
+          <img
+            src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+            alt="Ramos Law"
+          />
+          <h1>Demand optimizer</h1>
+          <p>Secure Access for Authorized Ramos Law Users</p>
+        </div>
+
+        <!-- ── VIEW: login ── -->
+        <div class="login-form-card" x-cloak x-show="view === 'login'">
+          <h2>Login</h2>
+
+          <div class="login-form-group">
+            <label for="login-email">Email</label>
+            <input
+              id="login-email"
+              type="email"
+              placeholder="Enter your email"
+              x-model="email"
+              @input.debounce.500="verifyEmail()"
+              @keydown.enter="emailValid && password && login()"
+            />
+            <div
+              class="login-email-status"
+              :class="email && email.includes('@') ? 'visible' : ''"
+              x-show="email && email.includes('@')"
+            >
+              <span
+                class="status-icon"
+                :class="emailChecking ? 'checking' : emailValid ? 'valid' : 'invalid'"
+              ></span>
+              <span
+                class="status-text"
+                x-text="emailChecking ? 'Checking email...' : emailValid ? 'Email authorized' : 'Email not authorized'"
+              ></span>
+            </div>
+          </div>
+
+          <div
+            x-show="emailValid && passwordCreated"
+            x-transition
+            class="login-form-group"
+          >
+            <label for="login-password">Password</label>
+            <input
+              id="login-password"
+              type="password"
+              placeholder="Enter your password"
+              x-model="password"
+              @keydown.enter="emailValid && password && login()"
+            />
+          </div>
+
+          <div style="text-align: right">
+            <button
+              x-show="emailValid && passwordCreated"
+              type="button"
+              class="forgot-link"
+              @click="_resetOtpState(); view = 'forgot'; forgotSendOtp()"
+            >
+              Forgot Password?
+            </button>
+            <button
+              x-show="emailValid && !passwordCreated"
+              type="button"
+              class="forgot-link"
+              @click="_resetOtpState(); view = 'setup-otp'"
+            >
+              Set Password
+            </button>
+          </div>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <button
+            @click="login()"
+            :disabled="!emailValid || !password || loggingIn"
+            class="login-btn"
+          >
+            <span x-show="!loggingIn">Login</span>
+            <span x-show="loggingIn" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border-width: 2px;
+                  margin-left: 0;
+                "
+              ></span>
+              Logging in...
+            </span>
+          </button>
+        </div>
+
+        <!-- ── VIEW: setup-otp ── -->
+        <div class="login-form-card" x-cloak x-show="view === 'setup-otp'">
+          <h2>Set Up Account</h2>
+          <p class="login-sub">
+            No password found for <span x-text="email"></span>. We'll send a
+            one-time code to get started.
+          </p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <button
+            class="login-btn"
+            @click="setupSendOtp()"
+            :disabled="otpSending || otpSent"
+          >
+            <span x-show="!otpSending && !otpSent">Send OTP to Email</span>
+            <span x-show="otpSending" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border-width: 2px;
+                  margin-left: 0;
+                "
+              ></span>
+              Sending...
+            </span>
+            <span x-show="!otpSending && otpSent"
+              >OTP Sent ✓ — Enter Below</span
+            >
+          </button>
+
+          <template x-if="otpSent">
+            <div class="login-form-group" style="margin-top: 0">
+              <label>Enter OTP</label>
+              <input
+                type="text"
+                placeholder="6-digit OTP"
+                x-model="otp"
+                @keydown.enter="setupVerifyOtp()"
+              />
+              <button
+                class="login-btn"
+                style="margin-top: 0.75rem"
+                @click="setupVerifyOtp()"
+                :disabled="otpVerifying"
+              >
+                <span x-show="!otpVerifying">Verify OTP</span>
+                <span x-show="otpVerifying" class="login-btn-spinner">
+                  <span
+                    class="spinner"
+                    style="
+                      width: 14px;
+                      height: 14px;
+                      border-width: 2px;
+                      margin-left: 0;
+                    "
+                  ></span>
+                  Verifying...
+                </span>
+              </button>
+            </div>
+          </template>
+
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: setup-create ── -->
+        <div class="login-form-card" x-cloak x-show="view === 'setup-create'">
+          <h2>Create Password</h2>
+          <p class="login-sub">OTP verified! Now set your account password.</p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <div class="login-form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              placeholder="Enter new password"
+              x-model="newPassword"
+            />
+          </div>
+          <div class="login-form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              x-model="confirmPassword"
+              @keydown.enter="setupCreatePassword()"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="setupCreatePassword()"
+            :disabled="submitting"
+          >
+            <span x-show="!submitting">Create Password &amp; Login</span>
+            <span x-show="submitting" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border-width: 2px;
+                  margin-left: 0;
+                "
+              ></span>
+              Setting up...
+            </span>
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot ── -->
+        <div class="login-form-card" x-cloak x-show="view === 'forgot'">
+          <h2>Forgot Password</h2>
+          <p class="login-sub">
+            Sending a reset OTP to <span x-text="email"></span>…
+          </p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <div
+            x-show="otpSending"
+            style="display: flex; justify-content: center; padding: 1rem"
+          >
+            <span
+              class="spinner"
+              style="width: 22px; height: 22px; border-width: 3px"
+            ></span>
+          </div>
+
+          <button
+            x-show="!otpSending && error"
+            class="login-btn"
+            @click="forgotSendOtp()"
+          >
+            Retry Send OTP
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot-verify ── -->
+        <div class="login-form-card" x-cloak x-show="view === 'forgot-verify'">
+          <h2>Enter OTP</h2>
+          <p class="login-sub">
+            OTP sent to <span x-text="email"></span>. Enter it below.
+          </p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <div class="login-form-group">
+            <label>OTP</label>
+            <input
+              type="text"
+              placeholder="6-digit OTP"
+              x-model="otp"
+              @keydown.enter="forgotVerifyOtp()"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="forgotVerifyOtp()"
+            :disabled="otpVerifying"
+          >
+            <span x-show="!otpVerifying">Verify OTP</span>
+            <span x-show="otpVerifying" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border-width: 2px;
+                  margin-left: 0;
+                "
+              ></span>
+              Verifying...
+            </span>
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+
+        <!-- ── VIEW: forgot-reset ── -->
+        <div class="login-form-card" x-cloak x-show="view === 'forgot-reset'">
+          <h2>Reset Password</h2>
+          <p class="login-sub">Enter your new password below.</p>
+
+          <div x-show="error" x-text="error" class="login-error-message"></div>
+
+          <div class="login-form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              placeholder="Enter new password"
+              x-model="newPassword"
+            />
+          </div>
+          <div class="login-form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              x-model="confirmPassword"
+              @keydown.enter="forgotResetPassword()"
+            />
+          </div>
+
+          <button
+            class="login-btn"
+            @click="forgotResetPassword()"
+            :disabled="submitting"
+          >
+            <span x-show="!submitting">Reset Password &amp; Login</span>
+            <span x-show="submitting" class="login-btn-spinner">
+              <span
+                class="spinner"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  border-width: 2px;
+                  margin-left: 0;
+                "
+              ></span>
+              Resetting...
+            </span>
+          </button>
+          <button
+            type="button"
+            class="back-link"
+            @click="view = 'login'; _resetOtpState()"
+          >
+            ← Back to Login
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN APPLICATION CONTAINER -->
+    <div
+      id="main-app-wrapper"
+      class="w-full max-w-[60rem] relative z-10 mt-24"
+      x-data="demandApp()"
+      x-init="init()"
+      style="display: none; margin: 0 auto; padding: 0 1rem"
+    >
+      <!-- Processing overlay -->
+      <div id="processing-overlay">
+        <h2>Processing Document</h2>
+        <div
+          class="loading-spinner"
+          style="width: 50px; height: 50px; border-width: 5px"
+        ></div>
+        <p id="processing-message" style="color: #fff; margin-top: 20px">
+          This may take a minute or two...
+        </p>
+      </div>
+
+      <div class="header-bar">
+        <div
+          class="container d-flex justify-content-between align-items-center header_bar_top2"
+        >
+          <div class="d-flex align-items-center header_bar_top1">
+            <img
+              src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+              alt="Demand Optimizer"
+              class="header-logo"
+            />
+            <h2 class="mb-0">Demand Optimizer</h2>
+            <!-- Active Users Button -->
+            <div
+              style="
+                position: relative;
+                display: inline-block;
+                margin-right: 10px;
+                margin-left: 10px;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 8px">
+                <button
+                  onclick="toggleActiveUsers()"
+                  style="
+                    background: #111;
+                    color: #f1c40f;
+                    border: 1px solid #f1c40f;
+                    padding: 6px 10px;
+                    font-size: 13px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                  "
+                >
+                  <span style="color: #2ecc71">●</span>
+                  <span id="active-user-count">0</span> Active Users
+                </button>
+                <button
+                  onclick="refreshActiveUsers()"
+                  title="Refresh active users"
+                  style="
+                    background: #111;
+                    color: #f1c40f;
+                    border: 1px solid #f1c40f;
+                    padding: 6px 10px;
+                    font-size: 13px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  ↻
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            style="display: flex; align-items: center; gap: 20px"
+            class="top_header_space_oth"
+          >
+            <div style="text-align: right; font-size: 0.9rem; color: #aaa">
+              <span
+                style="display: block; color: #f1c40f; font-weight: 600"
+                x-text="userEmail"
+              ></span>
+              <span style="font-size: 0.85rem">Logged in</span>
+            </div>
+            <button
+              @click="logout()"
+              class="dark-theme-btn-primary"
+              style="
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+                cursor: pointer;
+                border-radius: 6px;
+              "
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="container my-4">
+        <!-- Upload New Files Button (Hidden by default, shown after processing) -->
+        <div
+          id="upload-new-files-container"
+          style="display: none; text-align: center; margin-bottom: 30px"
+        >
+          <button type="button" id="upload-new-files-btn">
+            Upload New Files
+          </button>
+        </div>
+
+        <!-- File Upload Form -->
+        <div class="row">
+          <!-- Left Column: Upload Form -->
+          <div class="col-md-5">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Upload Document</h5>
+              </div>
+              <div class="card-body">
+                <form id="upload-form" enctype="multipart/form-data">
+                  <div class="mb-3">
+                    <label for="file" class="form-label"
+                      >Select Medical Document</label
+                    >
+                    <input
+                      type="file"
+                      class="form-control"
+                      id="file"
+                      name="file"
+                      accept=".pdf, .doc, .docx, .txt"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    id="process-btn"
+                    class="btn btn-primary w-100"
+                  >
+                    Process Document
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Instructions -->
+          <div class="col-md-7">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Instructions</h5>
+              </div>
+              <div class="card-body">
+                <ol style="color: #ddd">
+                  <li>Select a medical document (PDF, DOC, DOCX, TXT)</li>
+                  <li>
+                    Click "Process Document" to upload and generate a report
+                  </li>
+                  <li>View the formatted report below</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="summary-container" class="mt-4"></div>
+      </div>
+
+      <!-- Chat Floating Icon -->
+      <button
+        id="chat-floating-icon"
+        title="Chat Support"
+        style="display: none"
+      >
+        💬
+      </button>
+
+      <!-- Chat Window -->
+      <div id="chat-window">
+        <div class="chat-window-header">
+          <h3 class="chat-window-title">Chat Support</h3>
+          <div class="chat-window-buttons">
+            <button
+              class="chat-window-btn"
+              id="chat-load-history-btn"
+              title="Load History"
+            >
+              Load History
+            </button>
+            <button
+              class="chat-window-btn"
+              id="chat-maximize-btn"
+              title="Maximize"
+            >
+              🔲
+            </button>
+            <button class="chat-window-btn" id="chat-close-btn" title="Close">
+              ✕
+            </button>
+          </div>
+        </div>
+        <div class="chat-messages-container" id="chat-messages"></div>
+        <div class="chat-input-area">
+          <input
+            type="text"
+            id="chat-message-input"
+            placeholder="Ask a question..."
+          />
+          <button id="chat-send-btn">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const appState = {
+        loggedIn: false,
+        email: "",
+      };
+
+      function loginApp() {
+        return {
+          email: "",
+          password: "",
+          emailValid: false,
+          emailChecking: false,
+          error: "",
+          loggedIn: false,
+          loggingIn: false,
+          passwordCreated: false,
+          view: "login",
+          otp: "",
+          newPassword: "",
+          confirmPassword: "",
+          otpSending: false,
+          otpSent: false,
+          otpVerifying: false,
+          otpVerified: false,
+          submitting: false,
+
+          init() {
+            const token = localStorage.getItem("jwtdemand");
+            const savedEmail = localStorage.getItem("demandEmail");
+            if (token && savedEmail) {
+              this.loggedIn = true;
+              appState.loggedIn = true;
+              this.email = savedEmail;
+              appState.email = savedEmail;
+            }
+            window.addEventListener("logout-success", () => {
+              this.loggedIn = false;
+              this.email = "";
+              this.password = "";
+              this.emailValid = false;
+              this.error = "";
+              this.view = "login";
+              this._resetOtpState();
+            });
+          },
+
+          _resetOtpState() {
+            this.otp = "";
+            this.newPassword = "";
+            this.confirmPassword = "";
+            this.otpSending = false;
+            this.otpSent = false;
+            this.otpVerifying = false;
+            this.otpVerified = false;
+            this.submitting = false;
+            this.error = "";
+          },
+
+          _headers() {
+            return { "ngrok-skip-browser-warning": "true" };
+          },
+
+          verifyEmail() {
+            if (!this.email.includes("@")) {
+              this.emailValid = false;
+              this.error = "";
+              return;
+            }
+            this.emailChecking = true;
+            this.passwordCreated = false;
+            this.error = "";
+            fetch(
+              `${API_BASE_URL}/Demand_optimizer/verify-email?email=${encodeURIComponent(this.email)}`,
+              { method: "GET", headers: this._headers() },
+            )
+              .then((res) => res.json())
+              .then((json) => {
+                this.emailValid = json.valid;
+                this.emailChecking = false;
+                this.passwordCreated = json.password_created || false;
+                if (!json.valid)
+                  this.error =
+                    "Access denied: Your email is not on the authorized list.";
+              })
+              .catch(() => {
+                this.emailValid = false;
+                this.passwordCreated = false;
+                this.emailChecking = false;
+                this.error =
+                  "Access denied: Your email is not on the authorized list.";
+              });
+          },
+
+          async login() {
+            this.error = "";
+            if (!this.emailValid) {
+              this.error = "Email not authorized";
+              return;
+            }
+            if (!this.password) {
+              this.error = "Please enter password";
+              return;
+            }
+            this.loggingIn = true;
+            try {
+              const data = new URLSearchParams();
+              data.append("username", this.email);
+              data.append("password", this.password);
+              const res = await fetch(
+                `${API_BASE_URL}/Demand_optimizer/login`,
+                { method: "POST", body: data, headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok && json.detail === "Please create password first") {
+                this._resetOtpState();
+                this.view = "setup-otp";
+                return;
+              }
+              if (!res.ok) throw new Error(json.detail || "Login failed");
+              localStorage.setItem("jwtdemand", json.access_token);
+              localStorage.setItem("demandEmail", this.email);
+              this.loggedIn = true;
+              appState.loggedIn = true;
+              appState.email = this.email;
+              this.error = "";
+              window.dispatchEvent(new CustomEvent("login-success"));
+            } catch (err) {
+              this.error = err.message || "Something went wrong";
+            } finally {
+              this.loggingIn = false;
+            }
+          },
+
+          async setupSendOtp() {
+            this.error = "";
+            this.otpSending = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Demand_optimizer/send/otp?email=${encodeURIComponent(this.email)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Failed to send OTP");
+              this.otpSent = true;
+            } catch (err) {
+              this.error = err.message || "Failed to send OTP";
+            } finally {
+              this.otpSending = false;
+            }
+          },
+
+          async setupVerifyOtp() {
+            this.error = "";
+            if (!this.otp) {
+              this.error = "Please enter the OTP";
+              return;
+            }
+            this.otpVerifying = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Demand_optimizer/verify/otp?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Invalid OTP");
+              this.otpVerified = true;
+              this.view = "setup-create";
+            } catch (err) {
+              this.error = err.message || "Invalid OTP";
+            } finally {
+              this.otpVerifying = false;
+            }
+          },
+
+          async setupCreatePassword() {
+            this.error = "";
+            if (!this.newPassword) {
+              this.error = "Please enter a new password";
+              return;
+            }
+            if (this.newPassword !== this.confirmPassword) {
+              this.error = "Passwords do not match";
+              return;
+            }
+            this.submitting = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Demand_optimizer/create/password?email=${encodeURIComponent(this.email)}&password=${encodeURIComponent(this.newPassword)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok)
+                throw new Error(json.detail || "Failed to create password");
+              this.password = this.newPassword;
+              this.view = "login";
+              await this.login();
+            } catch (err) {
+              this.error = err.message || "Failed to create password";
+            } finally {
+              this.submitting = false;
+            }
+          },
+
+          async forgotSendOtp() {
+            this.error = "";
+            if (!this.email || !this.email.includes("@")) {
+              this.error = "Please enter your email first";
+              return;
+            }
+            this.otpSending = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Demand_optimizer/forgot/password?email=${encodeURIComponent(this.email)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok) throw new Error(json.detail || "Failed to send OTP");
+              this.otpSent = true;
+              this.view = "forgot-verify";
+            } catch (err) {
+              this.error = err.message || "Failed to send OTP";
+            } finally {
+              this.otpSending = false;
+            }
+          },
+
+          async forgotVerifyOtp() {
+            this.error = "";
+            if (!this.otp) {
+              this.error = "Please enter the OTP";
+              return;
+            }
+            this.otpVerifying = true;
+            setTimeout(() => {
+              this.otpVerified = true;
+              this.view = "forgot-reset";
+              this.otpVerifying = false;
+            }, 400);
+          },
+
+          async forgotResetPassword() {
+            this.error = "";
+            if (!this.newPassword) {
+              this.error = "Please enter a new password";
+              return;
+            }
+            if (this.newPassword !== this.confirmPassword) {
+              this.error = "Passwords do not match";
+              return;
+            }
+            this.submitting = true;
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/Demand_optimizer/reset/password?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}&new_password=${encodeURIComponent(this.newPassword)}`,
+                { method: "POST", headers: this._headers() },
+              );
+              const json = await res.json();
+              if (!res.ok)
+                throw new Error(json.detail || "Failed to reset password");
+              this.password = this.newPassword;
+              this.view = "login";
+              await this.login();
+            } catch (err) {
+              this.error = err.message || "Failed to reset password";
+            } finally {
+              this.submitting = false;
+            }
+          },
+
+          logout() {
+            localStorage.removeItem("jwtdemand");
+            localStorage.removeItem("demandEmail");
+            this.loggedIn = false;
+            appState.loggedIn = false;
+            this.email = "";
+            this.password = "";
+            appState.email = "";
+            this.emailValid = false;
+            this.error = "";
+            this.view = "login";
+            this._resetOtpState();
+            window.dispatchEvent(new Event("logout-success"));
+          },
+        };
+      }
+
+      function demandApp() {
+        return {
+          isLoggedIn: false,
+          userEmail: "",
+
+          init() {
+            // Load login state
+            const token = localStorage.getItem("jwtdemand");
+            const email = localStorage.getItem("demandEmail");
+            if (token && email) {
+              this.isLoggedIn = true;
+              this.userEmail = email;
+            }
+
+            // Listen for login success
+            window.addEventListener("login-success", () => {
+              this.isLoggedIn = true;
+              this.userEmail = localStorage.getItem("demandEmail");
+            });
+          },
+
+          logout() {
+            // Only remove items used in this file
+            localStorage.removeItem("jwtdemand");
+            localStorage.removeItem("demandEmail");
+            localStorage.removeItem("session_id");
+            localStorage.removeItem("document_processed");
+            location.reload();
+          },
+        };
+      }
+    </script>
+
+    <script>
+      // API Configuration
+      const API_BASE_URL = "";
+
+      // Global array to store all selected files
+      let allSelectedFiles = [];
+      let isFilesUploaded = false;
+
+      // Helper function to update chat icon visibility based on document processing status
+      function updateChatIconVisibility() {
+        const isProcessed =
+          localStorage.getItem("document_processed") === "true";
+        const chatIcon = document.getElementById("chat-floating-icon");
+        if (chatIcon) {
+          chatIcon.style.display = isProcessed ? "block" : "none";
+        }
+      }
+
+      // Function to update the selected files display
+      function updateSelectedFilesDisplay() {
+        const uploadBtn = document.getElementById("upload-btn");
+        const processBtn = document.getElementById("process-btn");
+        const selectedFilesContainer = document.getElementById(
+          "selected-files-container",
+        );
+        const selectedFilesList = document.getElementById(
+          "selected-files-list",
+        );
+
+        if (allSelectedFiles.length > 0) {
+          uploadBtn.style.display = "block";
+          processBtn.style.display = "none";
+          selectedFilesContainer.style.display = "block";
+          selectedFilesList.innerHTML = "";
+
+          allSelectedFiles.forEach((fileObj, index) => {
+            const fileItem = document.createElement("div");
+            fileItem.className = "selected-file-item";
+            const removeButtonHTML = isFilesUploaded
+              ? ""
+              : `<button type="button" class="selected-file-remove" onclick="removeFileByIndex(${index})">Remove</button>`;
+            fileItem.innerHTML = `
+                        <div class="selected-file-name">
+                            <span class="filename">${fileObj.file.name}</span>
+                            <span class="file-time">${fileObj.timestamp}</span>
+                        </div>
+                        ${removeButtonHTML}
+                    `;
+            selectedFilesList.appendChild(fileItem);
+          });
+        } else {
+          uploadBtn.style.display = "none";
+          processBtn.style.display = "none";
+          selectedFilesContainer.style.display = "none";
+        }
+      }
+
+      // Function to remove a file by index
+      function removeFileByIndex(index) {
+        allSelectedFiles.splice(index, 1);
+        updateSelectedFilesDisplay();
+      }
+
+      // Function to remove a file from selection (old function for compatibility)
+      function removeFile(index) {
+        removeFileByIndex(index);
+      }
+
+      // Upload New Files button click handler
+      document
+        .getElementById("upload-new-files-btn")
+        .addEventListener("click", function () {
+          // Reset all session data
+          const oldSessionId = localStorage.getItem("session_id");
+          localStorage.removeItem("session_id");
+          localStorage.removeItem("document_processed");
+
+          // Reset flags
+          isFilesUploaded = false;
+
+          // Reset UI
+          allSelectedFiles = [];
+          document.getElementById("file").value = "";
+
+          // Hide everything
+          document.getElementById("selected-files-container").style.display =
+            "none";
+          document.getElementById("upload-new-files-container").style.display =
+            "none";
+          document.getElementById("process-btn-container").style.display =
+            "none";
+          document.getElementById("summary-container").innerHTML = "";
+
+          // Clear chat messages and show welcome message for new session
+          const chatMessages = document.getElementById("chat-messages");
+          if (chatMessages) {
+            chatMessages.innerHTML = "";
+            showWelcomeMessage();
+          }
+
+          // Show upload/instructions
+          document.querySelector(".row").style.display = "flex";
+          document.getElementById("file").style.display = "block";
+
+          // Reset chat icon
+          updateChatIconVisibility();
+        });
+
+      // NOTE: Deduplicated process handler — use the single merged handler below
+
+      // Merged upload + process handler
+      document
+        .getElementById("process-btn")
+        .addEventListener("click", async function () {
+          const fileInput = document.getElementById("file");
+          const files = fileInput.files;
+
+          if (!files || files.length === 0) {
+            alert("Please select a file");
+            return;
+          }
+
+          const file = files[0];
+          const token = localStorage.getItem("jwtdemand");
+
+          if (!token) {
+            alert("Not authenticated. Please log in again.");
+            return;
+          }
+
+          // Show processing overlay
+          document.getElementById("processing-overlay").style.display = "flex";
+          document.getElementById("processing-message").textContent =
+            "Uploading and processing document...";
+
+          try {
+            // Step 1: Upload
+            const uploadFormData = new FormData();
+            uploadFormData.append("files", file);
+
+            const uploadResponse = await fetch(
+              API_BASE_URL + "/Demand_optimizer/upload",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: "Bearer " + token,
+                  "ngrok-skip-browser-warning": "true",
+                },
+                body: uploadFormData,
+              },
+            );
+
+            if (!uploadResponse.ok) {
+              throw new Error("Upload failed");
+            }
+
+            const uploadData = await uploadResponse.json();
+            const sessionId = uploadData.session_id;
+            localStorage.setItem("session_id", sessionId);
+
+            // Step 2: Process immediately
+            document.getElementById("processing-message").textContent =
+              "Processing document...";
+            const processFormData = new FormData();
+            processFormData.append("session_id", sessionId);
+
+            const processResponse = await fetch(
+              API_BASE_URL + "/Demand_optimizer/process",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: "Bearer " + token,
+                  "ngrok-skip-browser-warning": "true",
+                },
+                body: processFormData,
+              },
+            );
+
+            if (!processResponse.ok) {
+              throw new Error("Process failed");
+            }
+
+            const processData = await processResponse.json();
+
+            // Hide processing overlay
+            document.getElementById("processing-overlay").style.display =
+              "none";
+
+            // Display results
+            const summaryContainer =
+              document.getElementById("summary-container");
+            if (processData.status === "success" && processData.report) {
+              const htmlReport = marked.parse(processData.report);
+              summaryContainer.innerHTML = `
+              <div class="card" style="background-color: #111; border: 1px solid #333; color: #ddd;">
+                <div class="card-header" style="background-color: #222; border-bottom: 1px solid #444; color: #f1c40f;">
+                  <h5 class="mb-0">Generated Report</h5>
+                </div>
+                <div class="card-body p-4" style="color: #ddd;">
+                  <div class="report-content" style="max-height: 800px; overflow-y: auto; line-height: 1.6;">
+                    ${htmlReport}
+                  </div>
+                </div>
+              </div>
+            `;
+              summaryContainer.style.display = "block";
+
+              // Scroll the report into view
+              setTimeout(() => {
+                summaryContainer.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+              }, 100);
+
+              console.log(
+                "Report displayed successfully",
+                processData.report.substring(0, 100),
+              );
+              localStorage.setItem("document_processed", "true");
+              updateChatIconVisibility();
+
+              // Clear file input after successful processing
+              fileInput.value = "";
+            } else {
+              alert("No report in response");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("processing-overlay").style.display =
+              "none";
+            alert("Error: " + error.message);
+          }
+        });
+
+      // Helper function to escape HTML
+      function escapeHtml(text) {
+        const map = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;",
+        };
+        return text.replace(/[&<>"']/g, (m) => map[m]);
+      }
+      document.addEventListener("DOMContentLoaded", function () {
+        // Clear session tracking on page load/refresh to ensure fresh sessions
+        localStorage.removeItem("session_id");
+        localStorage.removeItem("document_processed");
+
+        // Initialize chat support
+        initializeChatSupport();
+      });
+
+      // ============ CHAT SUPPORT FEATURE ============
+
+      // Store the previous session ID to detect changes
+      let previousSessionId = localStorage.getItem("session_id");
+
+      // Helper function to clear chat messages
+      function clearChatMessages() {
+        const chatMessagesContainer = document.getElementById("chat-messages");
+        if (chatMessagesContainer) {
+          chatMessagesContainer.innerHTML = "";
+        }
+      }
+
+      // Helper function to show welcome message
+      function showWelcomeMessage() {
+        const chatMessages = document.getElementById("chat-messages");
+        if (!chatMessages) return;
+
+        const welcomeDiv = document.createElement("div");
+        welcomeDiv.className = "chat-message welcome";
+        const bubble = document.createElement("div");
+        bubble.className = "chat-bubble";
+        bubble.textContent =
+          "Welcome! I am Demand Optimizer AI assistant. I am here to answer your follow-up questions.";
+        welcomeDiv.appendChild(bubble);
+        chatMessages.appendChild(welcomeDiv);
+      }
+
+      // Helper function to add message to chat
+      function addChatMessage(role, content) {
+        const chatMessages = document.getElementById("chat-messages");
+        if (!chatMessages) return;
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `chat-message ${role}`;
+
+        const bubble = document.createElement("div");
+        bubble.className = "chat-bubble";
+
+        // For markdown content from assistant, parse it
+        if (role === "assistant") {
+          bubble.innerHTML = marked.parse(content);
+        } else {
+          bubble.textContent = content;
+        }
+
+        messageDiv.appendChild(bubble);
+        chatMessages.appendChild(messageDiv);
+
+        // Auto scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      // Monitor localStorage for session ID changes
+      window.addEventListener("storage", function (e) {
+        if (e.key === "session_id") {
+          const newSessionId = e.newValue;
+
+          // If session ID changed (new session), clear chat messages
+          if (newSessionId !== previousSessionId) {
+            clearChatMessages();
+            showWelcomeMessage();
+            previousSessionId = newSessionId;
+          }
+        }
+      });
+
+      function initializeChatSupport() {
+        const chatIcon = document.getElementById("chat-floating-icon");
+        const chatWindow = document.getElementById("chat-window");
+        const chatMaximizeBtn = document.getElementById("chat-maximize-btn");
+        const chatCloseBtn = document.getElementById("chat-close-btn");
+        const chatMessageInput = document.getElementById("chat-message-input");
+        const chatSendBtn = document.getElementById("chat-send-btn");
+        const chatMessages = document.getElementById("chat-messages");
+
+        // Show welcome message
+        showWelcomeMessage();
+
+        // Set up session ID change listener
+        setupSessionChangeListener();
+
+        // Chat icon click - toggle window
+        chatIcon.addEventListener("click", function () {
+          const computedStyle = window.getComputedStyle(chatWindow).display;
+          if (computedStyle === "none") {
+            chatWindow.style.display = "flex";
+            chatMessageInput.focus();
+          } else {
+            chatWindow.style.display = "none";
+          }
+        });
+
+        // Close button
+        chatCloseBtn.addEventListener("click", function () {
+          chatWindow.style.display = "none";
+        });
+
+        // Load history button
+        const chatLoadHistoryBtn = document.getElementById(
+          "chat-load-history-btn",
+        );
+        chatLoadHistoryBtn.addEventListener("click", async function () {
+          const sessionId = localStorage.getItem("session_id");
+
+          if (!sessionId) {
+            addChatMessage(
+              "assistant",
+              "⚠️ No session found. Please upload and process a document first.",
+            );
+            return;
+          }
+
+          // Show loader
+          const originalContent = chatLoadHistoryBtn.innerHTML;
+          chatLoadHistoryBtn.innerHTML = '<span class="chat-loader"></span>';
+          chatLoadHistoryBtn.disabled = true;
+          const token = localStorage.getItem("jwtdemand");
+          if (!token) {
+            throw new Error("Not authenticated. Please log in again.");
+          }
+          try {
+            const response = await fetch(
+              `${API_BASE_URL}/Demand_optimizer/chat/history/${sessionId}`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: "Bearer " + token,
+                  "ngrok-skip-browser-warning": "true",
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to load history");
+            }
+
+            const data = await response.json();
+
+            if (data.messages && Array.isArray(data.messages)) {
+              // Clear existing messages
+              chatMessages.innerHTML = "";
+
+              // Display all history messages
+              data.messages.forEach((msg) => {
+                addChatMessage(msg.role, msg.content);
+              });
+
+              addChatMessage("system", "✅ Chat history loaded successfully!");
+            } else {
+              addChatMessage(
+                "assistant",
+                "No history found for this document.",
+              );
+            }
+          } catch (error) {
+            console.error("History load error:", error);
+            addChatMessage(
+              "assistant",
+              "❌ Error loading history: " + error.message,
+            );
+          } finally {
+            chatLoadHistoryBtn.innerHTML = originalContent;
+            chatLoadHistoryBtn.disabled = false;
+          }
+        });
+
+        // Maximize button
+        chatMaximizeBtn.addEventListener("click", function () {
+          chatWindow.classList.toggle("fullscreen");
+          chatMaximizeBtn.textContent = chatWindow.classList.contains(
+            "fullscreen",
+          )
+            ? "🗗"
+            : "🔲";
+        });
+
+        // Send message on button click
+        chatSendBtn.addEventListener("click", sendChatMessage);
+
+        // Send message on Enter key
+        chatMessageInput.addEventListener("keypress", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendChatMessage();
+          }
+        });
+
+        async function sendChatMessage() {
+          const message = chatMessageInput.value.trim();
+
+          if (!message) {
+            alert("Please enter a message");
+            return;
+          }
+
+          const sessionId = localStorage.getItem("session_id");
+
+          if (!sessionId) {
+            addChatMessage(
+              "assistant",
+              "⚠️ No session found. Please upload and process a document first.",
+            );
+            return;
+          }
+
+          // Add user message to chat
+          addChatMessage("user", message);
+          chatMessageInput.value = "";
+          chatSendBtn.disabled = true;
+          const token = localStorage.getItem("jwtdemand");
+          if (!token) {
+            throw new Error("Not authenticated. Please log in again.");
+          }
+          try {
+            const formData = new FormData();
+            formData.append("session_id", sessionId);
+            formData.append("message", message);
+
+            const response = await fetch(
+              API_BASE_URL + "/Demand_optimizer/chat",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: "Bearer " + token,
+                  "ngrok-skip-browser-warning": "true",
+                },
+                body: formData,
+              },
+            );
+
+            if (!response.ok) {
+              // Handle specific error responses
+              const errorData = await response.json().catch(() => ({}));
+
+              // Check if error is related to session (expired or invalid)
+              if (
+                response.status === 401 ||
+                response.status === 404 ||
+                (errorData.detail &&
+                  (errorData.detail.includes("session") ||
+                    errorData.detail.includes("expired")))
+              ) {
+                // Clear messages for new session
+                clearChatMessages();
+                showWelcomeMessage();
+                addChatMessage(
+                  "assistant",
+                  "⚠️ Session expired or invalid. Please upload and process a new document to continue.",
+                );
+                return;
+              }
+
+              throw new Error(errorData.detail || "Chat request failed");
+            }
+
+            const data = await response.json();
+
+            if (data.status === "success" && data.response) {
+              addChatMessage("assistant", data.response);
+            } else if (
+              data.detail &&
+              (data.detail.includes("session") ||
+                data.detail.includes("expired"))
+            ) {
+              // Session error from API
+              clearChatMessages();
+              showWelcomeMessage();
+              addChatMessage(
+                "assistant",
+                "⚠️ Session expired or invalid. Please upload and process a new document to continue.",
+              );
+            } else {
+              addChatMessage(
+                "assistant",
+                "Sorry, I could not process your request.",
+              );
+            }
+          } catch (error) {
+            console.error("Chat error:", error);
+
+            // Check if error is related to session
+            if (
+              error.message.includes("session") ||
+              error.message.includes("expired")
+            ) {
+              clearChatMessages();
+              showWelcomeMessage();
+              addChatMessage(
+                "assistant",
+                "⚠️ Session expired or invalid. Please upload and process a new document to continue.",
+              );
+            } else {
+              addChatMessage("assistant", "❌ Error: " + error.message);
+            }
+          } finally {
+            chatSendBtn.disabled = false;
+            chatMessageInput.focus();
+          }
+        }
+
+        function setupSessionChangeListener() {
+          // Monitor for local session ID changes (when new file is processed)
+          const checkSessionInterval = setInterval(() => {
+            const currentSessionId = localStorage.getItem("session_id");
+
+            if (currentSessionId && currentSessionId !== previousSessionId) {
+              // Session ID changed - clear messages and show welcome
+              clearChatMessages();
+              showWelcomeMessage();
+              previousSessionId = currentSessionId;
+            }
+          }, 500);
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Check token on page load and toggle UIs accordingly
+      function checkAuthToken() {
+        const token = localStorage.getItem("jwtdemand");
+        const loginPageWrapper = document.getElementById("login-page-wrapper");
+        const mainAppWrapper = document.getElementById("main-app-wrapper");
+
+        if (token) {
+          // User is logged in
+          loginPageWrapper.style.display = "none";
+          mainAppWrapper.style.display = "block";
+        } else {
+          // User is not logged in
+          loginPageWrapper.style.display = "flex";
+          mainAppWrapper.style.display = "none";
+        }
+      }
+
+      // Check on page load
+      document.addEventListener("DOMContentLoaded", checkAuthToken);
+
+      // Re-check when logout-success event fires
+      window.addEventListener("logout-success", () => {
+        setTimeout(checkAuthToken, 100);
+      });
+
+      // Also check after login
+      window.addEventListener("login-success", () => {
+        setTimeout(checkAuthToken, 100);
+      });
+    </script>
+
+    <script>
+      function toggleActiveUsers() {
+        const popover = document.getElementById("active-users-popover");
+        const btn = event.currentTarget || event.target.closest("button");
+
+        if (popover.style.display === "block") {
+          popover.style.display = "none";
+          return;
+        }
+
+        const rect = btn.getBoundingClientRect();
+
+        popover.style.top = rect.bottom + 8 + "px";
+        popover.style.left = rect.left + "px";
+        popover.style.transform = "none";
+        popover.style.display = "block";
+      }
+
+      function refreshActiveUsers() {
+        loadActiveUsers();
+      }
+
+      async function loadActiveUsers() {
+        try {
+          const token = localStorage.getItem("jwtdemand");
+          if (!token) return;
+
+          const res = await fetch(
+            API_BASE_URL + "/Demand_optimizer/active-today",
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + token,
+                "ngrok-skip-browser-warning": "true",
+              },
+            },
+          );
+
+          if (!res.ok) return;
+
+          const users = await res.json();
+
+          document.getElementById("active-user-count").innerText = users.length;
+
+          const list = document.getElementById("active-users-list");
+          list.innerHTML = "";
+
+          if (users.length === 0) {
+            list.innerHTML =
+              "<p style='color:#aaa; font-size:13px'>No active users</p>";
+            return;
+          }
+
+          users.forEach((user) => {
+            const div = document.createElement("div");
+            div.style.padding = "10px 8px";
+            div.style.fontSize = "13px";
+            div.style.borderBottom = "1px solid #333";
+            div.style.color = "#ddd";
+            div.style.display = "flex";
+            div.style.justifyContent = "space-between";
+            div.style.alignItems = "center";
+            div.style.gap = "16px";
+
+            const emailSpan = document.createElement("span");
+            emailSpan.style.color = "#f1c40f";
+            emailSpan.style.fontWeight = "500";
+            emailSpan.style.flex = "1";
+            emailSpan.innerText = user.email || user;
+
+            const timeSpan = document.createElement("span");
+            timeSpan.style.color = "#aaa";
+            timeSpan.style.fontSize = "12px";
+            timeSpan.style.whiteSpace = "nowrap";
+            timeSpan.style.flexShrink = "0";
+            timeSpan.innerText = formatLastActive(user.last_active);
+
+            div.appendChild(emailSpan);
+            div.appendChild(timeSpan);
+            list.appendChild(div);
+          });
+        } catch (err) {
+          console.error("Active users error:", err);
+        }
+      }
+
+      function formatLastActive(dateStr) {
+        try {
+          const date = new Date(dateStr);
+          const now = new Date();
+          const diffMs = now - date;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMs / 3600000);
+          const diffDays = Math.floor(diffMs / 86400000);
+
+          if (diffMins < 1) return "just now";
+          if (diffMins < 60) return `${diffMins}m ago`;
+          if (diffHours < 24) return `${diffHours}h ago`;
+          return `${diffDays}d ago`;
+        } catch (e) {
+          return "";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("jwtdemand")) {
+          loadActiveUsers();
+        }
+      });
+
+      window.addEventListener("login-success", () => {
+        loadActiveUsers();
+      });
+
+      window.addEventListener("logout-success", () => {
+        document.getElementById("active-user-count").innerText = "0";
+        document.getElementById("active-users-popover").style.display = "none";
+      });
+
+      document.addEventListener("click", function (e) {
+        const popover = document.getElementById("active-users-popover");
+        if (!popover) return;
+        if (!popover.contains(e.target) && !e.target.closest("button")) {
+          popover.style.display = "none";
+        }
+      });
+    </script>
+
+    <div
+      id="active-users-popover"
+      style="
+        position: fixed;
+        top: 72px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #1a1a1a;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        border-radius: 8px;
+        padding: 12px;
+        min-width: 220px;
+        display: none;
+        z-index: 100000;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      "
+    >
+      <div
+        style="
+          padding-bottom: 8px;
+          margin-bottom: 8px;
+          border-bottom: 1px solid rgba(241, 196, 15, 0.3);
+          font-size: 12px;
+          font-weight: 600;
+        "
+      >
+        Active Users
+      </div>
+      <div id="active-users-list"></div>
+    </div>
+  </body>
+</html>

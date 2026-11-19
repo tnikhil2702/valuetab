@@ -1,0 +1,390 @@
+jurisdiction: AZ_FEDERAL
+name: "Arizona Federal Court (D. Ariz.)"
+day_type_default: calendar
+holiday_set: federal
+
+rules:
+  # ── SERVICE OF COMPLAINT ──────────────────────────────────────────────────
+  - id: az_fed_serve_complaint
+    trigger: complaint_filed_date
+    label: "Serve Complaint (90 days)"
+    offset_days: 90
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 4(m). Failure = dismissal w/o prejudice; court may extend for good cause. AZ state: ARCP 4(i) — same 90 days, different citation."
+
+  - id: az_fed_answer
+    trigger: service_of_complaint
+    label: "Answer to Complaint Due"
+    offset_days: 21
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: red
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 12(a)(1)(A)(i). 21 days — differs from AZ state court 20 days."
+
+  - id: az_fed_answer_usa
+    trigger: service_of_complaint
+    label: "Answer Due — United States as Defendant"
+    offset_days: 60
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 12(a)(2)"
+
+  # ── STATUTE OF LIMITATIONS ────────────────────────────────────────────────
+  - id: az_fed_sol_civil_rights
+    trigger: incident_date
+    label: "SOL — Federal Civil Rights / § 1983 (2 yr)"
+    # offset_days: 730
+    offset_years: 2
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [365, 180, 90, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "42 U.S.C. § 1983 — borrows AZ 2-year personal injury SOL"
+
+  - id: az_fed_sol_title_vii
+    trigger: eeoc_right_to_sue_date
+    label: "SOL — Title VII / ADA / ADEA Suit Filing (90 days)"
+    offset_days: 90
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [60, 30, 14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "42 U.S.C. § 2000e-5(f)(1) — 90 days from right-to-sue letter"
+
+  # ── DISCOVERY ─────────────────────────────────────────────────────────────
+  - id: az_fed_rule26_conference
+    trigger: defendant_appeared_date
+    label: "Rule 26(f) Conference Must Occur By"
+    offset_days: 21
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 26(f) — at least 21 days before scheduling conference. No AZ state equivalent — ARCP uses Early Meeting instead."
+
+  - id: az_fed_initial_disclosures
+    trigger: rule26f_conference_date
+    label: "Initial Disclosures Due (FRCP 26(a)(1))"
+    offset_days: 14
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 26(a)(1)(C) — 14 days after Rule 26(f) conference. Federal: 4 categories. AZ state: 40 days / 10 categories under ARCP 26.1 — different rule."
+
+  - id: az_fed_scheduling_order
+    trigger: defendant_appeared_date
+    label: "Rule 16 Scheduling Conference"
+    offset_days: 70
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [21, 14, 7]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 16(b)(2); D. Ariz. LRCiv 16.1"
+
+  - id: az_fed_discovery_cutoff
+    trigger: trial_date
+    label: "Discovery Cutoff"
+    offset_days: -60
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [30, 14, 7]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. — per scheduling order, typically 60 days before trial. No tier system in federal court (ARCP 26.2 AZ-specific)."
+
+  - id: az_fed_interrogatory_responses
+    trigger: discovery_served_date
+    label: "Interrogatory / RFP / RFA Responses Due"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: orange
+    cmo_override: "Court extension only"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 33(b)(2), 34(b)(2), 36(a). Federal: 25 interrogatories/side; RFPs/RFAs no limit. Depo max 7 hrs (FRCP 30(d)). +3 days if served by mail."
+
+  - id: az_fed_expert_disclosure_plaintiff
+    trigger: discovery_cutoff_date
+    label: "Plaintiff Expert Disclosures Due"
+    offset_days: -60
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [30, 14, 7, 3]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 26(a)(2)(D) — 90 days before trial; often set by CMO. Federal retained experts require WRITTEN REPORT (FRCP 26(a)(2)(B)) — unlike AZ state court."
+
+  - id: az_fed_expert_disclosure_defendant
+    trigger: expert_disclosure_plaintiff_date
+    label: "Defendant Expert Disclosures Due"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 26(a)(2)(D) — 30 days after plaintiff disclosure. Written report required for retained experts."
+
+  - id: az_fed_rebuttal_expert
+    trigger: defendant_expert_disclosure_date
+    label: "Rebuttal Expert Disclosure Deadline"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 26(a)(2)(D). Trigger = defendant_expert_disclosure_date + 30 days. If defendant date not yet known, use trial−60 as provisional estimate with warning."
+
+  # ── MOTION DEADLINES ──────────────────────────────────────────────────────
+  - id: az_fed_msj
+    trigger: discovery_cutoff_date
+    label: "Motion for Summary Judgment Deadline"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 56.1 — typically 30 days after discovery cutoff. Federal response: 21 days (FRCP 56(c)(1)) vs AZ state 30 days."
+
+  - id: az_fed_msj_response
+    trigger: msj_filed_date
+    label: "Response to Motion for Summary Judgment"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [21, 14, 7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 56.1(d) — 30 days"
+
+  - id: az_fed_msj_reply
+    trigger: msj_response_date
+    label: "Reply ISO Motion for Summary Judgment"
+    offset_days: 14
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 56.1(d) — 14 days"
+
+  - id: az_fed_motion_response
+    trigger: motion_filed_date
+    label: "Response to Motion Due"
+    offset_days: 14
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 7.2(c) — 14 days"
+
+  - id: az_fed_motion_reply
+    trigger: motion_response_date
+    label: "Reply in Support of Motion Due"
+    offset_days: 7
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [3, 1]
+    color: yellow
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 7.2(d) — 7 days"
+
+  # ── TRIAL SCHEDULING ──────────────────────────────────────────────────────
+  - id: az_fed_final_pretrial_order
+    trigger: trial_date
+    label: "Final Pre-Trial Order Due"
+    offset_days: -14
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 16.1 — 14 days before trial"
+
+  - id: az_fed_motions_in_limine
+    trigger: trial_date
+    label: "Motions in Limine Deadline"
+    offset_days: -30
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. — typically 30 days before trial"
+
+  - id: az_fed_mil_response
+    trigger: mil_filed_date
+    label: "Response to Motions in Limine"
+    offset_days: 14
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 7.2(c) — 14 calendar days (federal uses calendar days, not business days unlike ARCP 7.1(b))"
+
+  - id: az_fed_jury_instructions
+    trigger: trial_date
+    label: "Proposed Jury Instructions Due"
+    offset_days: -7
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 51.1 — 7 days before trial"
+
+  - id: az_fed_exhibit_list
+    trigger: trial_date
+    label: "Final Exhibit & Witness List Due"
+    offset_days: -7
+    day_type: calendar
+    rollover: previous_business_day
+    reminders_days: [7, 3, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "D. Ariz. LRCiv 16.1"
+
+  # ── POST-TRIAL ────────────────────────────────────────────────────────────
+  - id: az_fed_motion_new_trial
+    trigger: judgment_entry_date
+    label: "Motion for New Trial / Alter or Amend Judgment"
+    offset_days: 28
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 59(b) / 59(e) — 28 days from entry of judgment. AZ state equivalent is 15 days (ARCP 59) — different number."
+
+  - id: az_fed_motion_jnov
+    trigger: judgment_entry_date
+    label: "Motion for Judgment as Matter of Law (JMOL)"
+    offset_days: 28
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 50(b) — 28 days. AZ state: ARCP 50(b) — 15 days."
+
+  - id: az_fed_notice_of_appeal
+    trigger: judgment_entry_date
+    label: "Notice of Appeal"
+    offset_days: 30
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 3, 1]
+    color: red
+    cmo_override: "No – Statutory"
+    risk_level: JURISDICTIONAL
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRAP 4(a)(1)(A) — 30 days from judgment. Same number as AZ state (A.R.S. §12-2101) but different authority. HIGHEST ALERT in UI."
+
+    # ── COMPLAINT FILED DATE ANCHORS ─────────────────────────────────────────
+  - id: az_fed_filing_rule26f_conference
+    trigger: complaint_filed_date
+    label: "Rule 26(f) Conference Deadline (Filing Anchor)"
+    offset_days: 21
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 1]
+    color: orange
+    cmo_override: "No – Statutory"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 26(f) — parties must hold Rule 26(f) conference within 21 days of complaint filed date. Anchored to complaint_filed_date (not defendant_appeared_date). AZ Federal."
+
+  - id: az_fed_filing_initial_disclosures
+    trigger: complaint_filed_date
+    label: "Initial Disclosures Due — Filing Anchor (Rule 26(a)(1))"
+    offset_days: 35
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [14, 7, 1]
+    color: blue
+    cmo_override: "Yes – CMO sets date"
+    risk_level: NEAR-ABSOLUTE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 26(a)(1)(C) — initial disclosures due 14 days after Rule 26(f) conference (21 + 14 = 35 days from complaint filed date). Anchored to complaint_filed_date. AZ Federal."
+
+  - id: az_fed_filing_scheduling_order
+    trigger: complaint_filed_date
+    label: "Scheduling Order Deadline — Filing Anchor"
+    offset_days: 90
+    day_type: calendar
+    rollover: next_business_day
+    reminders_days: [21, 14, 7, 1]
+    color: orange
+    cmo_override: "Yes – CMO sets date"
+    risk_level: CMO-ADJUSTABLE
+    jurisdiction_scope: AZ + FEDERAL
+    notes: "FRCP 16(b)(2); D. Ariz. LRCiv 16.1 — scheduling order deadline anchored to complaint filed date. AZ Federal."

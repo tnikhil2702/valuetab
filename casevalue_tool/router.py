@@ -1,0 +1,3130 @@
+import os
+import logging
+from pathlib import Path
+from io import BytesIO
+from threading import Thread, Lock
+from typing import Optional, Any
+
+import requests
+from fastapi import APIRouter, Request, UploadFile, File, Form, Header, HTTPException, Body, Depends
+from fastapi.responses import JSONResponse, StreamingResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+
+import fitz
+from docx import Document
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import LETTER
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle
+from reportlab.lib.units import inch
+from pypdf import PdfReader, PdfWriter
+
+
+import re
+import tempfile
+from decimal import Decimal, InvalidOperation
+import pytesseract
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps 
+from auth_utils import authenticate_user, create_access_token, get_current_user, reset_password, generate_otp, verify_otp, SessionLocal, create_password, ACCESS_TOKEN_EXPIRE_MINUTES
+from fastapi.security import OAuth2PasswordRequestForm
+from db import get_db, ActiveSession, Whitelist , Session
+from datetime import datetime, timedelta
+
+PROJECT_NAME = "CaseValue_Tool"
+logger = logging.getLogger("casevalue")
+logging.basicConfig(level=logging.INFO)
+
+router = APIRouter()
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+N8N_WEBHOOK_URL = "https://madhureshgore.app.n8n.cloud/webhook/26cd094a-a860-4be2-9458-d5cd02bb9f46"
+
+CASEVALUE_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZ29yZUByYW1vc2xhdy5jb20iLCJyb2xlIjoidXNlciIsImV4cCI6MTc4ODM4NDk5NX0.NsEvbvRTbaqtIS5yhegp9u2JOfHfDLvzYYwa5qQgpC4"
+
+CASEVALUE_START_CASE_URL = "https://lxintel.net/casevalue/start-case"
+CASEVALUE_RESULT_URL = "https://lxintel.net/casevalue/case-result"
+
+REQUEST_CONNECT_TIMEOUT = 10
+PROCESSING_TIMEOUT = 1800
+STATUS_TIMEOUT = 120
+
+CASE_RESULTS_CACHE = {}
+CASE_RESULTS_LOCK = Lock()
+
+# --------------------------------------------------------------------------
+# Request body models (FastAPI equivalent of Flask's request.get_json)
+# --------------------------------------------------------------------------
+
+class RunCaseRequest(BaseModel):
+    caseNumber: Optional[str] = ""
+
+
+# --------------------------------------------------------------------------
+# Helpers (unchanged from the Flask app)
+# --------------------------------------------------------------------------
+
+def extract_final_summary(payload):
+    if not payload:
+        return ""
+
+    if isinstance(payload, str):
+        return payload.strip()
+
+    if isinstance(payload, list):
+        for item in payload:
+            found = extract_final_summary(item)
+            if found:
+                return found
+        return ""
+
+    if isinstance(payload, dict):
+        for key in [
+            "final_summary",
+            "finalSummary",
+            "formattedMemo",
+            "summary",
+            "memo",
+            "answer",
+            "output",
+            "text",
+        ]:
+            value = payload.get(key)
+
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+
+            if isinstance(value, (dict, list)):
+                found = extract_final_summary(value)
+                if found:
+                    return found
+
+        for key in ["workflowResult", "result", "data"]:
+            found = extract_final_summary(payload.get(key))
+            if found:
+                return found
+
+    return ""
+
+
+def cache_final_summary(case_number, final_summary, source):
+    if not final_summary:
+        return
+
+    with CASE_RESULTS_LOCK:
+        CASE_RESULTS_CACHE[str(case_number)] = {
+            "final_summary": str(final_summary),
+            "case_number": str(case_number),
+            "source": source,
+        }
+
+
+def get_cached_summary(case_number):
+    with CASE_RESULTS_LOCK:
+        return CASE_RESULTS_CACHE.get(str(case_number))
+
+
+def build_docx_bytes(summary_text, case_number):
+    doc = Document()
+    doc.add_heading(f"CaseValue {case_number}", level=0)
+
+    for raw_line in str(summary_text or "").splitlines():
+        line = raw_line.strip()
+
+        if not line:
+            doc.add_paragraph("")
+            continue
+
+        if line.isupper() and len(line) < 80:
+            doc.add_heading(line, level=1)
+        else:
+            doc.add_paragraph(raw_line)
+
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+
+def success_response(case_number, final_summary, source="CaseValue API", extra=None):
+    payload = {
+        "status": "success",
+        "caseNumber": str(case_number),
+        "workflowResult": {
+            "status": "completed",
+            "caseNumber": str(case_number),
+            "selectedFile": f"Generated by {source}",
+            "webUrl": "",
+            "formattedMemo": final_summary,
+            "finalSummary": final_summary,
+            "pdfUrl": f"/casevalue_tool/download-case-pdf/{case_number}",
+            "docxUrl": f"/casevalue_tool/download-case-docx/{case_number}",
+            "message": f"{source} summary completed.",
+        },
+    }
+
+    if extra:
+        payload.update(extra)
+
+    return JSONResponse(content=payload, status_code=200)
+
+
+def trigger_n8n_workflow_in_background(case_number, headers):
+    try:
+        response = requests.post(
+            N8N_WEBHOOK_URL,
+            headers=headers,
+            json={
+                "caseNumber": str(case_number),
+                "regenerate": True,
+                "source": "fastapi-test-app",
+            },
+            timeout=(REQUEST_CONNECT_TIMEOUT, PROCESSING_TIMEOUT),
+        )
+
+        try:
+            n8n_result = response.json()
+        except Exception:
+            n8n_result = {"rawResponse": response.text}
+
+        final_summary = extract_final_summary(n8n_result)
+
+        if response.ok and final_summary:
+            cache_final_summary(case_number, final_summary, "n8n")
+            logger.info("Cached n8n summary for case %s", case_number)
+        else:
+            logger.info(
+                "n8n finished for case %s but no final summary was returned. Status: %s",
+                case_number,
+                response.status_code,
+            )
+
+    except Exception as error:
+        logger.exception(
+            "n8n workflow background trigger failed for case %s: %s",
+            case_number,
+            str(error),
+        )
+
+
+# --------------------------------------------------------------------------
+# Routes
+# --------------------------------------------------------------------------
+
+jinja_templates = Jinja2Templates(directory="casevalue_tool/templates")
+
+@router.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return jinja_templates.get_template("index.html").render({"request": request})
+
+
+@router.post("/run-case")
+def run_case(payload: RunCaseRequest):
+    case_number = str(payload.caseNumber or "").strip()
+
+    if not case_number:
+        return JSONResponse(
+            content={"status": "error", "message": "Case number is required."},
+            status_code=400,
+        )
+
+    if not CASEVALUE_TOKEN or CASEVALUE_TOKEN == "PASTE_YOUR_ACCESS_TOKEN_HERE":
+        return JSONResponse(
+            content={"status": "error", "message": "CaseValue token is not set in main.py or environment."},
+            status_code=500,
+        )
+
+    if not N8N_WEBHOOK_URL or N8N_WEBHOOK_URL == "PASTE_YOUR_N8N_WEBHOOK_URL_HERE":
+        return JSONResponse(
+            content={"status": "error", "message": "N8N webhook URL is not set in main.py or environment."},
+            status_code=500,
+        )
+
+    with CASE_RESULTS_LOCK:
+        CASE_RESULTS_CACHE.pop(case_number, None)
+
+    headers = {
+        "Authorization": f"Bearer {CASEVALUE_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        start_response = requests.post(
+            CASEVALUE_START_CASE_URL,
+            headers=headers,
+            json={
+                "caseNumber": case_number,
+                "regenerate": True,
+            },
+            timeout=(REQUEST_CONNECT_TIMEOUT, STATUS_TIMEOUT),
+        )
+
+        try:
+            start_result = start_response.json()
+        except Exception:
+            start_result = {"rawResponse": start_response.text}
+
+        if not start_response.ok:
+            return JSONResponse(
+                content={
+                    "status": "error",
+                    "caseNumber": case_number,
+                    "message": "CaseValue start-case failed.",
+                    "caseValueStartResult": start_result,
+                },
+                status_code=start_response.status_code,
+            )
+
+        # Same pattern as the Flask app: fire-and-forget background thread.
+        # (Could be swapped for FastAPI's BackgroundTasks, but that ties the
+        # work to the request/response lifecycle; a detached Thread matches
+        # the original "keep checking status" polling design.)
+        Thread(
+            target=trigger_n8n_workflow_in_background,
+            args=(case_number, headers.copy()),
+            daemon=True,
+        ).start()
+
+        return JSONResponse(
+            content={
+                "status": "processing",
+                "caseNumber": case_number,
+                "message": "Workflow started. The app will keep checking for the result.",
+                "workflowResult": {
+                    "status": "processing",
+                    "caseNumber": case_number,
+                    "selectedFile": "Processing",
+                    "webUrl": "",
+                    "formattedMemo": "",
+                    "finalSummary": "",
+                    "message": "Workflow started. Please wait while the case is processed.",
+                },
+                "caseValueStartResult": start_result,
+                "n8nResult": {
+                    "status": "started_in_background",
+                    "message": "n8n workflow was started in the background.",
+                },
+            },
+            status_code=200,
+        )
+
+    except requests.exceptions.Timeout:
+        return JSONResponse(
+            content={
+                "status": "processing",
+                "caseNumber": case_number,
+                "message": "Case processing started, but the start request took longer than expected. Please keep checking status.",
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={"status": "error", "caseNumber": case_number, "message": str(e)},
+            status_code=500,
+        )
+
+@router.post("/login")
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    user = await authenticate_user(
+        form_data.username,
+        form_data.password
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    access_token = await create_access_token(
+        data={
+            "sub": user["email"],
+            "role": user["role"]
+        },
+        expires_delta=timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+    )
+
+    active = db.query(ActiveSession).filter(
+        ActiveSession.project_name == PROJECT_NAME,
+        ActiveSession.user_email == user["email"]
+    ).first()
+
+    if active:
+
+        active.last_activity_timestamp = datetime.utcnow()
+    else:
+        db.add(
+            ActiveSession(
+                project_name=PROJECT_NAME,
+                user_email=user["email"],
+                last_activity_timestamp=datetime.utcnow()
+            )
+        )
+
+    db.commit()
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
+@router.get("/verify-email")
+async def verify_email(email: str):
+
+    db = SessionLocal()
+
+    try:
+
+        user = db.query(Whitelist).filter(
+            Whitelist.email == email.lower()
+        ).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail="Email not authorized"
+            )
+
+        return {
+            "valid": True,
+            "password_created": bool(user.password_hash),
+            "role": user.role
+        }
+
+    finally:
+        db.close()
+
+@router.post("/send/otp")
+async def send_otp_api(email: str):
+    return await generate_otp(email)
+
+@router.post("/verify/otp")
+async def verify_otp_api(
+    email: str,
+    otp: str
+):
+    await verify_otp(email, otp)
+    return {
+        "message": "OTP verified successfully"
+    }
+
+@router.post("/create/password")
+async def create_password_api(
+    email: str,
+    password: str
+):
+    return await create_password(
+        email,
+        password
+    )
+
+@router.post("/forgot/password")
+async def forgot_password(email: str):
+    return await generate_otp(email)
+
+@router.post("/reset/password")
+async def reset_password_api(
+    email: str,
+    otp: str,
+    new_password: str
+):
+    return await reset_password(
+        email,
+        otp,
+        new_password
+    )
+
+@router.get("/case-status/{case_number}")
+def case_status(case_number: str):
+    case_number = str(case_number).strip()
+
+    cached = get_cached_summary(case_number)
+    if cached and cached.get("final_summary"):
+        return success_response(
+            case_number,
+            cached["final_summary"],
+            source=cached.get("source", "n8n")
+        )
+
+    if not CASEVALUE_TOKEN or CASEVALUE_TOKEN == "PASTE_YOUR_ACCESS_TOKEN_HERE":
+        return JSONResponse(
+            content={"status": "error", "message": "CaseValue token is not set in main.py or environment."},
+            status_code=500,
+        )
+
+    try:
+        response = requests.get(
+            f"{CASEVALUE_RESULT_URL}/{case_number}",
+            headers={"Authorization": f"Bearer {CASEVALUE_TOKEN}"},
+            timeout=(REQUEST_CONNECT_TIMEOUT, STATUS_TIMEOUT),
+        )
+
+        try:
+            result_json = response.json()
+        except Exception:
+            result_json = {"rawResponse": response.text}
+
+        if not response.ok:
+            return JSONResponse(
+                content={
+                    "status": "processing",
+                    "caseNumber": case_number,
+                    "message": "CaseValue result is not ready yet.",
+                    "caseValueResult": result_json,
+                },
+                status_code=200,
+            )
+
+        final_summary = extract_final_summary(result_json)
+
+        if final_summary:
+            cache_final_summary(case_number, final_summary, "CaseValue API")
+            return success_response(
+                case_number,
+                final_summary,
+                source="CaseValue API",
+                extra={"caseValueResult": result_json}
+            )
+
+        if isinstance(result_json, dict):
+            result_status = str(result_json.get("status", "")).lower()
+            error_message = result_json.get("error", "CaseValue failed.")
+        else:
+            result_status = ""
+            error_message = "CaseValue returned an unexpected response format."
+
+        if result_status in ["failed", "error"]:
+            return JSONResponse(
+                content={
+                    "status": "error",
+                    "caseNumber": case_number,
+                    "message": error_message,
+                    "caseValueResult": result_json,
+                },
+                status_code=200,
+            )
+
+        return JSONResponse(
+            content={
+                "status": "processing",
+                "caseNumber": case_number,
+                "message": "CaseValue is still processing or no final summary is available yet.",
+                "caseValueResult": result_json,
+            },
+            status_code=200,
+        )
+
+    except requests.exceptions.Timeout:
+        return JSONResponse(
+            content={
+                "status": "processing",
+                "caseNumber": case_number,
+                "message": "CaseValue is still processing. Please wait.",
+                "caseValueResult": {"status": "processing"},
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            content={
+                "status": "processing",
+                "caseNumber": case_number,
+                "message": f"Status check failed but case may still be processing: {str(e)}",
+            },
+            status_code=200,
+        )
+
+
+@router.get("/download-case-docx/{case_number}")
+def download_case_docx(case_number: str):
+    case_number = str(case_number).strip()
+    cached = get_cached_summary(case_number)
+
+    if not cached or not cached.get("final_summary"):
+        return JSONResponse(content={"error": "Case not found"}, status_code=404)
+
+    final_summary = extract_final_summary(cached["final_summary"])
+
+    if not final_summary.strip():
+        return JSONResponse(content={"error": "No summary available"}, status_code=404)
+
+    output_buffer = build_docx_bytes(final_summary, case_number)
+
+    return StreamingResponse(
+        output_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={
+            "Content-Disposition": f'attachment; filename="CaseValue_{case_number}.docx"'
+        },
+    )
+
+
+@router.get("/download-case-pdf/{case_number}")
+def download_case_pdf(case_number: str):
+    case_number = str(case_number).strip()
+    cached = get_cached_summary(case_number)
+
+    if not cached or not cached.get("final_summary"):
+        return JSONResponse(
+            content={
+                "status": "error",
+                "message": "No completed summary found for this case. Run the case first."
+            },
+            status_code=404,
+        )
+
+    final_summary = extract_final_summary(cached["final_summary"])
+    letterhead_path = os.path.join(os.path.dirname(__file__), "letterhead.pdf")
+
+    if not os.path.exists(letterhead_path):
+        return JSONResponse(
+            content={
+                "status": "error",
+                "message": "letterhead.pdf was not found. Put letterhead.pdf in the same folder as main.py."
+            },
+            status_code=500,
+        )
+
+    content_buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        content_buffer,
+        pagesize=LETTER,
+        rightMargin=0.70 * inch,
+        leftMargin=0.70 * inch,
+        topMargin=1.25 * inch,
+        bottomMargin=0.90 * inch,
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "MemoTitle",
+        parent=styles["Heading1"],
+        fontName="Helvetica-Bold",
+        fontSize=14,
+        alignment=1,
+        spaceBefore=8,
+        spaceAfter=22,
+        underline=True,
+    )
+
+    section_style = ParagraphStyle(
+        "SectionHeading",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=12,
+        leading=14,
+        spaceBefore=14,
+        spaceAfter=8,
+        underline=True,
+    )
+
+    body_style = ParagraphStyle(
+        "Body",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=12,
+        spaceAfter=6,
+    )
+
+    bold_style = ParagraphStyle(
+        "BoldBody",
+        parent=body_style,
+        fontName="Helvetica-Bold",
+    )
+
+    table_cell_style = ParagraphStyle(
+        "TableCell",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=7.0,
+        leading=8.2,
+    )
+
+    table_header_style = ParagraphStyle(
+        "TableHeader",
+        parent=table_cell_style,
+        fontName="Helvetica-Bold",
+    )
+
+    story = []
+
+    def escape_html(value):
+        return (
+            str(value)
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+
+    def clean_line(value):
+        line = str(value or "").strip()
+        line = line.replace("**", "").replace("__", "")
+        while line.startswith("#"):
+            line = line[1:].strip()
+        return line
+
+    def get_label_value_from_summary(label, summary_text):
+        for raw in str(summary_text or "").splitlines():
+            line = clean_line(raw)
+            if line.lower().startswith(label.lower() + ":"):
+                return line.split(":", 1)[1].strip()
+        return ""
+
+    def is_markdown_separator(line):
+        stripped = str(line or "").strip()
+        if not stripped:
+            return False
+        stripped = stripped.replace("|", "").replace("-", "").replace(":", "").strip()
+        return stripped == ""
+
+    def is_markdown_table_line(line):
+        line = str(line or "").strip().replace("\\|", "|")
+        return bool(line and line.count("|") >= 2)
+
+    def parse_markdown_table_row(line):
+        line = str(line or "").strip().replace("\\|", "|")
+        if not line.startswith("|"):
+            line = "|" + line
+        if not line.endswith("|"):
+            line = line + "|"
+        return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+    def add_pdf_table(table_rows):
+        if not table_rows:
+            return
+
+        cleaned_rows = []
+
+        for row in table_rows:
+            if len(row) == 1:
+                continue
+
+            joined = "|".join(row)
+            if is_markdown_separator("|" + joined + "|"):
+                continue
+
+            cleaned_rows.append(row)
+
+        if len(cleaned_rows) <= 1:
+            return
+
+        max_cols = max(len(row) for row in cleaned_rows)
+        normalized_rows = []
+
+        for row_index, row in enumerate(cleaned_rows):
+            row = row + [""] * (max_cols - len(row))
+            formatted_row = []
+
+            for cell in row:
+                safe_cell = escape_html(cell)
+                if row_index == 0:
+                    formatted_row.append(Paragraph(safe_cell, table_header_style))
+                else:
+                    formatted_row.append(Paragraph(safe_cell, table_cell_style))
+
+            normalized_rows.append(formatted_row)
+
+        available_width = 7.1 * inch
+
+        if max_cols == 2:
+            col_widths = [4.75 * inch, 2.00 * inch]
+        elif max_cols == 3:
+            col_widths = [4.55 * inch, 1.35 * inch, 1.20 * inch]
+        elif max_cols == 4:
+            col_widths = [2.3 * inch, 1.6 * inch, 1.6 * inch, 1.6 * inch]
+        elif max_cols == 5:
+            col_widths = [2.05 * inch, 1.1 * inch, 1.35 * inch, 1.25 * inch, 1.35 * inch]
+        elif max_cols == 7:
+            col_widths = [0.85 * inch, 2.10 * inch, 0.95 * inch, 0.80 * inch, 0.95 * inch, 0.90 * inch, 0.85 * inch]
+        elif max_cols == 8:
+            col_widths = [1.05 * inch, 0.85 * inch, 0.95 * inch, 0.70 * inch, 0.90 * inch, 0.85 * inch, 0.80 * inch, 1.20 * inch]
+        else:
+            col_widths = [available_width / max_cols] * max_cols
+
+        table = Table(
+            normalized_rows,
+            colWidths=col_widths,
+            repeatRows=1,
+            hAlign="LEFT",
+        )
+
+        table.setStyle(TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.35, colors.grey),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]))
+
+        story.append(table)
+        story.append(Spacer(1, 0.10 * inch))
+
+    raw_lines = final_summary.splitlines()
+    cleaned_lines = []
+
+    skip_phrases = [
+        "RAMOS LAW",
+        "INJURY DIVISION",
+        "10190 BANNOCK",
+        "NORTHGLENN",
+        "RAMOSLAW.COM",
+    ]
+
+    for raw_line in raw_lines:
+        line = clean_line(raw_line)
+
+        if not line:
+            cleaned_lines.append("")
+            continue
+
+        upper_line = line.upper()
+
+        if any(phrase in upper_line for phrase in skip_phrases) and not is_markdown_table_line(line):
+            continue
+
+        if set(line) <= {"-", "_", " "}:
+            continue
+
+        cleaned_lines.append(line)
+
+    client = get_label_value_from_summary("Client", final_summary)
+    memo_date = get_label_value_from_summary("Date", final_summary)
+    found_case_number = get_label_value_from_summary("Case Number", final_summary) or case_number
+
+    summary_upper = final_summary.upper()
+    memo_title = (
+        "TEMPORARY SETTLEMENT MEMORANDUM"
+        if "TEMPORARY SETTLEMENT MEMORANDUM" in summary_upper
+        else "SETTLEMENT MEMORANDUM"
+    )
+
+    remaining_lines = []
+
+    for line in cleaned_lines:
+        upper_line = line.upper().strip()
+
+        if upper_line.startswith("CLIENT:"):
+            continue
+        if upper_line.startswith("CASE NUMBER:"):
+            continue
+        if upper_line.startswith("DATE:"):
+            continue
+        if upper_line in ["SETTLEMENT MEMORANDUM", "TEMPORARY SETTLEMENT MEMORANDUM"]:
+            continue
+
+        remaining_lines.append(line)
+
+    header_rows = []
+
+    if memo_date:
+        header_rows.append(["Date:", memo_date])
+
+    if client:
+        header_rows.append(["Client:", client])
+
+    header_rows.append(["Case Number:", found_case_number])
+
+    header_table = Table(
+        header_rows,
+        colWidths=[1.05 * inch, 5.5 * inch],
+    )
+
+    header_table.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+    ]))
+
+    story.append(header_table)
+    story.append(Spacer(1, 0.25 * inch))
+    story.append(Paragraph(memo_title, title_style))
+
+    section_keywords = [
+        "SOURCE FILES",
+        "RECOVERY",
+        "ATTORNEY FEES",
+        "CASE EXPENSES",
+        "OTHER DEDUCTIONS",
+        "OTHER DEDUCTIONS / MEDICAL BILLS / LIENS",
+        "CLIENT AMOUNT DUE",
+        "PROJECTED CLIENT AMOUNT DUE",
+        "SETTLEMENT SUMMARY",
+        "CLIENT ACKNOWLEDGEMENT",
+        "CLIENT ACKNOWLEDGMENT",
+        "GENERAL ACKNOWLEDGEMENTS",
+        "GENERAL ACKNOWLEDGMENTS",
+        "FINAL ACKNOWLEDGEMENT",
+        "SIGNATURE SECTION",
+        "END OF SETTLEMENT MEMORANDUM",
+    ]
+
+    current_block = []
+    current_table = []
+
+    def flush_block():
+        if not current_block:
+            return
+
+        paragraph_text = "<br/>".join(escape_html(x) for x in current_block if x.strip())
+
+        if paragraph_text:
+            story.append(Paragraph(paragraph_text, body_style))
+
+        current_block.clear()
+
+    def flush_table():
+        if current_table:
+            add_pdf_table(current_table)
+            current_table.clear()
+
+    for line in remaining_lines:
+        if not line:
+            flush_table()
+            flush_block()
+            story.append(Spacer(1, 0.04 * inch))
+            continue
+
+        if is_markdown_table_line(line):
+            flush_block()
+            row = parse_markdown_table_row(line)
+            joined_row = "|" + "|".join(row) + "|"
+
+            if not is_markdown_separator(joined_row):
+                current_table.append(row)
+
+            continue
+
+        flush_table()
+
+        upper_line = line.upper().rstrip(":").strip()
+        is_section = any(
+            keyword == upper_line or upper_line.startswith(keyword)
+            for keyword in section_keywords
+        )
+
+        if is_section and len(line) < 110:
+            flush_block()
+            flush_table()
+
+            if "CLIENT ACKNOWLEDGEMENT" in upper_line or "CLIENT ACKNOWLEDGMENT" in upper_line:
+                story.append(PageBreak())
+
+            story.append(Paragraph(escape_html(line), section_style))
+            continue
+
+        if (
+            upper_line.startswith("TOTAL ")
+            or upper_line.startswith("NET AMOUNT")
+            or upper_line.startswith("LESS PREVIOUSLY")
+            or upper_line.startswith("PROJECTED NET")
+            or upper_line.startswith("PROJECTED TOTAL")
+        ):
+            flush_block()
+            story.append(Paragraph(escape_html(line), bold_style))
+            continue
+
+        current_block.append(line)
+
+    flush_table()
+    flush_block()
+
+    doc.build(story)
+    content_buffer.seek(0)
+
+    try:
+        content_reader = PdfReader(content_buffer)
+
+        if not content_reader.pages:
+            return JSONResponse(
+                content={"status": "error", "message": "Generated content PDF did not contain any pages."},
+                status_code=500,
+            )
+
+        writer = PdfWriter()
+
+        for content_page in content_reader.pages:
+            background_reader = PdfReader(letterhead_path)
+
+            if not background_reader.pages:
+                return JSONResponse(
+                    content={"status": "error", "message": "letterhead.pdf does not contain any pages."},
+                    status_code=500,
+                )
+
+            background_page = background_reader.pages[0]
+            background_page.merge_page(content_page)
+            writer.add_page(background_page)
+
+        output_buffer = BytesIO()
+        writer.write(output_buffer)
+        output_buffer.seek(0)
+
+    except Exception as error:
+        return JSONResponse(
+            content={"status": "error", "message": f"Failed to generate PDF with letterhead: {str(error)}"},
+            status_code=500,
+        )
+
+    return StreamingResponse(
+        output_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="CaseValue_{case_number}.pdf"'
+        },
+    )
+
+
+@router.post("/ocr-test")
+async def ocr_test(file: UploadFile = File(...)):
+    if not file:
+        return JSONResponse(
+            content={"status": "error", "message": "No file uploaded. Expected form field name: file"},
+            status_code=400,
+        )
+
+    if not file.filename.lower().endswith(".pdf"):
+        return JSONResponse(
+            content={"status": "error", "message": "Only PDF files are supported."},
+            status_code=400,
+        )
+
+    try:
+        pdf_bytes = await file.read()
+        pdf_doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+
+        pages = []
+        full_text_parts = []
+
+        for page_index, page in enumerate(pdf_doc, start=1):
+            text = page.get_text("text") or ""
+            text = text.strip()
+
+            pages.append({
+                "page": page_index,
+                "characters": len(text),
+                "text": text,
+            })
+
+            if text:
+                full_text_parts.append(f"--- Page {page_index} ---\n{text}")
+
+        pdf_doc.close()
+        merged_text = "\n\n".join(full_text_parts).strip()
+
+        return {
+            "status": "success",
+            "fileName": file.filename,
+            "pageCount": len(pages),
+            "totalCharacters": len(merged_text),
+            "mergedText": merged_text,
+            "pages": pages,
+        }
+
+    except Exception as error:
+        return JSONResponse(
+            content={"status": "error", "message": str(error)},
+            status_code=500,
+        )
+
+#################################################################
+
+
+pytesseract.pytesseract.tesseract_cmd = os.getenv(
+    "TESSERACT_CMD",
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+)
+
+API_KEY = os.getenv("OCR_API_KEY", "change-me")
+
+
+AMOUNT_RE = re.compile(r"\$\s*-?\d+(?:,\d{3})*(?:\.\d{2})?")
+CONTEXT_AMOUNT_RE = re.compile(
+    r"(?i)(?:total|amount due|total due|balance due|current balance|patient balance|claim balance|invoice total|charges|due|paid amt\.?|paid amount|lien amount|final balance|total lien)\s*[:\-]?\s*\$?\s*(-?\d+(?:,\d{3})*(?:\.\d{2})?)"
+)
+DATE_RE = re.compile(r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[.-]\d{2}[.-]\d{2})\b")
+
+
+def money_to_decimal(value):
+    try:
+        cleaned = str(value).replace("$", "").replace(",", "").replace(" ", "").strip()
+        if not cleaned:
+            return Decimal("0.00")
+        return Decimal(cleaned).quantize(Decimal("0.01"))
+    except (InvalidOperation, ValueError):
+        return Decimal("0.00")
+
+
+def money_fmt(value):
+    return f"${money_to_decimal(value):,.2f}"
+
+
+def normalize_name(value):
+    value = str(value or "").lower()
+    value = re.sub(r"\b(billing|bill|invoice|statement|ledger|final|balance|pllc|llc|inc|pdf|docx?|copy|duplicate)\b", "", value)
+    value = re.sub(r"\b\d+\b", "", value)
+    value = re.sub(r"[^a-z0-9]+", " ", value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def find_amounts(text):
+    text = str(text or "")
+    amounts = []
+
+    for raw in AMOUNT_RE.findall(text):
+        amount = money_to_decimal(raw)
+        if amount > 0:
+            amounts.append(amount)
+
+    for raw in CONTEXT_AMOUNT_RE.findall(text):
+        amount = money_to_decimal(raw)
+        if amount > 0:
+            amounts.append(amount)
+
+    return amounts
+
+
+FINANCIAL_FIELD_LABELS = {
+    "billed_amount": ["amount billed", "billed amount", "billed"],
+    "total_charges": ["total charges", "total charge", "charges"],
+    "paid_amount": ["insurance paid", "paid amount", "paid amt", "amount paid", "total paid", "paid"],
+    "reduction_amount": ["reduction amount", "reduced by", "reduction"],
+    "balance_amount": ["current balance", "patient balance", "claim balance", "balance due", "balance"],
+    "amount_due": ["final patient balance", "amount due", "balance due", "due amount", "due"],
+    "final_balance": ["final balance", "final lien", "final amount due"],
+    "lien_amount": ["total lien", "lien amount", "lien balance", "lien"],
+    "settlement_amount": ["settlement amount", "gross settlement", "settlement", "settlement payment"],
+    "expense_amount": ["invoice total", "expense amount", "total due", "amount due", "balance due"],
+}
+
+
+def _amount_pattern():
+    return r"-?\$?\s*\d+(?:,\d{3})*(?:\.\d{2})?"
+
+
+def _page_for_evidence(text, evidence, supplied_page=None):
+    if supplied_page is not None:
+        return supplied_page
+
+    evidence_position = str(text or "").find(evidence)
+    if evidence_position < 0:
+        return None
+
+    page_matches = list(re.finditer(r"--- PAGE\s+(\d+)", str(text or ""), re.I))
+    prior_pages = [match for match in page_matches if match.start() <= evidence_position]
+    return int(prior_pages[-1].group(1)) if prior_pages else None
+
+
+def extract_labeled_amount(
+    text, field_name, source_document=None, page_number=None, labels=None
+):
+    """Extract an amount only when it shares a line with an explicit label."""
+    labels = labels or FINANCIAL_FIELD_LABELS.get(field_name, [])
+    if not labels:
+        return None
+
+    label_pattern = "|".join(re.escape(label) for label in sorted(labels, key=len, reverse=True))
+    amount_pattern = _amount_pattern()
+    candidates = []
+
+    for line in str(text or "").splitlines():
+        if not re.search(rf"(?i)\b(?:{label_pattern})\b", line):
+            continue
+
+        matches = re.finditer(
+            rf"(?i)(?:\b(?:{label_pattern})\b\s*[:#\-]?\s*)({amount_pattern})|"
+            rf"({amount_pattern})\s*(?:\b(?:{label_pattern})\b)",
+            line,
+        )
+        for match in matches:
+            raw_amount = match.group(1) or match.group(2)
+            candidates.append((money_to_decimal(raw_amount), line.strip()))
+
+    if not candidates:
+        return None
+
+    value, evidence = candidates[-1]
+    return {
+        "value": value,
+        "field_name": field_name,
+        "source_document": source_document,
+        "page_number": _page_for_evidence(text, evidence, page_number),
+        "evidence_text": evidence,
+        "extraction_method": "explicit_label",
+        "confidence": 0.98,
+    }
+
+
+def extract_financial_amounts(text, source_document=None, page_number=None):
+    return {
+        field_name: extract_labeled_amount(
+            text, field_name, source_document=source_document, page_number=page_number
+        )
+        for field_name in FINANCIAL_FIELD_LABELS
+    }
+
+
+def extract_billed_amount(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "billed_amount", source_document, page_number)
+
+
+def extract_total_charges(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "total_charges", source_document, page_number)
+
+
+def extract_paid_amount(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "paid_amount", source_document, page_number)
+
+
+def extract_reduction_amount(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "reduction_amount", source_document, page_number)
+
+
+def extract_balance_amount(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "balance_amount", source_document, page_number)
+
+
+def extract_amount_due(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "amount_due", source_document, page_number)
+
+
+def extract_final_balance(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "final_balance", source_document, page_number)
+
+
+def extract_lien_amount(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "lien_amount", source_document, page_number)
+
+
+def extract_settlement_amount(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "settlement_amount", source_document, page_number)
+
+
+def extract_expense_amount(text, source_document=None, page_number=None):
+    return extract_labeled_amount(text, "expense_amount", source_document, page_number)
+
+
+def best_amount(text):
+    result = extract_labeled_amount(text, "amount_due")
+    return result["value"] if result else Decimal("0.00")
+
+
+def best_case_expense_amount(text, case_number=""):
+    result = extract_labeled_amount(text, "expense_amount")
+    return result["value"] if result else Decimal("0.00")
+
+
+def best_other_deduction_amount(text):
+    for field_name in ["final_balance", "amount_due", "balance_amount", "lien_amount"]:
+        result = extract_labeled_amount(text, field_name)
+        if result:
+            return result["value"]
+
+    return Decimal("0.00")
+
+
+def find_date(text):
+    match = DATE_RE.search(str(text or ""))
+    return match.group(0) if match else ""
+
+
+def clean_provider_from_filename(file_name):
+    name = str(file_name or "")
+    name = re.sub(r"\.[a-zA-Z0-9]+$", "", name)
+    name = re.sub(r"^\d{4}[.\- ]\d{1,2}[.\- ]\d{1,2}\s*[-_ ]*", "", name)
+    name = re.sub(r"\([^)]*\)", "", name)
+    name = re.sub(r"case\s*#?\s*\d+", "", name, flags=re.I)
+    name = re.sub(r"#\d+", "", name)
+    name = re.sub(r"\$[\d,]+(?:\.\d{2})?", "", name)
+    name = re.sub(r"\b(invoice|receipt|billing|bill|statement|ledger|final|balance|pdf|docx?|copy|duplicate)\b", "", name, flags=re.I)
+    name = re.sub(r"[_\-]+", " ", name)
+    name = re.sub(r"\s+", " ", name).strip(" -_")
+    return name or "Unknown Provider"
+
+
+def invoice_number(text):
+    text = str(text or "")
+
+    patterns = [
+        r"(?:invoice|inv\.?|invoice\s*#)\s*[:#]?\s*([A-Z0-9\-]+)",
+        r"mro\s+request\s+id\s*[:#]?\s*([A-Z0-9\-]+)",
+        r"mro\s+online\s+tracking\s+number\s*[:#]?\s*([A-Z0-9\-]+)",
+        r"tracking\s+number\s*[:#]?\s*([A-Z0-9\-]+)",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, text, re.I)
+        if match:
+            return match.group(1).strip()
+
+    return ""
+
+
+def is_zero_balance(text):
+    lower = str(text or "").lower()
+    return any(x in lower for x in [
+        "zero balance",
+        "0 balance",
+        "balance: $0.00",
+        "balance $0.00",
+        "balance due: $0.00",
+        "balance due $0.00",
+        "paid in full",
+    ])
+
+
+def is_case_expense(file_name, text):
+    name = str(file_name or "").lower()
+    lower = f"{name}\n{text}".lower()
+
+    if "client receipts" in name:
+        return False
+
+    expense_vendor_terms = [
+        "datavant",
+        "sharecare",
+        "chartswap",
+        "chart swap",
+        "chartrequest",
+        "chart request",
+        "ciox",
+        "mro",
+        "datafied",
+        "healthmark",
+        "hmg",
+        "usps",
+        "certified ltr",
+        "certified letter",
+        "copy charge",
+        "records invoice",
+        "medical records invoice",
+        "retrieval fee",
+        "delivery fee",
+        "buycrash",
+        "lexisnexis",
+        "background check",
+        "filing fee",
+        "cbi report",
+    ]
+
+    # These are case-expense vendors even if the filename also contains
+    # a provider name like hospital, medical center, radiology, etc.
+    if any(x in lower for x in expense_vendor_terms):
+        return True
+
+    hard_medical_bill_terms = [
+        "carepoint",
+        "hospital",
+        "medical center",
+        "emergency medicine",
+        "surgery center",
+        "orthopedics",
+        "orthopedic",
+        "pain center",
+        "clinic",
+    ]
+
+    if any(x in name for x in hard_medical_bill_terms):
+        return False
+
+    medical_provider_terms = [
+        "carepoint",
+        "advent",
+        "hospital",
+        "medical center",
+        "emergency",
+        "orthopedic",
+        "orthopedics",
+        "spine",
+        "therapy",
+        "pt center",
+        "physical therapy",
+        "pain",
+        "radiology",
+        "imaging",
+        "clinic",
+        "urology",
+        "psychiatry",
+        "vision",
+        "eye",
+        "surgery",
+    ]
+
+    if (
+        ("billing" in name or "bill" in name or "statement" in name)
+        and any(x in lower for x in medical_provider_terms)
+    ):
+        return False
+
+    if "invoice" in name or "receipt" in name:
+        medical_terms = [
+            "hospital",
+            "medical center",
+            "emergency",
+            "chiro",
+            "chiropractic",
+            "orthopedic",
+            "surgery",
+            "therapy",
+            "pt",
+            "pain",
+            "radiology",
+            "imaging",
+            "clinic",
+            "carepoint",
+            "advent",
+            "optum",
+            "medicaid",
+            "lien",
+            "subrogation",
+        ]
+        return not any(x in lower for x in medical_terms)
+
+    return False
+
+
+def is_lien_or_medical_bill(file_name, text):
+    name = str(file_name or "").lower()
+    lower = f"{name}\n{text}".lower()
+
+    if "movedocs" in lower and "reduction" in lower:
+        return False
+
+    settlement_or_offer_terms = [
+    "settlement release",
+    "settlement agreement",
+    "agreement and release",
+    "release_signed",
+    "release signed",
+    "settlement check",
+    "reconcile",
+    "uim offer",
+    "uim $",
+    "bi $",
+    "counteroffer",
+    "counter offer",
+    "claim status",
+    "evaluation",
+    "eval",
+    "loa",
+    "banner health",
+    "banner",
+    "dec page",
+    "settlement payment",
+    "payment confirmation",
+    "root bi settlement",
+    "safeway uim release",
+    "settlement payment",
+    "payment confirmation"
+]
+
+    if any(x in lower for x in settlement_or_offer_terms):
+        return False
+
+    junk_other_terms = [
+        "notice to client",
+        "notices to client",
+        "delay reduction order",
+        "order regarding plan",
+        "correspondence",
+        "lor",
+        "fax confirmation",
+        "no records found",
+        "unable to id",
+        "ucc liens - no liens found",
+        "client receipts",
+    ]
+
+    if any(x in name for x in junk_other_terms):
+        return False
+
+    if is_zero_balance(lower):
+        return False
+
+    if "banner health" in lower and "lien" in lower:
+        return True
+
+    return any(x in lower for x in [
+        "lien",
+        "subrogation",
+        "final balance",
+        "balance confirmation",
+        "claim balance",
+        "patient balance",
+        "amount due",
+        "ledger",
+        "billing",
+        "medical bill",
+        "hospital",
+        "medical center",
+        "emergency medicine",
+        "chiropractic",
+        "orthopedic",
+        "pain center",
+        "radiology",
+        "imaging",
+        "physical therapy",
+        "optum",
+        "carelon",
+        "access care",
+        "medicaid",
+        "hms",
+        "conduent",
+        "cigna",
+        "loan contract",
+        "funding",
+        "oasis",
+        "usclaims",
+        "bighorn law",
+    ])
+
+
+def is_actual_settlement(file_name, text):
+    name = str(file_name or "").lower()
+    lower = f"{file_name}\n{text}".lower()
+
+    # If filename clearly says signed/final release or settlement agreement, count it.
+    actual_name_terms = [
+        "settlement agreement",
+        "agreement and release",
+        "settlement and release",
+        "settlement release",
+        "release_signed",
+        "release signed",
+        "final_signed",
+        "signed release",
+        "settlement check",
+        "settlement payment",
+        "payment confirmation",
+        "reconcile",
+    ]
+
+    actual_text_terms = [
+        "settlement agreement",
+        "agreement and release",
+        "release of claims",
+        "release and settlement",
+        "final settlement agreement",
+        "settlement check",
+        "payment confirmation",
+    ]
+
+    if any(x in name for x in actual_name_terms):
+        return True
+
+    if any(x in lower for x in actual_text_terms):
+        return True
+
+    return False
+
+
+
+def is_medpay(file_name, text):
+    name = str(file_name or "").lower()
+    body = str(text or "").lower()
+
+    if any(x in name for x in ["medpay", "med pay", "medical payment", "medical payments"]):
+        return True
+
+    blocked_name_terms = [
+        "invoice",
+        "receipt",
+        "billing",
+        "bill",
+        "statement",
+        "ledger",
+        "lien",
+        "subrogation",
+        "final balance",
+        "zero balance",
+        "datavant",
+        "sharecare",
+        "chartswap",
+        "chartrequest",
+        "ciox",
+        "mro",
+        "datafied",
+        "healthmark",
+        "hmg",
+        "optum",
+        "united health",
+        "functional performance",
+        "hms",
+        "carepoint",
+        "advent",
+    ]
+
+    if any(x in name for x in blocked_name_terms):
+        return False
+
+    return any(x in body for x in [
+        "medpay exhausted",
+        "med pay exhausted",
+        "medical payments coverage",
+        "medical payment coverage",
+    ])
+
+
+def is_recovery_blocked_file(file_name, text):
+    name = str(file_name or "").lower()
+
+    # These filename types are never recovery, even if OCR text contains
+    # settlement/release language somewhere.
+    hard_block_name_terms = [
+        "lien",
+        "ledger",
+        "billing",
+        "bill",
+        "invoice",
+        "statement",
+        "final balance",
+        "balance confirmation",
+        "reduction",
+        "reduction denied",
+        "amount due",
+        "patient balance",
+        "claim balance",
+        "medical records",
+        "records request",
+    ]
+
+    if any(x in name for x in hard_block_name_terms):
+        return True
+
+    # Offers/demands are not recovery unless the filename itself is clearly
+    # an executed settlement/release/payment document.
+    offer_name_terms = [
+        "offer",
+        "counteroffer",
+        "counter offer",
+        "demand",
+        "evaluation",
+        "eval",
+    ]
+
+    actual_name_terms = [
+        "settlement agreement",
+        "agreement and release",
+        "settlement and release",
+        "settlement release",
+        "release_signed",
+        "release signed",
+        "final_signed",
+        "signed release",
+        "settlement check",
+        "settlement payment",
+        "payment confirmation",
+        "reconcile",
+    ]
+
+    if any(x in name for x in offer_name_terms) and not any(x in name for x in actual_name_terms):
+        return True
+
+    return False
+
+def recovery_amount_score(amount):
+    amount = money_to_decimal(amount)
+
+    if amount <= 0:
+        return -999
+
+    # Ignore tiny values, page numbers, postage, etc.
+    if amount < Decimal("1000.00"):
+        return -100
+
+    score = 0
+
+    # Settlement amounts are often round numbers.
+    if amount % Decimal("1000.00") == 0:
+        score += 40
+    elif amount % Decimal("500.00") == 0:
+        score += 25
+    elif amount % Decimal("100.00") == 0:
+        score += 10
+
+    if Decimal("5000.00") <= amount <= Decimal("1000000.00"):
+        score += 40
+
+    return score
+
+
+def extract_recovery_amount(file_name, text):
+    result = extract_labeled_amount(text, "settlement_amount", source_document=file_name)
+    return result["value"] if result else Decimal("0.00")
+
+
+def infer_recovery_payer(file_name, text):
+    lower = f"{file_name or ''}\n{text or ''}".lower()
+
+    payer_terms = [
+        ("root", "Root Insurance"),
+        ("safeway", "Safeway"),
+        ("state farm", "State Farm"),
+        ("farmers", "Farmers"),
+        ("allstate", "Allstate"),
+        ("progressive", "Progressive"),
+        ("geico", "GEICO"),
+        ("liberty mutual", "Liberty Mutual"),
+        ("usaa", "USAA"),
+        ("american family", "American Family"),
+        ("allied", "Allied"),
+    ]
+
+    for key, label in payer_terms:
+        if key in lower:
+            return label
+
+    return clean_provider_from_filename(file_name)
+
+
+def dedupe_rows(rows, mode):
+    seen = set()
+    result = []
+
+    for row in rows:
+        if mode == "recovery":
+            key = (
+                normalize_name(row.get("source")),
+                money_to_decimal(row.get("amount")),
+            )
+        elif mode == "case_expense":
+            key = (
+                normalize_name(row.get("provider")),
+                str(row.get("date", "")).strip(),
+                money_to_decimal(row.get("amount")),
+            )
+        else:
+            key = (
+                normalize_name(row.get("provider")),
+                str(row.get("date", "")).strip(),
+                money_to_decimal(row.get("due")),
+            )
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+        result.append(row)
+
+    return result
+
+def recovery_base_name(source):
+    s = normalize_name(source)
+
+    remove_terms = [
+        "signed", "final", "copy", "duplicate", "1", "2",
+        "pdf", "doc", "docx"
+    ]
+
+    for term in remove_terms:
+        s = re.sub(rf"\b{re.escape(term)}\b", " ", s)
+
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
+def recovery_preference_score(row):
+    source = str(row.get("source", "")).lower()
+    score = 0
+
+    if "signed" in source:
+        score += 100
+    if "final" in source:
+        score += 50
+    if "settlement agreement" in source:
+        score += 40
+    if "agreement and release" in source:
+        score += 40
+    if "release" in source:
+        score += 20
+    if "check" in source or "reconcile" in source or "payment" in source:
+        score += 15
+
+    return score
+
+
+def dedupe_recoveries_prefer_signed(rows):
+    best = {}
+
+    for row in rows:
+        source = row.get("source", "")
+        amount = row.get("amount", Decimal("0"))
+
+        # Same recovery amount + same base filename = duplicate.
+        key = (
+            recovery_base_name(source),
+            str(amount)
+        )
+
+        if key not in best:
+            best[key] = row
+            continue
+
+        if recovery_preference_score(row) > recovery_preference_score(best[key]):
+            best[key] = row
+
+    return list(best.values())
+
+def date_sort_key(value):
+    value = str(value or "")
+
+    match = re.search(r"(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})", value)
+    if match:
+        return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+
+    match = re.search(r"(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})", value)
+    if match:
+        year = int(match.group(3))
+        if year < 100:
+            year += 2000
+        return (year, int(match.group(1)), int(match.group(2)))
+
+    return (0, 0, 0)
+
+
+def keep_latest_lien_letters(rows):
+    lien_entities = [
+        "optum",
+        "carelon",
+        "access care",
+        "medicaid",
+        "hms",
+        "conduent",
+        "cigna",
+        "lien partners",
+        "united health",
+        "movedocs",
+        "move docs",
+    ]
+
+    grouped = {}
+    passthrough = []
+
+    for row in rows:
+        provider_norm = normalize_name(row.get("provider"))
+        entity = ""
+
+        for lien_entity in lien_entities:
+            if lien_entity in provider_norm:
+                entity = lien_entity
+                break
+
+        if not entity:
+            passthrough.append(row)
+            continue
+
+        current = grouped.get(entity)
+        if not current:
+            grouped[entity] = row
+            continue
+
+        current_date = date_sort_key(current.get("date") or current.get("source"))
+        new_date = date_sort_key(row.get("date") or row.get("source"))
+
+        if new_date >= current_date:
+            grouped[entity] = row
+
+    return passthrough + list(grouped.values())
+
+
+def detect_hints(text):
+    lower = str(text or "").lower()
+    amounts = sorted(set(str(a) for a in find_amounts(text)))
+
+    return {
+        "hasInvoice": any(x in lower for x in ["invoice", "receipt", "amount due", "total due"]),
+        "hasLien": any(x in lower for x in ["lien", "subrogation", "medicaid", "hms", "optum", "carelon", "access care"]),
+        "hasZeroBalance": is_zero_balance(text),
+        "hasFinalBalance": any(x in lower for x in ["final balance", "final lien", "final settlement"]),
+        "hasSettlement": any(x in lower for x in ["settlement agreement", "agreement and release", "release of claims"]),
+        "amounts": amounts[:80],
+    }
+
+
+def text_layer_is_usable(text):
+    """Return false for empty, sparse, or mostly non-text PDF layers."""
+    value = str(text or "").strip()
+    if len(value) < 50:
+        return False
+
+    meaningful = sum(char.isalnum() for char in value)
+    return meaningful >= 25 and meaningful / max(len(value), 1) >= 0.20
+
+
+def preprocess_ocr_image(image):
+    """Apply restrained preprocessing that keeps line and column spacing."""
+    grayscale = ImageOps.grayscale(image)
+    enhanced = ImageEnhance.Contrast(grayscale).enhance(1.6)
+    denoised = enhanced.filter(ImageFilter.MedianFilter(size=3))
+    normalized = ImageOps.autocontrast(denoised)
+
+    # Binarize only low-contrast pages; normal scans retain grayscale detail.
+    extrema = grayscale.getextrema()
+    if isinstance(extrema, tuple) and len(extrema) == 2:
+        low, high = extrema
+        if isinstance(low, (int, float)) and isinstance(high, (int, float)) and high - low < 100:
+            return normalized.convert("1").convert("L")
+
+    return normalized
+
+
+def ocr_pdf_page(page, dpi=300):
+    scale = dpi / 72
+    pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
+    image = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+    processed = preprocess_ocr_image(image)
+    config = "--psm 3"
+
+    raw_text = pytesseract.image_to_string(processed, config=config)
+    data = pytesseract.image_to_data(
+        processed,
+        config=config,
+        output_type=pytesseract.Output.DICT,
+    )
+    confidences = [
+        float(value)
+        for value, word in zip(data.get("conf", []), data.get("text", []))
+        if word.strip() and str(value).strip() not in {"", "-1"}
+    ]
+
+    return {
+        "rawText": raw_text,
+        "cleanedText": raw_text.strip(),
+        "confidence": round(sum(confidences) / len(confidences), 2) if confidences else None,
+        "method": f"tesseract_ocr_{dpi}dpi_preprocessed",
+    }
+
+
+def extract_pdf(path):
+    doc = fitz.open(path)
+    pages = []
+    full_parts = []
+
+    for i, page in enumerate(doc):
+        raw_text = page.get_text("text")
+        method = "pdf_text"
+        confidence = None
+
+        if text_layer_is_usable(raw_text):
+            cleaned_text = raw_text.strip()
+        else:
+            ocr_result = ocr_pdf_page(page)
+            raw_text = ocr_result["rawText"]
+            cleaned_text = ocr_result["cleanedText"]
+            method = ocr_result["method"]
+            confidence = ocr_result["confidence"]
+
+        pages.append({
+            "page": i + 1,
+            "text": cleaned_text,
+            "method": method,
+            "rawText": raw_text,
+            "cleanedText": cleaned_text,
+            "textLength": len(cleaned_text),
+            "confidence": confidence,
+        })
+
+        full_parts.append(f"\n\n--- PAGE {i + 1} ({method}) ---\n{cleaned_text}")
+
+    doc.close()
+    return "\n".join(full_parts).strip(), pages
+
+
+def extract_docx(path):
+    doc = Document(path)
+    parts = []
+
+    for paragraph in doc.paragraphs:
+        if paragraph.text.strip():
+            parts.append(paragraph.text.strip())
+
+    for table in doc.tables:
+        for row in table.rows:
+            cells = [cell.text.strip() for cell in row.cells]
+            if any(cells):
+                parts.append(" | ".join(cells))
+
+    text = "\n".join(parts).strip()
+
+    return text, [{
+        "page": 1,
+        "text": text,
+        "method": "docx_text",
+    }]
+
+
+def parse_documents_from_payload(payload):
+    payload_documents = payload.get("documents")
+    if isinstance(payload_documents, list):
+        return [
+            {
+                **document,
+                "fileId": document.get("fileId") or document.get("file_id") or "",
+                "fileName": document.get("fileName") or document.get("file_name") or "Unknown Document",
+            }
+            for document in payload_documents
+            if isinstance(document, dict)
+        ]
+
+    text = (
+        payload.get("structuredEvidence")
+        or payload.get("structured_evidence")
+        or payload.get("text")
+        or payload.get("merged_text")
+        or ""
+    )
+
+    case_number = payload.get("caseNumber") or payload.get("case_number") or ""
+    matches = list(re.finditer(r"(?mi)^SOURCE FILE:\s*(.+?)\s*$", text))
+
+    docs = []
+
+    if matches:
+        for idx, match in enumerate(matches):
+            file_name = match.group(1).strip()
+            start = match.end()
+            end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
+
+            docs.append({
+                "caseNumber": case_number,
+                "fileName": file_name,
+                "text": text[start:end].strip(),
+            })
+    else:
+        docs.append({
+            "caseNumber": case_number,
+            "fileName": payload.get("fileName") or "Combined OCR Evidence",
+            "text": text,
+        })
+
+    return docs
+
+
+def _document_text_and_pages(document):
+    pages = document.get("pages") or []
+    if pages:
+        normalized_pages = []
+        for index, page in enumerate(pages, start=1):
+            normalized_pages.append({
+                "page": page.get("page", index),
+                "text": page.get("cleanedText") or page.get("text") or "",
+                "rawText": page.get("rawText") or page.get("text") or "",
+                "method": page.get("method"),
+                "confidence": page.get("confidence"),
+            })
+        return "\n\n".join(page["text"] for page in normalized_pages), normalized_pages
+
+    text = document.get("cleanedText") or document.get("text") or document.get("fullText") or ""
+    return text, [{
+        "page": 1,
+        "text": text,
+        "rawText": document.get("rawText") or text,
+        "method": document.get("method") or "provided_text",
+        "confidence": document.get("confidence"),
+    }]
+
+
+def _document_type(file_name, text):
+    if is_actual_settlement(file_name, text):
+        return "settlement"
+    if is_case_expense(file_name, text):
+        return "case_expense"
+    if is_lien_or_medical_bill(file_name, text):
+        return "lien_or_medical_bill"
+    if is_medpay(file_name, text):
+        return "medpay"
+    return "other"
+
+
+def validate_financial_evidence(structured_document, source_pages=None):
+    financial = structured_document.get("financial", {})
+    status = structured_document.get("status", {})
+    pages = source_pages or []
+    page_numbers = {page.get("page") for page in pages}
+
+    for field_name, record in financial.items():
+        if record is None:
+            continue
+
+        value = record.get("value")
+        evidence = str(record.get("evidence_text") or "")
+        page = record.get("page_number")
+        labels = FINANCIAL_FIELD_LABELS.get(record.get("field_name"), [])
+
+        evidence_values = [
+            money_to_decimal(raw)
+            for raw in re.findall(_amount_pattern(), evidence)
+        ]
+        if evidence == "" or value not in evidence_values:
+            return {"valid": False, "reason": f"{field_name} value is not present in its evidence", "requires_review": True}
+        if pages and page not in page_numbers:
+            return {"valid": False, "reason": f"{field_name} references a missing page", "requires_review": True}
+        if labels and not any(label.lower() in evidence.lower() for label in labels):
+            return {"valid": False, "reason": f"Evidence does not support {field_name}", "requires_review": True}
+
+    billed = financial.get("billed")
+    paid = financial.get("paid")
+    reduction = financial.get("reduction")
+    balance = financial.get("balance")
+    if all(record is not None for record in [billed, paid, reduction, balance]):
+        expected = (billed["value"] - paid["value"] - reduction["value"]).quantize(Decimal("0.01"))
+        if expected != balance["value"]:
+            return {"valid": False, "reason": "billed - paid - reduction does not equal balance", "requires_review": True}
+
+    if status.get("is_zero_balance"):
+        for field_name in ["balance", "due", "final_balance", "lien"]:
+            record = financial.get(field_name)
+            if record and record["value"] > 0:
+                return {"valid": False, "reason": "zero-balance document has a payable balance", "requires_review": True}
+
+    if status.get("is_final_balance") and financial.get("billed"):
+        final_record = financial.get("final_balance") or financial.get("due") or financial.get("balance")
+        if final_record is None:
+            return {"valid": False, "reason": "final balance document has no final balance evidence", "requires_review": True}
+
+    document_type = structured_document.get("document_type")
+    type_fields = {
+        "settlement": ["settlement"],
+        "medpay": ["settlement"],
+        "case_expense": ["expense"],
+        "lien_or_medical_bill": ["lien", "balance", "due", "final_balance"],
+    }
+    expected_fields = type_fields.get(document_type, [])
+    if expected_fields and not any(financial.get(field_name) is not None for field_name in expected_fields):
+        if any(financial.get(field_name) is not None for field_name in ["settlement", "expense", "lien"]):
+            return {"valid": False, "reason": "document type is inconsistent with extracted financial fields", "requires_review": True}
+
+    if status.get("is_aggregate_lien") and any(
+        financial.get(field_name) is not None for field_name in ["billed", "paid", "reduction"]
+    ):
+        return {"valid": False, "reason": "aggregate lien is mixed with individual medical fields", "requires_review": True}
+
+    return {"valid": True, "reason": "Financial evidence validated", "requires_review": False}
+
+
+def build_structured_document_evidence(document):
+    """Normalize one OCR document without inventing missing financial values."""
+    file_id = document.get("file_id") or document.get("fileId") or ""
+    file_name = document.get("file_name") or document.get("fileName") or "Unknown Document"
+    text, pages = _document_text_and_pages(document)
+    financial = {}
+    evidence = []
+
+    field_map = {
+        "billed": "billed_amount",
+        "paid": "paid_amount",
+        "reduction": "reduction_amount",
+        "balance": "balance_amount",
+        "due": "amount_due",
+        "lien": "lien_amount",
+        "settlement": "settlement_amount",
+        "expense": "expense_amount",
+        "total_charges": "total_charges",
+        "final_balance": "final_balance",
+    }
+
+    for output_name, field_name in field_map.items():
+        matches = []
+        for page in pages:
+            result = extract_labeled_amount(
+                page["text"],
+                field_name,
+                source_document=file_name,
+                page_number=page["page"],
+            )
+            if result:
+                matches.append(result)
+
+        value = matches[-1] if matches else None
+        financial[output_name] = value
+        if value:
+            evidence.append({
+                "field_name": output_name,
+                "value": value["value"],
+                "page": value["page_number"],
+                "evidence": value["evidence_text"],
+                "extraction_method": value["extraction_method"],
+                "confidence": value["confidence"],
+            })
+
+    lower = text.lower()
+    is_zero = is_zero_balance(text)
+    is_paid_in_full = "paid in full" in lower or "paid-in-full" in lower
+    is_final = any(
+        value is not None for key, value in financial.items() if key == "final_balance"
+    ) or any(term in lower for term in ["final balance", "final patient balance", "final lien"])
+    is_aggregate = "movedocs" in lower or "move docs" in lower
+    document_type = _document_type(file_name, text)
+
+    structured_document = {
+        "file_id": file_id,
+        "file_name": file_name,
+        "document_type": document_type,
+        "provider": clean_provider_from_filename(file_name),
+        "dates": {"document_date": find_date(text) or find_date(file_name)},
+        "pages": pages,
+        "raw_ocr": "\n\n".join(page["rawText"] for page in pages),
+        "financial": financial,
+        "status": {
+            "is_final_balance": is_final,
+            "is_zero_balance": is_zero,
+            "is_paid_in_full": is_paid_in_full,
+            "is_aggregate_lien": is_aggregate,
+        },
+        "section": "recovery" if document_type in {"settlement", "medpay"} else (
+            "case_expenses" if document_type == "case_expense" else "other_deductions"
+        ),
+        "evidence": evidence,
+        "confidence": {
+            item["field_name"]: item["confidence"] for item in evidence
+        },
+    }
+    structured_document["validation"] = validate_financial_evidence(
+        structured_document, pages
+    )
+    return structured_document
+
+
+def build_structured_evidence(documents):
+    return [build_structured_document_evidence(document) for document in (documents or [])]
+
+
+def build_document_evidence_payload(documents):
+    """Build an independent document collection without truncating OCR text."""
+    structured_documents = build_structured_evidence(documents)
+    return {
+        "documents": structured_documents,
+        "truncated": False,
+        "omitted_documents": [],
+    }
+
+
+def _verified_money(record, field_name, file_id):
+    if record is None:
+        return None
+
+    try:
+        value = Decimal(str(record["value"])).quantize(Decimal("0.01"))
+    except (KeyError, InvalidOperation, TypeError, ValueError) as error:
+        raise ValueError(f"Invalid {field_name} value for {file_id}") from error
+
+    if not value.is_finite() or value < 0:
+        raise ValueError(f"Invalid {field_name} value for {file_id}")
+    return value
+
+
+def _calculation_component(document, record, category, amount):
+    return {
+        "file_id": document.get("file_id", ""),
+        "source_filename": document.get("file_name", ""),
+        "document_type": document.get("document_type", ""),
+        "provider": document.get("provider", ""),
+        "category": category,
+        "amount": amount,
+        "evidence": record.get("evidence_text") or record.get("evidence", ""),
+        "page": record.get("page_number", record.get("page")),
+    }
+
+
+def calculate_financials(verified_documents, attorney_fee_percentage=Decimal("0.35")):
+    """Calculate settlement figures from validated structured documents only."""
+    recovery_components = []
+    expense_components = []
+    deduction_components = []
+    fee_base_components = []
+
+    try:
+        fee_percentage = Decimal(str(attorney_fee_percentage))
+    except (InvalidOperation, TypeError, ValueError) as error:
+        raise ValueError("Invalid attorney fee percentage") from error
+    if not fee_percentage.is_finite() or fee_percentage < 0:
+        raise ValueError("Invalid attorney fee percentage")
+
+    for document in verified_documents or []:
+        validation = document.get("validation", {})
+        if validation.get("valid") is not True:
+            raise ValueError(f"Unverified document: {document.get('file_id', '')}")
+
+        financial = document.get("financial", {})
+        file_id = document.get("file_id", "")
+        document_type = document.get("document_type")
+
+        settlement = _verified_money(financial.get("settlement"), "settlement", file_id)
+        if settlement is not None and document_type in {"settlement", "medpay"}:
+            component = _calculation_component(document, financial["settlement"], "recovery", settlement)
+            recovery_components.append(component)
+            if document_type == "settlement":
+                fee_base_components.append(component)
+
+        expense = _verified_money(financial.get("expense"), "expense", file_id)
+        if expense is not None and document_type == "case_expense":
+            expense_components.append(
+                _calculation_component(document, financial["expense"], "case_expense", expense)
+            )
+
+        deduction_record = None
+        deduction_field = None
+        for candidate in ["final_balance", "due", "balance", "lien"]:
+            if financial.get(candidate) is not None:
+                deduction_record = financial[candidate]
+                deduction_field = candidate
+                break
+        deduction = _verified_money(deduction_record, deduction_field or "deduction", file_id)
+        if deduction is not None and document_type not in {"settlement", "medpay", "case_expense"}:
+            deduction_components.append(
+                _calculation_component(document, deduction_record, deduction_field, deduction)
+            )
+
+    recovery_amount = sum((item["amount"] for item in recovery_components), Decimal("0.00"))
+    fee_base = sum((item["amount"] for item in fee_base_components), Decimal("0.00"))
+    attorney_fee = (fee_base * fee_percentage).quantize(Decimal("0.01"))
+    expense_amount = sum((item["amount"] for item in expense_components), Decimal("0.00"))
+    other_amount = sum((item["amount"] for item in deduction_components), Decimal("0.00"))
+    total_deductions = attorney_fee + expense_amount + other_amount
+    net_amount = recovery_amount - total_deductions
+
+    return {
+        "recovery": {
+            "components": recovery_components,
+            "amount": recovery_amount,
+        },
+        "attorney_fee": {
+            "percentage": fee_percentage,
+            "base": fee_base,
+            "base_components": fee_base_components,
+            "amount": attorney_fee,
+        },
+        "case_expenses": {
+            "components": expense_components,
+            "amount": expense_amount,
+        },
+        "other_deductions": {
+            "components": deduction_components,
+            "amount": other_amount,
+        },
+        "total_deductions": {
+            "components": [
+                {"category": "attorney_fee", "amount": attorney_fee},
+                {"category": "case_expenses", "amount": expense_amount},
+                {"category": "other_deductions", "amount": other_amount},
+            ],
+            "amount": total_deductions,
+        },
+        "net_amount": {
+            "recovery": recovery_amount,
+            "deductions": total_deductions,
+            "amount": net_amount,
+        },
+    }
+
+
+def build_markdown_table(headers, rows):
+    output = []
+    output.append("| " + " | ".join(headers) + " |")
+    output.append("|" + "|".join(["---"] * len(headers)) + "|")
+    output.extend(rows)
+    return "\n".join(output)
+
+def extract_covered_providers_from_lien(text):
+    lower = str(text or "").lower()
+
+    provider_terms = [
+        "accident injury",
+        "accident & injury",
+        "az imaging",
+        "arizona diagnostic imaging",
+        "athletico",
+        "radiology partners",
+        "sonoran radiology",
+        "banner desert",
+        "banner health",
+        "mesa fire",
+        "city of mesa",
+        "usacs",
+        "emergency physicians",
+        "ambulatory",
+        "surgery center",
+        "hospital",
+        "physical therapy",
+        "pt",
+        "imaging",
+        "chiropractic",
+        "orthopedic",
+        "orthopedics",
+    ]
+
+    covered = set()
+
+    for term in provider_terms:
+        if term in lower:
+            covered.add(term)
+
+    return covered
+
+
+def source_matches_covered_provider(source, provider, covered_terms):
+    haystack = f"{source} {provider}".lower()
+
+    aliases = {
+        "accident injury": ["accident injury", "accident and injury", "accident & injury"],
+        "az imaging": ["az imaging", "arizona imaging", "arizona advanced imaging"],
+        "athletico": ["athletico", "athletico pt"],
+        "radiology partners": ["radiology partners", "sonoran radiology"],
+    }
+
+    for term in covered_terms:
+        if term and term in haystack:
+            return True
+
+        for alias in aliases.get(term, []):
+            if alias in haystack:
+                return True
+
+    return False
+
+def is_movedocs_reduction_doc(file_name, text):
+    lower = f"{file_name or ''}\n{text or ''}".lower()
+
+    return (
+        ("movedocs" in lower or "move docs" in lower)
+        and any(x in lower for x in [
+            "reduction",
+            "reduced",
+            "will accept",
+            "total payable",
+            "made payable",
+            "remit a total",
+        ])
+    )
+
+
+def extract_movedocs_reduction_rows(file_name, text, date):
+    combined = f"{file_name or ''}\n{text or ''}"
+    lower = combined.lower()
+    rows = []
+
+    provider_aliases = [
+        ("Accident and Injury", ["accident injury", "accident and injury", "accident & injury"]),
+        ("AZ Imaging", ["az imaging", "arizona imaging", "arizona advanced imaging"]),
+        ("Athletico PT", ["athletico", "athletico pt"]),
+    ]
+
+    # Best source: filenames like:
+    # Accident Injury $3352.16, AZ Imaging $2387.81, Athletico $3019.18
+    for provider, aliases in provider_aliases:
+        for alias in aliases:
+            pattern = rf"(?is){re.escape(alias)}[^$]{{0,80}}\$\s*(-?\d+(?:,\d{{3}})*(?:\.\d{{2}})?)"
+            match = re.search(pattern, combined)
+            if match:
+                amount = money_to_decimal(match.group(1))
+                if amount > 0:
+                    rows.append({
+                        "provider": provider,
+                        "date": date,
+                        "total": amount,
+                        "paid": "",
+                        "reduction": "",
+                        "balance": amount,
+                        "due": amount,
+                        "source": file_name,
+                        "text": text,
+                        "isMoveDocsReduction": True,
+                    })
+                    break
+
+    # Fallback for OCR text blocks with "Total Payable to X"
+    if not rows:
+        payable_patterns = [
+            ("Accident and Injury", r"(?is)total payable to accident.{0,120}\$\s*(-?\d+(?:,\d{3})*(?:\.\d{2})?)"),
+            ("AZ Imaging", r"(?is)total payable to arizona.{0,120}\$\s*(-?\d+(?:,\d{3})*(?:\.\d{2})?)"),
+            ("Athletico PT", r"(?is)total payable to athle.{0,120}\$\s*(-?\d+(?:,\d{3})*(?:\.\d{2})?)"),
+        ]
+
+        for provider, pattern in payable_patterns:
+            match = re.search(pattern, combined)
+            if match:
+                amount = money_to_decimal(match.group(1))
+                if amount > 0:
+                    rows.append({
+                        "provider": provider,
+                        "date": date,
+                        "total": amount,
+                        "paid": "",
+                        "reduction": "",
+                        "balance": amount,
+                        "due": amount,
+                        "source": file_name,
+                        "text": text,
+                        "isMoveDocsReduction": True,
+                    })
+
+    return rows
+
+
+def dedupe_case_expenses(rows):
+    grouped = {}
+    passthrough = []
+
+    for row in rows:
+        source = str(row.get("source") or "").lower()
+        provider = normalize_name(row.get("provider") or row.get("source"))
+        inv = str(row.get("invoiceNumber") or "").strip().lower()
+        amount = money_to_decimal(row.get("amount"))
+
+        # MRO often OCRs invoice IDs inconsistently, but same case can have
+        # duplicate copies of the same MRO invoice. Keep only the highest amount.
+        if "mro" in source or "mro" in provider:
+            key = ("mro", inv or "unknown_mro_invoice")
+
+            existing = grouped.get(key)
+            if existing is None or amount > money_to_decimal(existing.get("amount")):
+                grouped[key] = row
+
+            continue
+
+        if inv:
+            key = (provider, inv)
+
+            existing = grouped.get(key)
+            if existing is None or amount > money_to_decimal(existing.get("amount")):
+                grouped[key] = row
+
+            continue
+
+        passthrough.append(row)
+
+    return list(grouped.values()) + dedupe_rows(passthrough, "case_expense")
+
+
+def resolve_movedocs_rows(other_rows):
+    has_provider_specific_movedocs = any(row.get("isMoveDocsReduction") for row in other_rows)
+
+    # If MoveDocs reduction/payoff gives provider-specific payable amounts,
+    # use those and remove the generic MoveDocs ledger row.
+    if has_provider_specific_movedocs:
+        cleaned = []
+
+        for row in other_rows:
+            source = str(row.get("source", "")).lower()
+            provider = str(row.get("provider", "")).lower()
+            haystack = f"{source} {provider}"
+
+            is_generic_movedocs_ledger = (
+                ("movedocs" in haystack or "move docs" in haystack)
+                and not row.get("isMoveDocsReduction")
+            )
+
+            if is_generic_movedocs_ledger:
+                continue
+
+            cleaned.append(row)
+
+        return cleaned
+
+    aggregate_rows = [
+        row for row in other_rows
+        if "movedocs" in f"{row.get('source', '')} {row.get('provider', '')}".lower()
+        or "move docs" in f"{row.get('source', '')} {row.get('provider', '')}".lower()
+    ]
+    if not aggregate_rows:
+        return other_rows
+
+    covered_terms = set()
+    for row in aggregate_rows:
+        covered_terms.update(extract_covered_providers_from_lien(row.get("text", "")))
+
+    if not covered_terms:
+        return other_rows
+
+    return [
+        row for row in other_rows
+        if row in aggregate_rows
+        or not source_matches_covered_provider(
+            row.get("source", ""), row.get("provider", ""), covered_terms
+        )
+    ]
+
+
+def _annotate_business_row(row, file_id=""):
+    source = row.get("source", "")
+    row["file_id"] = file_id
+    row["source_filename"] = source
+    row["document_type"] = _document_type(source, row.get("text", ""))
+    row["inclusion_reason"] = row.get("reason") or "Explicit financial evidence matched the document type"
+    row["exclusion_reason"] = None
+    return row
+
+def build_summary_from_payload(payload):
+    docs = parse_documents_from_payload(payload)
+
+    case_number = payload.get("caseNumber") or payload.get("case_number") or ""
+    source_files = []
+
+    recovery_rows = []
+    case_expense_rows = []
+    other_rows = []
+    omitted_files = []
+    used_sources = set()
+
+    for doc in docs:
+        file_name = doc["fileName"]
+        text = doc["text"]
+        source_key = file_name.lower().strip()
+
+        if file_name not in source_files:
+            source_files.append(file_name)
+
+        if is_zero_balance(text):
+            omitted_files.append({
+                "file": file_name,
+                "file_id": doc.get("fileId") or doc.get("file_id") or "",
+                "reason": "zero balance / paid in full",
+            })
+            continue
+
+        date = find_date(file_name) or find_date(text)
+        provider = clean_provider_from_filename(file_name)
+        inv_number = invoice_number(text)
+
+        if is_case_expense(file_name, text):
+            amount_record = extract_labeled_amount(
+                text, "expense_amount", source_document=file_name
+            )
+            amount = amount_record["value"] if amount_record else Decimal("0.00")
+            if amount > 0:
+                case_expense_rows.append({
+                    "provider": provider,
+                    "date": date,
+                    "amount": amount,
+                    "source": file_name,
+                    "invoiceNumber": inv_number,
+                    "amountEvidence": amount_record,
+                })
+                used_sources.add(source_key)
+            continue
+
+        if is_medpay(file_name, text):
+            amount_record = extract_labeled_amount(
+                text,
+                "settlement_amount",
+                source_document=file_name,
+                labels=["medpay exhausted", "med pay exhausted", "medical payment coverage"],
+            )
+            amount = amount_record["value"] if amount_record else Decimal("0.00")
+            if amount > 0:
+                recovery_rows.append({
+                    "source": file_name,
+                    "amount": amount,
+                    "feeBearing": False,
+                    "reason": "MedPay recovery; not attorney-fee bearing",
+                    "amountEvidence": amount_record,
+                })
+                used_sources.add(source_key)
+            continue
+
+        if is_actual_settlement(file_name, text) and not is_recovery_blocked_file(file_name, text):
+            amount_record = extract_labeled_amount(
+                text, "settlement_amount", source_document=file_name
+            )
+            amount = amount_record["value"] if amount_record else Decimal("0.00")
+
+            if amount > 0:
+                recovery_rows.append({
+                    "source": file_name,
+                    "payer": infer_recovery_payer(file_name, text),
+                    "amount": amount,
+                    "feeBearing": True,
+                    "reason": "actual settlement/release/payment evidence",
+                    "amountEvidence": amount_record,
+                })
+                used_sources.add(source_key)
+
+            continue
+
+        if source_key in used_sources:
+            continue
+        
+        if is_movedocs_reduction_doc(file_name, text):
+            movedocs_rows = extract_movedocs_reduction_rows(file_name, text, date)
+
+            if movedocs_rows:
+                other_rows.extend(movedocs_rows)
+                used_sources.add(source_key)
+
+            continue
+        if is_lien_or_medical_bill(file_name, text):
+            amount_record = None
+            for field_name in ["final_balance", "amount_due", "balance_amount", "lien_amount"]:
+                amount_record = extract_labeled_amount(
+                    text, field_name, source_document=file_name
+                )
+                if amount_record:
+                    break
+            amount = amount_record["value"] if amount_record else Decimal("0.00")
+            if amount > 0:
+                other_rows.append({
+                    "provider": provider,
+                    "date": date,
+                    "total": amount,
+                    "paid": "",
+                    "reduction": "",
+                    "balance": amount,
+                    "due": amount,
+                    "source": file_name,
+                    "text": text,
+                    "amountEvidence": amount_record,
+                })
+            continue
+
+        omitted_files.append({
+            "file": file_name,
+            "file_id": doc.get("fileId") or doc.get("file_id") or "",
+            "reason": "not relevant to SM sections",
+        })
+
+    recovery_rows = dedupe_recoveries_prefer_signed(recovery_rows)
+    recovery_rows = dedupe_rows(recovery_rows, "recovery")
+
+    medpay_rows = [
+        row for row in recovery_rows
+        if "med pay" in row["source"].lower() or "medpay" in row["source"].lower()
+    ]
+
+    non_medpay_rows = [
+        row for row in recovery_rows
+        if row not in medpay_rows
+    ]
+
+    exhausted_rows = [
+        row for row in medpay_rows
+        if "exhaust" in row["source"].lower() or money_to_decimal(row["amount"]) == Decimal("5000.00")
+    ]
+
+    if exhausted_rows:
+        recovery_rows = non_medpay_rows + [exhausted_rows[0]]
+    else:
+        recovery_rows = non_medpay_rows + medpay_rows[:1]
+
+    case_expense_rows = dedupe_case_expenses(case_expense_rows)
+    other_rows = dedupe_rows(other_rows, "other")
+    other_rows = keep_latest_lien_letters(other_rows)
+    other_rows = resolve_movedocs_rows(other_rows)
+
+    has_movedocs_lien = any(
+        "movedocs" in str(row.get("source", "")).lower()
+        or "move docs" in str(row.get("source", "")).lower()
+        or "movedocs" in str(row.get("provider", "")).lower()
+        or "move docs" in str(row.get("provider", "")).lower()
+        for row in other_rows
+    )
+
+    if has_movedocs_lien:
+        movedocs_covered_terms = [
+            "radiology partners",
+            "sonoran radiology",
+            "athletico",
+            "athletico pt",
+            "accident injury",
+            "accident and injury",
+            "accident & injury",
+            "az imaging",
+            "arizona imaging",
+            "arizona advanced imaging",
+        ]
+
+        filtered_other_rows = []
+
+        for row in other_rows:
+            source = str(row.get("source", "")).lower()
+            provider = str(row.get("provider", "")).lower()
+            haystack = f"{source} {provider}"
+
+            is_movedocs_row = "movedocs" in haystack or "move docs" in haystack
+
+            if is_movedocs_row:
+                filtered_other_rows.append(row)
+                continue
+
+            if any(term in haystack for term in movedocs_covered_terms):
+                continue
+
+            filtered_other_rows.append(row)
+
+        other_rows = filtered_other_rows
+
+
+    aggregate_lien_rows = []
+    covered_provider_terms = set()
+
+    for row in other_rows:
+        source = str(row.get("source", "")).lower()
+        provider = str(row.get("provider", "")).lower()
+        text = str(row.get("text", ""))
+
+        if "movedocs" in source or "move docs" in source or "movedocs" in provider or "move docs" in provider:
+            aggregate_lien_rows.append(row)
+            covered_provider_terms.update(extract_covered_providers_from_lien(text))
+
+    if aggregate_lien_rows and covered_provider_terms:
+        filtered_other_rows = []
+
+        for row in other_rows:
+            source = str(row.get("source", ""))
+            provider = str(row.get("provider", ""))
+
+            if row in aggregate_lien_rows:
+                filtered_other_rows.append(row)
+                continue
+
+            if source_matches_covered_provider(source, provider, covered_provider_terms):
+                continue
+
+            filtered_other_rows.append(row)
+
+        other_rows = filtered_other_rows
+
+    file_ids = {
+        str(doc.get("fileName") or doc.get("file_name") or "").lower().strip():
+        doc.get("fileId") or doc.get("file_id") or ""
+        for doc in docs
+    }
+    for row in recovery_rows + case_expense_rows + other_rows:
+        _annotate_business_row(
+            row,
+            file_ids.get(str(row.get("source", "")).lower().strip(), ""),
+        )
+
+    total_recovery = sum((row["amount"] for row in recovery_rows), Decimal("0.00"))
+    fee_bearing_recovery = sum((row["amount"] for row in recovery_rows if row.get("feeBearing")), Decimal("0.00"))
+
+    
+
+    #attorney_fee_rate = Decimal("0.00")
+    attorney_fee_rate = Decimal("0.35") if fee_bearing_recovery > 0 else Decimal("0.00")
+    attorney_fees = (fee_bearing_recovery * attorney_fee_rate).quantize(Decimal("0.01"))
+
+    total_case_expenses = sum((row["amount"] for row in case_expense_rows), Decimal("0.00"))
+    total_other = sum((row["due"] for row in other_rows), Decimal("0.00"))
+    projected_client = total_recovery - attorney_fees - total_case_expenses - total_other
+
+    md = []
+    md.append("# TEMPORARY SETTLEMENT MEMORANDUM\n")
+
+    if case_number:
+        md.append(f"Case Number: {case_number}\n")
+
+    md.append("SOURCE FILES")
+    for file_name in source_files:
+        md.append(f"- {file_name}")
+
+    md.append("\nRECOVERY\n")
+    if recovery_rows:
+        rows = [
+            f"| {row['source']} | {money_fmt(row['amount'])} | {money_fmt(row['amount'])} |"
+            for row in recovery_rows
+        ]
+        rows.append(f"| **Total Recovery** | | **{money_fmt(total_recovery)}** |")
+        md.append(build_markdown_table(["Source", "Balance", "Collected"], rows))
+    else:
+        md.append("Details are not found in given case folder")
+
+    md.append("\nATTORNEY FEES\n")
+    md.append(build_markdown_table(
+        ["Attorney Fee", "Amount"],
+        [f"| Total Attorney Fees | {money_fmt(attorney_fees)} |"]
+    ))
+    md.append("\nMedPay is not fee-bearing recovery. Attorney fees are calculated only on fee-bearing settlement recovery.")
+
+    md.append("\nCASE EXPENSES\n")
+    if case_expense_rows:
+        rows = [
+            f"| {row['provider']} | {row['date'] or 'Details are not found in given case folder'} | {money_fmt(row['amount'])} |"
+            for row in case_expense_rows
+        ]
+        rows.append(f"| **Total Case Expenses** | | **{money_fmt(total_case_expenses)}** |")
+        md.append(build_markdown_table(["Provider : Memo", "Date", "Due"], rows))
+    else:
+        md.append("Details are not found in given case folder")
+
+    md.append("\nOTHER DEDUCTIONS / MEDICAL BILLS / LIENS\n")
+    if other_rows:
+        rows = [
+            f"| {row['provider']} | {row['date'] or 'Details are not found in given case folder'} | "
+            f"{money_fmt(row['total'])} | {row['paid'] or 'Details are not found in given case folder'} | "
+            f"{row['reduction'] or 'Details are not found in given case folder'} | "
+            f"{money_fmt(row['balance'])} | {money_fmt(row['due'])} | {row['source']} |"
+            for row in other_rows
+        ]
+
+        rows.append(f"| **Total Other Deductions** | | | | | | **{money_fmt(total_other)}** | |")
+
+        md.append(build_markdown_table(
+            ["Provider", "Date", "Total / Billed", "Paid", "Reduction", "Balance", "Due", "Source File"],
+            rows
+        ))
+    else:
+        md.append("Details are not found in given case folder")
+
+    md.append("\nPROJECTED CLIENT AMOUNT DUE\n")
+    md.append(f"Projected client amount due: **{money_fmt(projected_client)}**")
+    md.append("\nFormula: Recovery - Attorney Fees - Case Expenses - Other Deductions")
+
+    summary = "\n".join(md)
+
+    debug = {
+        "documentCount": len(docs),
+        "recoveryCount": len(recovery_rows),
+        "caseExpenseCount": len(case_expense_rows),
+        "otherDeductionCount": len(other_rows),
+        "omittedFiles": omitted_files[:50],
+        "includedFinancialRows": [
+            {
+                "file_id": row.get("file_id", ""),
+                "source_filename": row.get("source_filename", row.get("source", "")),
+                "document_type": row.get("document_type", ""),
+                "provider": row.get("provider", ""),
+                "amount": float(row.get("amount", row.get("due", 0))),
+                "reason": row.get("inclusion_reason", ""),
+                "exclusion_reason": row.get("exclusion_reason"),
+            }
+            for row in recovery_rows + case_expense_rows + other_rows
+        ],
+        "totals": {
+            "recovery": float(total_recovery),
+            "feeBearingRecovery": float(fee_bearing_recovery),
+            "attorneyFees": float(attorney_fees),
+            "attorneyFeeRule": "35% of fee-bearing settlement recovery; MedPay excluded",
+            "caseExpenses": float(total_case_expenses),
+            "otherDeductions": float(total_other),
+            "projectedClientAmount": float(projected_client),
+        },
+    }
+
+    return summary, debug
+
+
+UNAVAILABLE = "Details are not found in given case folder"
+
+
+def _verified_value(value):
+    if isinstance(value, dict):
+        value = value.get("amount", value.get("value"))
+    if value is None or value == "":
+        return None
+    try:
+        parsed = Decimal(str(value)).quantize(Decimal("0.01"))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
+    return parsed if parsed.is_finite() else None
+
+
+def _format_verified_money(value):
+    parsed = _verified_value(value)
+    return money_fmt(parsed) if parsed is not None else UNAVAILABLE
+
+
+def build_summary_from_verified_case_data(payload):
+    """Format verified case data without extracting or recalculating values."""
+    recovery = payload.get("recovery") or {}
+    attorney_fees = payload.get("attorneyFees") or payload.get("attorney_fees") or {}
+    expenses = payload.get("caseExpenses") or payload.get("case_expenses") or []
+    deductions = payload.get("otherDeductions") or payload.get("other_deductions") or []
+    totals = payload.get("totals") or {}
+    recovery_components = recovery.get("components", []) if isinstance(recovery, dict) else []
+
+    source_files = [
+        document.get("file_name") or document.get("fileName") or UNAVAILABLE
+        for document in payload.get("documents", [])
+        if isinstance(document, dict)
+    ]
+    md = ["# TEMPORARY SETTLEMENT MEMORANDUM\n"]
+    case_number = payload.get("caseNumber") or payload.get("case_number") or ""
+    if case_number:
+        md.append(f"Case Number: {case_number}\n")
+
+    md.append("SOURCE FILES")
+    md.extend(f"- {file_name}" for file_name in source_files)
+
+    md.append("\nRECOVERY\n")
+    if recovery_components:
+        rows = [
+            f"| {item.get('source_filename', UNAVAILABLE)} | {_format_verified_money(item.get('amount'))} | {_format_verified_money(item.get('amount'))} |"
+            for item in recovery_components
+        ]
+        rows.append(f"| **Total Recovery** | | **{_format_verified_money(recovery.get('amount'))}** |")
+        md.append(build_markdown_table(["Source", "Balance", "Collected"], rows))
+    else:
+        md.append(UNAVAILABLE)
+
+    md.append("\nATTORNEY FEES\n")
+    md.append(build_markdown_table(
+        ["Attorney Fee", "Amount"],
+        [f"| Total Attorney Fees | {_format_verified_money(attorney_fees)} |"],
+    ))
+    md.append("\nMedPay is not fee-bearing recovery. Attorney fees are calculated only on fee-bearing settlement recovery.")
+
+    md.append("\nCASE EXPENSES\n")
+    if expenses:
+        rows = [
+            f"| {item.get('provider', UNAVAILABLE)} | {item.get('date') or UNAVAILABLE} | {_format_verified_money(item.get('amount'))} |"
+            for item in expenses
+        ]
+        rows.append(f"| **Total Case Expenses** | | **{_format_verified_money(totals.get('caseExpenses', totals.get('case_expenses')))}** |")
+        md.append(build_markdown_table(["Provider : Memo", "Date", "Due"], rows))
+    else:
+        md.append(UNAVAILABLE)
+
+    md.append("\nOTHER DEDUCTIONS / MEDICAL BILLS / LIENS\n")
+    if deductions:
+        rows = [
+            f"| {item.get('provider', UNAVAILABLE)} | {item.get('date') or UNAVAILABLE} | {_format_verified_money(item.get('total'))} | "
+            f"{item.get('paid') or UNAVAILABLE} | {item.get('reduction') or UNAVAILABLE} | "
+            f"{_format_verified_money(item.get('balance'))} | {_format_verified_money(item.get('due', item.get('amount')))} | "
+            f"{item.get('source_filename', item.get('source', UNAVAILABLE))} |"
+            for item in deductions
+        ]
+        rows.append(f"| **Total Other Deductions** | | | | | | **{_format_verified_money(totals.get('otherDeductions', totals.get('other_deductions')))}** | |")
+        md.append(build_markdown_table(
+            ["Provider", "Date", "Total / Billed", "Paid", "Reduction", "Balance", "Due", "Source File"], rows
+        ))
+    else:
+        md.append(UNAVAILABLE)
+
+    md.append("\nPROJECTED CLIENT AMOUNT DUE\n")
+    md.append(f"Projected client amount due: **{_format_verified_money(totals.get('projectedClientAmount', totals.get('netAmount', totals.get('net_amount'))))}**")
+    md.append("\nFormula: Recovery - Attorney Fees - Case Expenses - Other Deductions")
+    return "\n".join(md), {"source": "verified_case_data", "documentCount": len(source_files)}
+
+
+@router.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@router.post("/ocr-document")
+async def ocr_document(
+    file: UploadFile = File(...),
+    caseNumber: str = Form(""),
+    fileName: str = Form(""),
+    fileId: str = Form(""),
+    webUrl: str = Form(""),
+    x_api_key: str = Header("")
+):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    original_name = fileName or file.filename or "document.pdf"
+    suffix = os.path.splitext(original_name)[1].lower()
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+
+    try:
+        if suffix == ".pdf":
+            full_text, pages = extract_pdf(tmp_path)
+        elif suffix == ".docx":
+            full_text, pages = extract_docx(tmp_path)
+        else:
+            return {
+                "caseNumber": caseNumber,
+                "fileName": original_name,
+                "fileId": fileId,
+                "webUrl": webUrl,
+                "status": "unsupported_file_type",
+                "fullText": "",
+                "merged_text": "",
+                "pages": [],
+                "hints": {},
+            }
+
+        return {
+            "caseNumber": caseNumber,
+            "fileName": original_name,
+            "fileId": fileId,
+            "webUrl": webUrl,
+            "status": "success",
+            "fullText": full_text,
+            "merged_text": full_text,
+            "pages": pages,
+            "hints": detect_hints(full_text),
+            "characterCount": len(full_text),
+            "structuredDocument": build_structured_document_evidence({
+                "file_id": fileId,
+                "file_name": original_name,
+                "pages": pages,
+            }),
+        }
+
+    except Exception as e:
+        return {
+            "caseNumber": caseNumber,
+            "fileName": original_name,
+            "fileId": fileId,
+            "webUrl": webUrl,
+            "status": "error",
+            "error": str(e),
+            "fullText": "",
+            "merged_text": "",
+            "pages": [],
+            "hints": {},
+        }
+
+    finally:
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass
+
+
+@router.post("/ocr")
+async def ocr_alias(
+    file: UploadFile = File(...),
+    caseNumber: str = Form(""),
+    fileName: str = Form(""),
+    fileId: str = Form(""),
+    webUrl: str = Form(""),
+    x_api_key: str = Header("")
+):
+    return await ocr_document(file, caseNumber, fileName, fileId, webUrl, x_api_key)
+
+
+@router.post("/summarize")
+async def summarize(payload: dict = Body(...), x_api_key: str = Header("")):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    has_verified_case_data = (
+        isinstance(payload.get("documents"), list)
+        and any(key in payload for key in ["recovery", "attorneyFees", "caseExpenses", "otherDeductions", "totals"])
+    )
+    if has_verified_case_data:
+        summary, debug = build_summary_from_verified_case_data(payload)
+    else:
+        summary, debug = build_summary_from_payload(payload)
+
+    if not summary.strip():
+        raise HTTPException(status_code=400, detail="Missing summary")
+
+    return {
+        "status": "completed",
+        "caseNumber": payload.get("caseNumber") or payload.get("case_number") or "",
+        "summary": summary,
+        "debug": debug,
+    }

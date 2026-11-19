@@ -1,0 +1,3974 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email2AI — Registration Portal</title>
+    <!-- Tailwind for auth UI â€” preflight disabled so existing dashboard styles are untouched -->
+    <script>
+      window.tailwind = {
+        config: {
+          corePlugins: { preflight: false },
+          darkMode: "class",
+          theme: {
+            extend: { fontFamily: { sans: ["Montserrat", "system-ui"] } },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        font-family: "Montserrat", sans-serif;
+        background-color: #111;
+        color: #f1c40f;
+        overflow: hidden;
+      }
+
+      .bg-overlay {
+        position: fixed;
+        inset: 0;
+        background-image: url("https://static.vecteezy.com/system/resources/previews/007/596/744/non_2x/abstract-digital-glossy-particles-and-lines-connected-3d-illustration-on-black-background-free-photo.jpg");
+        background-size: cover;
+        background-position: center;
+        z-index: -2;
+      }
+
+      .bg-overlay::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.87);
+      }
+
+      /* Registration / form messages */
+      .login-error-message {
+        color: #e74c3c;
+        background-color: rgba(231, 76, 60, 0.1);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        padding: 0.7rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.25rem;
+        font-size: 0.88rem;
+        text-align: center;
+      }
+
+      .login-success-message {
+        color: #2ecc71;
+        background-color: rgba(46, 204, 113, 0.1);
+        border: 1px solid rgba(46, 204, 113, 0.3);
+        padding: 0.7rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.25rem;
+        font-size: 0.88rem;
+        text-align: center;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       AUTH OVERLAY  (same as IntakeOps)
+    ══════════════════════════════════════════════════════ */
+      #auth-overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        overflow-y: auto;
+        z-index: 200;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+      }
+
+      /* ══════════════════════════════════════════════════════
+       CORE AUTHENTICATION STYLES
+    ══════════════════════════════════════════════════════ */
+
+      /* ══════════════════════════════════════════════════════
+       Card
+    ══════════════════════════════════════════════════════ */
+      .dark-theme-card {
+        background: rgba(20, 20, 20, 0.97);
+        border-radius: 20px;
+        box-shadow:
+          0 10px 40px rgba(0, 0, 0, 0.65),
+          0 0 30px rgba(241, 196, 15, 0.06);
+        border: 1px solid rgba(241, 196, 15, 0.18);
+        color: #f1c40f;
+        backdrop-filter: blur(14px);
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Input
+    ══════════════════════════════════════════════════════ */
+      .dark-theme-input {
+        background: rgba(0, 0, 0, 0.65) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        width: 100%;
+        height: 52px;
+        padding: 0 16px;
+        font-size: 0.95rem;
+        font-family: "Montserrat", sans-serif;
+        outline: none;
+        transition: all 0.25s ease;
+      }
+
+      .dark-theme-input:focus {
+        border-color: rgba(241, 196, 15, 0.7) !important;
+        box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.12) !important;
+        background: rgba(0, 0, 0, 0.9) !important;
+      }
+
+      .dark-theme-input::placeholder {
+        color: #777 !important;
+        opacity: 0.7;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Buttons
+    ══════════════════════════════════════════════════════ */
+      .dark-theme-btn-primary {
+        background: linear-gradient(
+          135deg,
+          #f1c40f 0%,
+          #d4ac0d 100%
+        ) !important;
+        color: #000 !important;
+        font-weight: 700 !important;
+        border: none !important;
+        border-radius: 12px !important;
+        height: 52px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        letter-spacing: 0.3px;
+      }
+
+      .dark-theme-btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(241, 196, 15, 0.25) !important;
+        background: linear-gradient(
+          135deg,
+          #ffd93d 0%,
+          #f1c40f 100%
+        ) !important;
+      }
+
+      .dark-theme-btn-primary:disabled {
+        opacity: 0.45 !important;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .dark-theme-btn-ghost {
+        background: transparent !important;
+        color: #f1c40f !important;
+        border: 1px solid rgba(241, 196, 15, 0.3) !important;
+        border-radius: 12px !important;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.25s ease;
+      }
+
+      .dark-theme-btn-ghost:hover {
+        border-color: rgba(241, 196, 15, 0.6) !important;
+        background: rgba(241, 196, 15, 0.08) !important;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Error / Success
+    ══════════════════════════════════════════════════════ */
+      .error-message {
+        color: #e74c3c;
+        background-color: rgba(231, 76, 60, 0.1);
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 0.88rem;
+      }
+
+      .success-message {
+        color: #2ecc71;
+        background-color: rgba(46, 204, 113, 0.1);
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 0.88rem;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Auth Header
+    ══════════════════════════════════════════════════════ */
+      .auth-header-text {
+        text-align: center;
+        margin-top: 10px;
+        margin-bottom: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .auth-header-text img {
+        width: 88px;
+        height: 88px;
+        object-fit: contain;
+        margin-bottom: 16px;
+        filter: drop-shadow(0 0 14px rgba(241, 196, 15, 0.4));
+      }
+
+      .auth-header-text h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-shadow: 0 0 18px rgba(241, 196, 15, 0.3);
+        color: #f1c40f;
+        margin: 0 0 6px 0;
+      }
+
+      .auth-header-text p {
+        color: #9ca3af;
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       OTP Input Row
+    ══════════════════════════════════════════════════════ */
+      .otp-inputs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .otp-input {
+        width: 52px;
+        height: 56px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.65) !important;
+        color: #f1c40f !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        outline: none;
+        font-family: "Montserrat", sans-serif;
+        transition: all 0.25s ease;
+      }
+
+      .otp-input:focus {
+        border-color: rgba(241, 196, 15, 0.7) !important;
+        box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.12) !important;
+        background: rgba(0, 0, 0, 0.9) !important;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Spinner (auth)
+    ══════════════════════════════════════════════════════ */
+      .auth-loader {
+        border: 3px solid rgba(241, 196, 15, 0.15);
+        border-radius: 50%;
+        border-top: 3px solid #f1c40f;
+        width: 22px;
+        height: 22px;
+        animation: spin 0.8s linear infinite;
+        display: inline-block;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Step indicator
+    ══════════════════════════════════════════════════════ */
+      .step-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+
+      .step-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #333;
+        transition:
+          background 0.3s,
+          transform 0.3s;
+      }
+
+      .step-dot.active {
+        background: #f1c40f;
+        transform: scale(1.3);
+      }
+
+      .step-dot.done {
+        background: #2ecc71;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Password strength
+    ══════════════════════════════════════════════════════ */
+      .strength-bar-wrap {
+        display: flex;
+        gap: 4px;
+        margin-top: 8px;
+      }
+
+      .strength-seg {
+        flex: 1;
+        height: 4px;
+        border-radius: 4px;
+        background: #333;
+        transition: background 0.3s;
+      }
+
+      .strength-seg.filled-weak {
+        background: #e74c3c;
+      }
+
+      .strength-seg.filled-medium {
+        background: #f39c12;
+      }
+
+      .strength-seg.filled-strong {
+        background: #2ecc71;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Resend timer
+    ══════════════════════════════════════════════════════ */
+      .resend-link {
+        color: #f1c40f;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.85rem;
+        text-decoration: underline;
+        padding: 0;
+      }
+
+      .resend-link:disabled {
+        color: #666;
+        cursor: default;
+        text-decoration: none;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       Eye toggle
+    ══════════════════════════════════════════════════════ */
+      .input-wrap {
+        position: relative;
+      }
+
+      .eye-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #777;
+        padding: 0;
+        line-height: 1;
+      }
+
+      .eye-btn:hover {
+        color: #f1c40f;
+      }
+
+      @media (max-width: 480px) {
+        .auth-header-text h1 {
+          font-size: 1.5rem;
+        }
+
+        .otp-input {
+          width: 40px;
+          height: 48px;
+          font-size: 18px;
+          border-radius: 10px !important;
+        }
+      }
+
+      @keyframes slideFromRight {
+        from {
+          opacity: 0;
+          transform: translateX(40px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.6;
+        }
+
+        50% {
+          opacity: 1;
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ══════════════════════════════════════════════════════
+       MAIN APP
+    ══════════════════════════════════════════════════════ */
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        width: 100vw;
+        height: 100svh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+      }
+
+      .app-header {
+        background: rgba(17, 17, 17, 0.98);
+        backdrop-filter: blur(20px);
+        border-bottom: 2px solid rgba(241, 196, 15, 0.2);
+        padding: 8px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 0 0 auto;
+        box-shadow: 0 4px 20px rgba(241, 196, 15, 0.15);
+        position: relative;
+        z-index: 500;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .logo {
+        height: 52px;
+        width: auto;
+        filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.3));
+      }
+
+      .header-title h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #f1c40f;
+        letter-spacing: 1px;
+        text-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+      }
+
+      .header-title p {
+        font-size: 12px;
+        color: #999;
+        margin-top: 3px;
+      }
+
+      .header-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .menu-icon-btn {
+        background: rgba(241, 196, 15, 0.15);
+        color: #f1c40f;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .menu-icon-btn:hover {
+        background: rgba(241, 196, 15, 0.25);
+        border-color: rgba(241, 196, 15, 0.6);
+      }
+
+      .popover {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: rgba(17, 17, 17, 0.98);
+        border: 2px solid rgba(241, 196, 15, 0.3);
+        border-radius: 12px;
+        padding: 8px;
+        min-width: 200px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        z-index: 2200;
+        display: none;
+      }
+
+      .popover.active {
+        display: block;
+      }
+
+      .popover-item {
+        padding: 11px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .popover-item:hover {
+        background: rgba(241, 196, 15, 0.15);
+      }
+
+      .popover-item.email-info {
+        cursor: default;
+        border-bottom: 1px solid rgba(241, 196, 15, 0.2);
+        margin-bottom: 4px;
+      }
+
+      .popover-item.email-info:hover {
+        background: transparent;
+      }
+
+      .popover-email {
+        color: #f1c40f;
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .popover-status {
+        color: #999;
+        font-size: 11px;
+      }
+
+      .popover-item.logout-btn {
+        color: #e74c3c;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .popover-item.logout-btn:hover {
+        background: rgba(231, 76, 60, 0.15);
+      }
+
+      /* ══════════════════════════════════════════════════════
+       MAIN CONTENT
+    ══════════════════════════════════════════════════════ */
+      .main-content {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       SIDEBAR: Users list
+    ══════════════════════════════════════════════════════ */
+      .sidebar {
+        width: 300px;
+        flex: 0 0 300px;
+        background: rgba(17, 17, 17, 0.97);
+        border-right: 1px solid rgba(241, 196, 15, 0.15);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .sidebar-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid rgba(241, 196, 15, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .sidebar-header h2 {
+        font-size: 13px;
+        font-weight: 700;
+        color: #f1c40f;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .search-box {
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(241, 196, 15, 0.1);
+      }
+
+      .search-box input {
+        width: 100%;
+        padding: 7px 11px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(241, 196, 15, 0.3);
+        border-radius: 6px;
+        color: #f1c40f;
+        font-family: "Montserrat", sans-serif;
+        font-size: 12px;
+        transition: all 0.3s;
+      }
+
+      .search-box input:focus {
+        outline: none;
+        border-color: rgba(241, 196, 15, 0.6);
+        background: rgba(0, 0, 0, 0.8);
+      }
+
+      .search-box input::placeholder {
+        color: #555;
+      }
+
+      .users-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px 0;
+      }
+
+      .users-list::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      .users-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .users-list::-webkit-scrollbar-thumb {
+        background: rgba(241, 196, 15, 0.3);
+        border-radius: 3px;
+      }
+
+      .users-list::-webkit-scrollbar-thumb:hover {
+        background: rgba(241, 196, 15, 0.5);
+      }
+
+      .user-item {
+        padding: 11px 18px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-bottom: 1px solid rgba(241, 196, 15, 0.07);
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .user-item:hover {
+        background: rgba(241, 196, 15, 0.08);
+      }
+
+      .user-item.active {
+        background: rgba(241, 196, 15, 0.15);
+        border-left: 3px solid #f1c40f;
+      }
+
+      .user-item-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #e0e0e0;
+      }
+
+      .user-item.active .user-item-name {
+        color: #f1c40f;
+      }
+
+      .user-item-email {
+        font-size: 11px;
+        color: #777;
+      }
+
+      .user-item-date {
+        font-size: 10px;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .sidebar-empty {
+        padding: 22px;
+        color: #555;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .sidebar-loading {
+        padding: 18px;
+        display: flex;
+        justify-content: center;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       DETAIL / REGISTER PANEL
+    ══════════════════════════════════════════════════════ */
+      .detail-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: transparent;
+      }
+
+      .detail-empty {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 14px;
+        color: #555;
+      }
+
+      .detail-empty-icon {
+        font-size: 56px;
+        opacity: 0.3;
+        filter: grayscale(100%);
+      }
+
+      .detail-empty h2 {
+        font-size: 26px;
+        color: #f1c40f;
+        font-weight: 700;
+        opacity: 0.4;
+      }
+
+      .detail-empty p {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .detail-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 28px 36px;
+      }
+
+      .detail-scroll::-webkit-scrollbar {
+        width: 7px;
+      }
+
+      .detail-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .detail-scroll::-webkit-scrollbar-thumb {
+        background: rgba(241, 196, 15, 0.3);
+        border-radius: 4px;
+      }
+
+      .detail-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(241, 196, 15, 0.5);
+      }
+
+      /* ══════════════════════════════════════════════════════
+       REGISTER FORM CARD
+    ══════════════════════════════════════════════════════ */
+      .register-card {
+        background: rgba(17, 17, 17, 0.95);
+        border: 1px solid rgba(241, 196, 15, 0.2);
+        border-radius: 14px;
+        padding: 2.5rem 3rem;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        max-width: 960px;
+        width: 100%;
+        margin: 0 auto;
+        animation: slideUp 0.4s ease;
+      }
+
+      .register-card h2 {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #f1c40f;
+        margin-bottom: 0.4rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .register-card .subtitle {
+        color: #777;
+        font-size: 0.85rem;
+        margin-bottom: 2rem;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .form-row.single {
+        grid-template-columns: 1fr;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .form-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #f1c40f;
+      }
+
+      .form-group label .required {
+        color: #e74c3c;
+        margin-left: 2px;
+      }
+
+      .form-group label .type-hint {
+        color: #666;
+        font-weight: 400;
+        font-size: 0.75rem;
+        margin-left: 4px;
+      }
+
+      .form-group input {
+        padding: 0.75rem 1rem;
+        font-size: 0.88rem;
+        background: #000;
+        color: #fff;
+        border: 1px solid #3a3a3a;
+        border-radius: 7px;
+        font-family: "Montserrat", sans-serif;
+        transition: all 0.3s;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #f1c40f;
+        box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.1);
+      }
+
+      .form-group input::placeholder {
+        color: #555;
+      }
+
+      .form-group input.optional {
+        border-color: #2a2a2a;
+      }
+
+      .form-divider {
+        border: none;
+        border-top: 1px solid rgba(241, 196, 15, 0.12);
+        margin: 1.5rem 0;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       INSTRUCTION / DOCUMENT SECTION
+    ══════════════════════════════════════════════════════ */
+      .instruction-section {
+        background: rgba(241, 196, 15, 0.05);
+        border: 1px solid rgba(241, 196, 15, 0.2);
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .instruction-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 0.75rem;
+      }
+
+      .instruction-header svg {
+        color: #f1c40f;
+        flex-shrink: 0;
+      }
+
+      .instruction-header span {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #f1c40f;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .instruction-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(231, 76, 60, 0.15);
+        border: 1px solid rgba(231, 76, 60, 0.4);
+        color: #e74c3c;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        margin-bottom: 0.85rem;
+      }
+
+      .instruction-note {
+        font-size: 0.8rem;
+        color: #888;
+        line-height: 1.6;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       FILE UPLOAD
+    ══════════════════════════════════════════════════════ */
+      .file-upload-area {
+        border: 2px dashed rgba(241, 196, 15, 0.3);
+        border-radius: 8px;
+        padding: 1.2rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.4);
+      }
+
+      .file-upload-area:hover,
+      .file-upload-area.drag-over {
+        border-color: rgba(241, 196, 15, 0.6);
+        background: rgba(241, 196, 15, 0.05);
+      }
+
+      .file-upload-area input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+      }
+
+      .file-upload-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .file-upload-text {
+        font-size: 0.82rem;
+        color: #888;
+      }
+
+      .file-upload-text strong {
+        color: #f1c40f;
+      }
+
+      .file-name-display {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: #2ecc71;
+        font-weight: 600;
+        display: none;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       FORM ACTIONS
+    ══════════════════════════════════════════════════════ */
+      .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.75rem;
+      }
+
+      .btn-primary {
+        flex: 1;
+        padding: 0.85rem;
+        font-size: 0.92rem;
+        font-weight: 700;
+        background: #d4ac0d;
+        color: #000;
+        border: none;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-family: "Montserrat", sans-serif;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: #f1c40f;
+        box-shadow: 0 4px 16px rgba(241, 196, 15, 0.35);
+      }
+
+      .btn-primary:disabled {
+        background: #555;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .btn-secondary {
+        padding: 0.85rem 1.5rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        background: transparent;
+        color: #f1c40f;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        border-radius: 7px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        font-family: "Montserrat", sans-serif;
+      }
+
+      .btn-secondary:hover {
+        background: rgba(241, 196, 15, 0.1);
+        border-color: rgba(241, 196, 15, 0.7);
+      }
+
+      /* ══════════════════════════════════════════════════════
+       USER DETAIL CARD
+    ══════════════════════════════════════════════════════ */
+      .user-detail-card {
+        background: rgba(17, 17, 17, 0.95);
+        border: 1px solid rgba(241, 196, 15, 0.2);
+        border-radius: 14px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        max-width: 680px;
+        margin: 0 auto;
+        animation: slideUp 0.35s ease;
+      }
+
+      .user-detail-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 1.75rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid rgba(241, 196, 15, 0.15);
+      }
+
+      .user-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: rgba(241, 196, 15, 0.15);
+        border: 2px solid rgba(241, 196, 15, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #f1c40f;
+        flex-shrink: 0;
+      }
+
+      .user-detail-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #f1c40f;
+        margin-bottom: 0.25rem;
+      }
+
+      .user-detail-sub {
+        font-size: 0.82rem;
+        color: #888;
+      }
+
+      .detail-field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+
+      .detail-field {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .detail-field-label {
+        font-size: 0.75rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+      }
+
+      .detail-field-value {
+        font-size: 0.9rem;
+        color: #e0e0e0;
+        font-weight: 500;
+      }
+
+      .detail-field-value.empty {
+        color: #444;
+        font-style: italic;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       RESPONSE BOX
+    ══════════════════════════════════════════════════════ */
+      #reg-response-box.response-success pre {
+        border-color: rgba(46, 204, 113, 0.3);
+        color: #b8f5d0;
+      }
+
+      #reg-response-box.response-error pre {
+        border-color: rgba(231, 76, 60, 0.3);
+        color: #f5c6c0;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       SPINNER
+    ══════════════════════════════════════════════════════ */
+      .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(241, 196, 15, 0.2);
+        border-top: 3px solid #f1c40f;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      .mini-spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(0, 0, 0, 0.25);
+        border-top: 2px solid #000;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: inline-block;
+      }
+
+      /* ══════════════════════════════════════════════════════
+       TOAST
+    ══════════════════════════════════════════════════════ */
+      .toast-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+      }
+
+      .toast {
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        max-width: 320px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease;
+        pointer-events: auto;
+        border-left: 4px solid;
+      }
+
+      .toast.success {
+        background: #1a2e1a;
+        color: #2ecc71;
+        border-color: #2ecc71;
+      }
+
+      .toast.error {
+        background: #2e1a1a;
+        color: #e74c3c;
+        border-color: #e74c3c;
+      }
+
+      .toast.info {
+        background: #1a1a2e;
+        color: #3498db;
+        border-color: #3498db;
+      }
+
+      .refresh-btn {
+        background: rgba(241, 196, 15, 0.15);
+        color: #f1c40f;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        padding: 9px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: "Montserrat", sans-serif;
+      }
+
+      .refresh-btn:hover {
+        background: rgba(241, 196, 15, 0.25);
+        border-color: rgba(241, 196, 15, 0.6);
+      }
+
+      @media (max-width: 767px) {
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+
+        .app-header {
+          padding: 8px 12px;
+        }
+
+        .header-left {
+          gap: 10px;
+        }
+
+        .logo {
+          height: 36px;
+        }
+
+        .header-title h1 {
+          font-size: 16px;
+          letter-spacing: 0;
+        }
+
+        .header-title p {
+          font-size: 10px;
+        }
+
+        .refresh-btn {
+          padding: 8px;
+          gap: 0;
+        }
+
+        .refresh-text {
+          display: none;
+        }
+
+        .menu-icon-btn {
+          padding: 8px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="bg-overlay"></div>
+
+      <!-- ══════════════════════════════════════════════════════
+        TOAST CONTAINER
+      ══════════════════════════════════════════════════════ -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ══════════════════════════════════════════════════════
+       AUTH OVERLAY
+    ══════════════════════════════════════════════════════ -->
+       AUTH OVERLAY  â€”  Full multi-step auth flow
+       Replaces old #login-page
+  â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â•  -->
+    <div id="auth-overlay">
+      <div
+        id="auth-app"
+        class="w-full max-w-[40rem] relative z-10 mx-auto mt-6 md:mt-10"
+        style="display: none"
+      >
+        <!-- ══════════════════════════════════════════════════════
+          Header
+        ══════════════════════════════════════════════════════ -->
+        <div class="auth-header-text">
+          <img
+            src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+            alt="Ramos Law"
+          />
+          <h1>Email2AI</h1>
+          <p>Registration Portal — Authorized Access</p>
+        </div>
+
+          <!-- ══════════════════════════════════════════════════════
+              STEP: LOGIN
+          ══════════════════════════════════════════════════════ -->
+        <div
+          id="step-login"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <h2
+            class="text-[32px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Login
+          </h2>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2">Email</label>
+            <input
+              type="email"
+              id="email-input"
+              placeholder="Enter your email"
+              class="dark-theme-input"
+            />
+            <p
+              id="email-error"
+              class="error-message mt-2"
+              style="display: none"
+            ></p>
+          </div>
+
+            <!-- ══════════════════════════════════════════════════════
+              Password
+            ══════════════════════════════════════════════════════ -->
+            <div id="password-field-wrap" style="display: none">
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="password-input"
+                placeholder="Enter your password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="login-eye-btn" type="button">
+                <svg
+                  id="login-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="login-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div class="text-right mt-1">
+              <button id="forgot-pw-link" class="resend-link text-xs">
+                Forgot password?
+              </button>
+            </div>
+          </div>
+
+          <p id="login-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="login-continue-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="login-btn-text">Continue</span>
+            <span
+              id="login-btn-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Please wait...
+            </span>
+          </button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+              STEP: OTP (new user)
+          ══════════════════════════════════════════════════════ -->
+        <div
+          id="step-otp"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+          </div>
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Enter OTP
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            A 6-digit code was sent to
+            <span
+              id="otp-email-display"
+              class="text-[#f1c40f] font-semibold"
+            ></span>
+          </p>
+
+          <div class="otp-inputs">
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-0"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-1"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-2"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-3"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-4"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="otp-5"
+            />
+          </div>
+
+          <p id="otp-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="otp-verify-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="otp-verify-text">Verify OTP</span>
+            <span
+              id="otp-verify-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Verifying...
+            </span>
+          </button>
+
+          <div class="text-center text-sm text-[#aaa]">
+            Didn't receive it?
+            <button id="resend-otp-btn" class="resend-link ml-1">
+              <span id="resend-otp-label">Resend OTP</span>
+              <span id="resend-otp-timer" style="display: none"
+                >Resend in <span id="resend-timer-count"></span>s</span
+              >
+            </button>
+          </div>
+
+          <button
+            id="otp-back-btn"
+            class="dark-theme-btn-ghost w-full py-2 font-medium text-sm"
+          >
+            â†  Back
+          </button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+              STEP: CREATE PASSWORD (new user)
+          ══════════════════════════════════════════════════════ -->
+        <div
+          id="step-create-password"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+          </div>
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Create Password
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            Set a strong password for your account
+          </p>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >New Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="new-password-input"
+                placeholder="Create a password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="create-eye-btn" type="button">
+                <svg
+                  id="create-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="create-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              id="create-strength-bar-wrap"
+              class="strength-bar-wrap"
+              style="display: none"
+            >
+              <div id="create-seg-1" class="strength-seg"></div>
+              <div id="create-seg-2" class="strength-seg"></div>
+              <div id="create-seg-3" class="strength-seg"></div>
+              <div id="create-seg-4" class="strength-seg"></div>
+            </div>
+            <p
+              id="create-strength-label"
+              class="text-xs mt-1 text-[#aaa]"
+              style="display: none"
+            ></p>
+          </div>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >Confirm Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="confirm-password-input"
+                placeholder="Confirm your password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="confirm-eye-btn" type="button">
+                <svg
+                  id="confirm-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="confirm-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p
+              id="create-pwd-mismatch"
+              class="error-message mt-2"
+              style="display: none"
+            >
+              Passwords do not match.
+            </p>
+          </div>
+
+          <p
+            id="create-pwd-error"
+            class="error-message"
+            style="display: none"
+          ></p>
+
+          <button
+            id="create-pwd-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="create-pwd-btn-text">Set Password &amp; Login</span>
+            <span
+              id="create-pwd-btn-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Setting password...
+            </span>
+          </button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+              STEP: FORGOT PASSWORD
+          ══════════════════════════════════════════════════════ -->
+        <div
+          id="step-forgot"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Forgot Password
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            Enter your registered email and we'll send you an OTP to reset your
+            password.
+          </p>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2">Email</label>
+            <input
+              type="email"
+              id="forgot-email-input"
+              placeholder="Enter your email"
+              class="dark-theme-input"
+            />
+          </div>
+
+          <p id="forgot-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="forgot-send-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="forgot-send-text">Send OTP</span>
+            <span
+              id="forgot-send-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Sending...
+            </span>
+          </button>
+
+          <button
+            id="forgot-back-btn"
+            class="dark-theme-btn-ghost w-full py-2 font-medium text-sm"
+          >
+            â†  Back to Login
+          </button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+              STEP: FORGOT OTP
+          ══════════════════════════════════════════════════════ -->
+        <div
+          id="step-forgot-otp"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+          </div>
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Verify OTP
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            OTP sent to
+            <span
+              id="fotp-email-display"
+              class="text-[#f1c40f] font-semibold"
+            ></span>
+          </p>
+
+          <div class="otp-inputs">
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-0"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-1"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-2"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-3"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-4"
+            />
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              id="fotp-5"
+            />
+          </div>
+
+          <p id="fotp-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="fotp-verify-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="fotp-verify-text">Verify OTP</span>
+            <span
+              id="fotp-verify-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Verifying...
+            </span>
+          </button>
+
+          <div class="text-center text-sm text-[#aaa]">
+            Didn't receive it?
+            <button id="resend-fotp-btn" class="resend-link ml-1">
+              <span id="resend-fotp-label">Resend OTP</span>
+              <span id="resend-fotp-timer" style="display: none"
+                >Resend in <span id="resend-ftimer-count"></span>s</span
+              >
+            </button>
+          </div>
+
+          <button
+            id="fotp-back-btn"
+            class="dark-theme-btn-ghost w-full py-2 font-medium text-sm"
+          >
+            â†  Back
+          </button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+           STEP: RESET PASSWORD
+          ══════════════════════════════════════════════════════ -->
+        <div
+          id="step-reset-password"
+          class="dark-theme-card p-6 space-y-5"
+          style="display: none"
+        >
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+          </div>
+          <h2
+            class="text-[26px] font-extrabold uppercase tracking-[0.5px] text-center text-[#f1c40f] mt-0 mb-0"
+          >
+            Reset Password
+          </h2>
+          <p class="text-center text-[#aaa] text-sm">
+            Choose a new password for your account
+          </p>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >New Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="reset-new-password-input"
+                placeholder="New password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="reset-eye-btn" type="button">
+                <svg
+                  id="reset-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="reset-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              id="reset-strength-bar-wrap"
+              class="strength-bar-wrap"
+              style="display: none"
+            >
+              <div id="reset-seg-1" class="strength-seg"></div>
+              <div id="reset-seg-2" class="strength-seg"></div>
+              <div id="reset-seg-3" class="strength-seg"></div>
+              <div id="reset-seg-4" class="strength-seg"></div>
+            </div>
+            <p
+              id="reset-strength-label"
+              class="text-xs mt-1 text-[#aaa]"
+              style="display: none"
+            ></p>
+          </div>
+
+          <div>
+            <label class="block text-[#f1c40f] font-semibold mb-2"
+              >Confirm Password</label
+            >
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="reset-confirm-input"
+                placeholder="Confirm password"
+                class="dark-theme-input"
+                style="padding-right: 40px"
+              />
+              <button class="eye-btn" id="reset-confirm-eye-btn" type="button">
+                <svg
+                  id="reset-confirm-eye-open"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <svg
+                  id="reset-confirm-eye-closed"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style="display: none"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p
+              id="reset-pwd-mismatch"
+              class="error-message mt-2"
+              style="display: none"
+            >
+              Passwords do not match.
+            </p>
+          </div>
+
+          <p id="reset-error" class="error-message" style="display: none"></p>
+
+          <button
+            id="reset-btn"
+            class="dark-theme-btn-primary w-full py-3 font-medium"
+          >
+            <span id="reset-btn-text">Reset Password &amp; Login</span>
+            <span
+              id="reset-btn-loading"
+              class="flex items-center justify-center gap-2"
+              style="display: none"
+            >
+              <span class="auth-loader"></span> Resetting...
+            </span>
+          </button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+           STEP: SUCCESS
+          ══════════════════════════════════════════════════════ -->
+        <div
+          id="step-success"
+          class="dark-theme-card p-6 space-y-5 text-center"
+          style="display: none"
+        >
+          <div class="flex justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="60"
+              height="60"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="#2ecc71"
+              stroke-width="1.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 class="text-[26px] font-extrabold uppercase text-[#2ecc71]">
+            Authenticated!
+          </h2>
+          <p class="text-[#aaa] text-sm">
+            Logged in as
+            <span
+              id="success-email"
+              class="text-[#f1c40f] font-semibold"
+            ></span>
+          </p>
+          <p class="text-[#aaa] text-xs">Redirectingâ€¦</p>
+        </div>
+      </div>
+      <!-- /auth-app -->
+    </div>
+    <!-- /auth-overlay -->
+
+    <!-- ══════════════════════════════════════════════════════
+       MAIN APP
+    ══════════════════════════════════════════════════════ -->
+    <div
+      id="main-app-container"
+      class="app-container"
+      x-data="mainApp()"
+      x-init="init()"
+      x-show="isLoggedIn"
+      style="display: none"
+    >
+      <!-- HEADER -->
+      <div class="app-header">
+        <div class="header-left">
+          <img
+            src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+            alt="Email2AI"
+            class="logo"
+          />
+          <div class="header-title">
+            <h1>Email2AI</h1>
+            <p>User Registration Portal</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <!-- Refresh -->
+          <button onclick="loadUsers()" class="refresh-btn">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 1 0 .49-3.15" />
+            </svg>
+            <span class="refresh-text">Refresh</span>
+          </button>
+          <!-- User menu -->
+          <div style="position: relative">
+            <button class="menu-icon-btn" onclick="toggleUserMenu()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <div class="popover" id="user-menu-popover">
+              <div class="popover-item email-info">
+                <span class="popover-email" x-text="userEmail"></span>
+                <span class="popover-status">Logged in</span>
+              </div>
+              <div
+                class="popover-item"
+                style="color: #f1c40f; font-weight: 600; cursor: pointer"
+                onclick="
+                  toggleUsersPanel();
+                  toggleUserMenu();
+                "
+              >
+                <span style="display: flex; align-items: center; gap: 8px">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  Registered Users
+                </span>
+              </div>
+              <div
+                class="popover-item logout-btn"
+                @click="logout(); toggleUserMenu()"
+              >
+                Logout
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="main-content">
+        <!-- DETAIL PANEL -->
+        <div class="detail-panel">
+          <!-- Loading -->
+          <div class="detail-empty" id="detail-loading" style="display: none">
+            <div class="spinner"></div>
+            <p style="color: #888; margin-top: 14px">Loading...</p>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════
+              Register Form
+          ══════════════════════════════════════════════════════ -->
+          <div class="detail-scroll" id="register-panel" style="display: block">
+            <div class="register-card" style="max-width: 860px">
+              <h2>Register User</h2>
+
+              <!-- Form Fields -->
+              <div class="form-row" style="margin-top: 1.5rem">
+                <div class="form-group">
+                  <label for="reg-name"
+                    >Name <span class="required">*</span></label
+                  >
+                  <input id="reg-name" type="text" placeholder="Full name" />
+                </div>
+                <div class="form-group">
+                  <label for="reg-birthdate"
+                    >Birthdate Code <span class="required">*</span></label
+                  >
+                  <input
+                    id="reg-birthdate"
+                    type="text"
+                    placeholder="e.g. 19900101"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="reg-primary-email"
+                    >Primary Email <span class="required">*</span></label
+                  >
+                  <input
+                    id="reg-primary-email"
+                    type="email"
+                    placeholder="primary@example.com"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="reg-secondary-email">Secondary Email</label>
+                  <input
+                    id="reg-secondary-email"
+                    type="email"
+                    placeholder="secondary@example.com (optional)"
+                    class="optional"
+                  />
+                </div>
+              </div>
+
+              <!-- Error / Success -->
+              <div
+                id="reg-error"
+                class="login-error-message"
+                style="display: none; margin-top: 1rem"
+              ></div>
+              <div
+                id="reg-success"
+                class="login-success-message"
+                style="display: none; margin-top: 1rem"
+              ></div>
+
+              <!-- Submit -->
+              <div class="form-actions" style="margin-top: 1.75rem">
+                <button
+                  class="btn-primary"
+                  id="reg-submit-btn"
+                  onclick="submitRegistration()"
+                >
+                  Register User
+                </button>
+              </div>
+
+              <!-- Instructions below form -->
+              <div
+                style="
+                  margin-top: 2rem;
+                  padding-top: 1.5rem;
+                  border-top: 1px solid rgba(241, 196, 15, 0.12);
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#f1c40f"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+
+                  <span
+                    style="
+                      font-size: 0.82rem;
+                      font-weight: 700;
+                      color: #f1c40f;
+                      text-transform: uppercase;
+                      letter-spacing: 0.8px;
+                    "
+                  >
+                    Instructions
+                  </span>
+                </div>
+
+                <div
+                  style="
+                    background: rgba(241, 196, 15, 0.06);
+                    border: 1px solid rgba(241, 196, 15, 0.18);
+                    color: #dcdcdc;
+                    font-size: 0.82rem;
+                    padding: 14px 18px;
+                    border-radius: 10px;
+                    line-height: 1.6;
+                  "
+                >
+                  <ul style="margin: 0; padding-left: 18px">
+                    <li>
+                      <b>Register First</b> â€“ Register your account and note
+                      your Birth Code (MMDDYYYY format).
+                    </li>
+
+                    <li>
+                      <b>Send Email Request</b> â€“ Send your request to
+                      <b>aihelperlxintel21@gmail.com</b>.
+                    </li>
+                    <li>
+                      <b>Subject Format</b> â€“ Start the subject with your Birth
+                      Code followed by the prompt name.
+                    </li>
+                    <li>Example: <b>12121970 Enhanced Medical Summary</b></li>
+                    <li>Example: <b>12121970 Insurance Claim Summary</b></li>
+                    <li>Example: <b>12121970 Demand Quality Assurance</b></li>
+                    <li>
+                      <b>Custom Prompt</b> â€“ Use subject
+                      <b>BirthCode Custom</b> (Example: <b>12121970 Custom</b>)
+                      and include your custom prompt in the email body.
+                    </li>
+                    <li>
+                      <b>Attach Document</b> â€“ Only one document attachment is
+                      allowed.
+                    </li>
+                    <li>
+                      <b>Send the Email</b> â€“ After adding subject, Body, and
+                      attachment, send the email.
+                    </li>
+                    <li>
+                      <b>Receive Result</b> â€“ You will receive a reply email
+                      with a download link for the generated summary file.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User detail view -->
+          <div
+            class="detail-scroll"
+            id="user-detail-panel"
+            style="display: none"
+          >
+            <div class="user-detail-card" id="user-detail-card">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+       USERS SLIDE PANEL
+    ══════════════════════════════════════════════════════ -->
+    <div
+      id="users-slide-overlay"
+      onclick="toggleUsersPanel()"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1500;
+        backdrop-filter: blur(4px);
+      "
+    ></div>
+    <div
+      id="users-slide-panel"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: 340px;
+        background: rgba(17, 17, 17, 0.98);
+        border-left: 1px solid rgba(241, 196, 15, 0.2);
+        z-index: 1600;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: -8px 0 40px rgba(0, 0, 0, 0.6);
+        animation: slideFromRight 0.3s ease;
+      "
+    >
+      <div
+        style="
+          padding: 16px 20px;
+          border-bottom: 1px solid rgba(241, 196, 15, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-shrink: 0;
+        "
+      >
+        <div>
+          <div
+            style="
+              font-size: 14px;
+              font-weight: 700;
+              color: #f1c40f;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            "
+          >
+            Registered Users
+          </div>
+          <div
+            id="users-count"
+            style="font-size: 11px; color: #888; margin-top: 2px"
+          ></div>
+        </div>
+        <button
+          onclick="toggleUsersPanel()"
+          style="
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 18px;
+            line-height: 1;
+          "
+        >
+        ✕
+        </button>
+      </div>
+      <div
+        style="
+          padding: 10px 14px;
+          border-bottom: 1px solid rgba(241, 196, 15, 0.1);
+          flex-shrink: 0;
+        "
+      >
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search users..."
+          oninput="filterUsers(this.value)"
+          style="
+            width: 100%;
+            padding: 7px 11px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(241, 196, 15, 0.3);
+            border-radius: 6px;
+            color: #f1c40f;
+            font-family: &quot;Montserrat&quot;, sans-serif;
+            font-size: 12px;
+            outline: none;
+            transition: all 0.3s;
+          "
+          onfocus="this.style.borderColor = 'rgba(241,196,15,0.6)'"
+          onblur="this.style.borderColor = 'rgba(241,196,15,0.3)'"
+        />
+      </div>
+      <div
+        class="users-list"
+        id="users-list"
+        style="flex: 1; overflow-y: auto; padding: 6px 0"
+      >
+        <div class="sidebar-loading">
+          <div
+            class="spinner"
+            style="width: 22px; height: 22px; border-width: 2px"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+       INSTRUCTIONS MODAL
+    ══════════════════════════════════════════════════════ -->
+    <div
+      id="instructions-overlay"
+      onclick="closeInstructionsModal()"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        backdrop-filter: blur(4px);
+      "
+    ></div>
+    <div
+      id="instructions-modal"
+      style="
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #1a1a1a;
+        border: 1px solid rgba(241, 196, 15, 0.3);
+        border-radius: 14px;
+        padding: 2rem 2.5rem;
+        max-width: 480px;
+        width: 90%;
+        z-index: 2100;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        animation: slideUp 0.3s ease;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1.25rem;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 10px">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f1c40f"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span
+            style="
+              font-size: 1rem;
+              font-weight: 700;
+              color: #f1c40f;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            "
+            >Instructions</span
+          >
+        </div>
+        <button
+          onclick="closeInstructionsModal()"
+          style="
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+          "
+        >
+          âœ•
+        </button>
+      </div>
+      <div
+        style="
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(231, 76, 60, 0.12);
+          border: 1px solid rgba(231, 76, 60, 0.35);
+          color: #e74c3c;
+          font-size: 0.82rem;
+          font-weight: 700;
+          padding: 7px 14px;
+          border-radius: 20px;
+          margin-bottom: 1rem;
+        "
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+          />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        Attached document is compulsory
+      </div>
+      <p style="color: #999; font-size: 0.85rem; line-height: 1.7; margin: 0">
+        A valid supporting document must be attached before submitting a
+        registration. Ensure the document is in an accepted format and clearly
+        legible before uploading.
+      </p>
+      <button
+        onclick="closeInstructionsModal()"
+        style="
+          margin-top: 1.5rem;
+          width: 100%;
+          padding: 0.75rem;
+          font-size: 0.88rem;
+          font-weight: 700;
+          background: #d4ac0d;
+          color: #000;
+          border: none;
+          border-radius: 7px;
+          cursor: pointer;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-family: &quot;Montserrat&quot;, sans-serif;
+          transition: all 0.3s;
+        "
+        onmouseover="this.style.background = '#f1c40f'"
+        onmouseout="this.style.background = '#d4ac0d'"
+      >
+        Got it
+      </button>
+    </div>
+
+    <script>
+      const API_BASE_URL = "";
+
+      const authState = {
+        step: "login",
+        email: "",
+        password: "",
+        newPassword: "",
+        confirmPassword: "",
+        otpValue: "",
+        forgotOtp: "",
+        error: "",
+        emailError: "",
+        loading: false,
+        showPasswordField: false,
+        showPwd: false,
+        showConfirmPwd: false,
+        strengthScore: 0,
+        resendTimer: 0,
+        _resendInterval: null,
+        _isNewUser: false,
+      };
+
+      const state = authState;
+
+      // ══════════════════════════════════════════════════════
+      //  AUTH RENDER â€” syncs DOM to authState
+      // ══════════════════════════════════════════════════════
+      function $show(id, visible) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = visible ? "" : "none";
+      }
+      function $text(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      }
+      function $disabled(id, disabled) {
+        const el = document.getElementById(id);
+        if (el) el.disabled = disabled;
+      }
+      function $type(id, type) {
+        const el = document.getElementById(id);
+        if (el) el.type = type;
+      }
+
+      function render() {
+        const allSteps = [
+          "login",
+          "otp",
+          "create-password",
+          "forgot",
+          "forgot-otp",
+          "reset-password",
+          "success",
+        ];
+        allSteps.forEach((s) => $show("step-" + s, authState.step === s));
+
+        $text("otp-email-display", authState.email);
+        $text("fotp-email-display", authState.email);
+        $text("success-email", authState.email);
+
+        // LOGIN STEP
+        $show("email-error", !!authState.emailError);
+        $text("email-error", authState.emailError);
+        $show("password-field-wrap", authState.showPasswordField);
+        $show("login-error", !!authState.error && authState.step === "login");
+        $text("login-error", authState.error);
+        $disabled("login-continue-btn", !authState.email || authState.loading);
+        $text(
+          "login-btn-text",
+          authState.showPasswordField ? "Login" : "Continue",
+        );
+        $show("login-btn-text", !authState.loading);
+        $show("login-btn-loading", authState.loading);
+        $type("password-input", authState.showPwd ? "text" : "password");
+        $show("login-eye-open", !authState.showPwd);
+        $show("login-eye-closed", authState.showPwd);
+        $text(
+          "forgot-pw-link",
+          authState._isNewUser ? "Set Password" : "Forgot password?",
+        );
+
+        // OTP STEP
+        $show("otp-error", !!authState.error && authState.step === "otp");
+        $text("otp-error", authState.error);
+        $disabled(
+          "otp-verify-btn",
+          authState.otpValue.length < 6 || authState.loading,
+        );
+        $show("otp-verify-text", !authState.loading);
+        $show("otp-verify-loading", authState.loading);
+        $disabled(
+          "resend-otp-btn",
+          authState.resendTimer > 0 || authState.loading,
+        );
+        $show("resend-otp-label", authState.resendTimer === 0);
+        $show("resend-otp-timer", authState.resendTimer > 0);
+        $text("resend-timer-count", authState.resendTimer);
+
+        // CREATE PASSWORD STEP
+        $type("new-password-input", authState.showPwd ? "text" : "password");
+        $show("create-eye-open", !authState.showPwd);
+        $show("create-eye-closed", authState.showPwd);
+        $show("create-strength-bar-wrap", authState.newPassword.length > 0);
+        $show("create-strength-label", authState.newPassword.length > 0);
+        if (authState.newPassword.length > 0) {
+          for (let seg = 1; seg <= 4; seg++) {
+            const el = document.getElementById("create-seg-" + seg);
+            if (el) {
+              el.className = "strength-seg";
+              const cls = strengthClass(seg);
+              if (cls) el.classList.add(cls);
+            }
+          }
+          const lbl = document.getElementById("create-strength-label");
+          if (lbl) {
+            lbl.textContent = strengthLabel();
+            lbl.className =
+              "text-xs mt-1 " +
+              (authState.strengthScore >= 3 ? "text-[#2ecc71]" : "text-[#aaa]");
+          }
+        }
+        $type(
+          "confirm-password-input",
+          authState.showConfirmPwd ? "text" : "password",
+        );
+        $show("confirm-eye-open", !authState.showConfirmPwd);
+        $show("confirm-eye-closed", authState.showConfirmPwd);
+        $show(
+          "create-pwd-mismatch",
+          !!(
+            authState.confirmPassword &&
+            authState.newPassword !== authState.confirmPassword
+          ),
+        );
+        $show(
+          "create-pwd-error",
+          !!authState.error && authState.step === "create-password",
+        );
+        $text("create-pwd-error", authState.error);
+        $disabled(
+          "create-pwd-btn",
+          !authState.newPassword ||
+            authState.newPassword !== authState.confirmPassword ||
+            authState.strengthScore < 2 ||
+            authState.loading,
+        );
+        $show("create-pwd-btn-text", !authState.loading);
+        $show("create-pwd-btn-loading", authState.loading);
+
+        // FORGOT STEP
+        $show("forgot-error", !!authState.error && authState.step === "forgot");
+        $text("forgot-error", authState.error);
+        $disabled("forgot-send-btn", !authState.email || authState.loading);
+        $show("forgot-send-text", !authState.loading);
+        $show("forgot-send-loading", authState.loading);
+
+        // FORGOT OTP STEP
+        $show(
+          "fotp-error",
+          !!authState.error && authState.step === "forgot-otp",
+        );
+        $text("fotp-error", authState.error);
+        $disabled(
+          "fotp-verify-btn",
+          authState.otpValue.length < 6 || authState.loading,
+        );
+        $show("fotp-verify-text", !authState.loading);
+        $show("fotp-verify-loading", authState.loading);
+        $disabled(
+          "resend-fotp-btn",
+          authState.resendTimer > 0 || authState.loading,
+        );
+        $show("resend-fotp-label", authState.resendTimer === 0);
+        $show("resend-fotp-timer", authState.resendTimer > 0);
+        $text("resend-ftimer-count", authState.resendTimer);
+
+        // RESET PASSWORD STEP
+        $type(
+          "reset-new-password-input",
+          authState.showPwd ? "text" : "password",
+        );
+        $show("reset-eye-open", !authState.showPwd);
+        $show("reset-eye-closed", authState.showPwd);
+        $show("reset-strength-bar-wrap", authState.newPassword.length > 0);
+        $show("reset-strength-label", authState.newPassword.length > 0);
+        if (authState.newPassword.length > 0) {
+          for (let seg = 1; seg <= 4; seg++) {
+            const el = document.getElementById("reset-seg-" + seg);
+            if (el) {
+              el.className = "strength-seg";
+              const cls = strengthClass(seg);
+              if (cls) el.classList.add(cls);
+            }
+          }
+          const lbl = document.getElementById("reset-strength-label");
+          if (lbl) {
+            lbl.textContent = strengthLabel();
+            lbl.className =
+              "text-xs mt-1 " +
+              (authState.strengthScore >= 3 ? "text-[#2ecc71]" : "text-[#aaa]");
+          }
+        }
+        $type(
+          "reset-confirm-input",
+          authState.showConfirmPwd ? "text" : "password",
+        );
+        $show("reset-confirm-eye-open", !authState.showConfirmPwd);
+        $show("reset-confirm-eye-closed", authState.showConfirmPwd);
+        $show(
+          "reset-pwd-mismatch",
+          !!(
+            authState.confirmPassword &&
+            authState.newPassword !== authState.confirmPassword
+          ),
+        );
+        $show(
+          "reset-error",
+          !!authState.error && authState.step === "reset-password",
+        );
+        $text("reset-error", authState.error);
+        $disabled(
+          "reset-btn",
+          !authState.newPassword ||
+            authState.newPassword !== authState.confirmPassword ||
+            authState.strengthScore < 2 ||
+            authState.loading,
+        );
+        $show("reset-btn-text", !authState.loading);
+        $show("reset-btn-loading", authState.loading);
+
+        // Show the auth app wrapper
+        document.getElementById("auth-app").style.display = "";
+      }
+
+      // ══════════════════════════════════════════════════════
+      //  LOGIN FLOW
+      // ══════════════════════════════════════════════════════
+      async function handleLoginEmailNext() {
+        authState.emailError = "";
+        authState.error = "";
+        if (!authState.email) return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/Email2AI/verify-email?email=${encodeURIComponent(authState.email)}`,
+            { headers: { "ngrok-skip-browser-warning": "true" } },
+          );
+          const data = await res.json();
+          if (!res.ok || !data.valid) {
+            authState.emailError =
+              data.detail ||
+              "This email is not registered. Please contact your administrator.";
+            return;
+          }
+          if (
+            data.password_created === false ||
+            data.password_created === "false"
+          ) {
+            authState._isNewUser = true;
+            await _sendOtp();
+            authState.step = "otp";
+            setTimeout(() => document.getElementById("otp-0")?.focus(), 0);
+          } else {
+            authState._isNewUser = false;
+            authState.showPasswordField = true;
+          }
+        } catch (e) {
+          authState.emailError =
+            "Unable to reach the server. Please try again.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function doLogin() {
+        authState.error = "";
+        if (!authState.email || !authState.password) return;
+        authState.loading = true;
+        render();
+        try {
+          const body = new FormData();
+          body.append("username", authState.email);
+          body.append("password", authState.password);
+          const res = await fetch(`${API_BASE_URL}/Email2AI/login`, {
+            method: "POST",
+            body,
+            headers: { "ngrok-skip-browser-warning": "true" },
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error =
+              data.detail || "Incorrect password. Please try again.";
+            return;
+          }
+          _onAuthSuccess(data);
+        } catch (e) {
+          authState.error = "Unable to reach the server. Please try again.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      // ══════════════════════════════════════════════════════
+      //  NEW USER — OTP + CREATE PASSWORD
+      // ══════════════════════════════════════════════════════
+      async function _sendOtp() {
+        await fetch(
+          `${API_BASE_URL}/Email2AI/send/otp?email=${encodeURIComponent(authState.email)}`,
+          {
+            method: "POST",
+            body: "",
+            headers: { "ngrok-skip-browser-warning": "true" },
+          },
+        );
+        _startResendTimer();
+      }
+
+      async function resendOtp() {
+        authState.error = "";
+        resetOtp("otp");
+        authState.loading = true;
+        render();
+        try {
+          await _sendOtp();
+        } catch (e) {
+          authState.error = "Failed to resend OTP.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function doVerifyOtp() {
+        authState.error = "";
+        if (authState.otpValue.length < 6) return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/Email2AI/verify/otp?email=${encodeURIComponent(authState.email)}&otp=${authState.otpValue}`,
+            {
+              method: "POST",
+              body: "",
+              headers: { "ngrok-skip-browser-warning": "true" },
+            },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error = data.detail || "Invalid OTP. Please try again.";
+            return;
+          }
+          authState.step = "create-password";
+        } catch (e) {
+          authState.error = "Unable to reach the server.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function doCreatePassword() {
+        authState.error = "";
+        if (
+          !authState.newPassword ||
+          authState.newPassword !== authState.confirmPassword
+        )
+          return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/Email2AI/create/password?email=${encodeURIComponent(authState.email)}&password=${encodeURIComponent(authState.newPassword)}`,
+            {
+              method: "POST",
+              body: "",
+              headers: { "ngrok-skip-browser-warning": "true" },
+            },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error = data.detail || "Failed to set password.";
+            return;
+          }
+          await _autoLogin();
+        } catch (e) {
+          authState.error = "Unable to reach the server.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      // ══════════════════════════════════════════════════════
+      //  FORGOT PASSWORD FLOW
+      // ══════════════════════════════════════════════════════
+      function goForgotPassword() {
+        resetAuthState();
+        authState.step = "forgot";
+        setTimeout(() => {
+          const el = document.getElementById("forgot-email-input");
+          if (el) el.value = authState.email;
+        }, 0);
+        render();
+      }
+
+      async function doSendForgotOtp() {
+        authState.error = "";
+        if (!authState.email) return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/Email2AI/forgot/password?email=${encodeURIComponent(authState.email)}`,
+            {
+              method: "POST",
+              body: "",
+              headers: { "ngrok-skip-browser-warning": "true" },
+            },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error = data.detail || "Failed to send OTP.";
+            return;
+          }
+          _startResendTimer();
+          authState.step = "forgot-otp";
+          setTimeout(() => document.getElementById("fotp-0")?.focus(), 0);
+        } catch (e) {
+          authState.error = "Unable to reach the server.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function resendForgotOtp() {
+        authState.error = "";
+        resetOtp("fotp");
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/Email2AI/forgot/password?email=${encodeURIComponent(authState.email)}`,
+            {
+              method: "POST",
+              body: "",
+              headers: { "ngrok-skip-browser-warning": "true" },
+            },
+          );
+          if (res.ok) _startResendTimer();
+          else authState.error = "Failed to resend OTP.";
+        } catch (e) {
+          authState.error = "Failed to resend OTP.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      async function doVerifyForgotOtp() {
+        authState.error = "";
+        if (authState.otpValue.length < 6) return;
+        authState.forgotOtp = authState.otpValue;
+        authState.step = "reset-password";
+        resetOtp("fotp");
+        render();
+      }
+
+      async function doResetPassword() {
+        authState.error = "";
+        if (
+          !authState.newPassword ||
+          authState.newPassword !== authState.confirmPassword
+        )
+          return;
+        authState.loading = true;
+        render();
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/Email2AI/reset/password?email=${encodeURIComponent(authState.email)}&otp=${authState.forgotOtp}&new_password=${encodeURIComponent(authState.newPassword)}`,
+            {
+              method: "POST",
+              body: "",
+              headers: { "ngrok-skip-browser-warning": "true" },
+            },
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            authState.error = data.detail || "Failed to reset password.";
+            return;
+          }
+          await _autoLogin();
+        } catch (e) {
+          authState.error = "Unable to reach the server.";
+        } finally {
+          authState.loading = false;
+          render();
+        }
+      }
+
+      // ══════════════════════════════════════════════════════
+      //  AUTH HELPERS
+      // ══════════════════════════════════════════════════════
+      async function _autoLogin() {
+        const body = new FormData();
+        body.append("username", authState.email);
+        body.append("password", authState.newPassword || authState.password);
+        try {
+          const res = await fetch(`${API_BASE_URL}/Email2AI/login`, {
+            method: "POST",
+            body,
+            headers: { "ngrok-skip-browser-warning": "true" },
+          });
+          const data = await res.json();
+          if (res.ok) {
+            _onAuthSuccess(data);
+            return;
+          }
+        } catch (_) {}
+        // If auto-login fails, prompt manual login
+        authState.step = "login";
+        authState.showPasswordField = true;
+        authState.password = "";
+        authState.error = "Password set! Please log in.";
+        render();
+      }
+
+      function _onAuthSuccess(data) {
+        authState.step = "success";
+        const token = data.access_token || data.token || "";
+        render();
+        // Brief flash of success screen, then enter app
+        setTimeout(() => {
+          onLoginSuccess(token, authState.email);
+        }, 600);
+        window.dispatchEvent(
+          new CustomEvent("auth-success", {
+            detail: { token, email: authState.email, data },
+          }),
+        );
+      }
+
+      // Called when auth succeeds — stores jwt + email and shows main app
+      function onLoginSuccess(token, email) {
+        localStorage.setItem("jwtEmail2AI", token);
+        localStorage.setItem("email2AIEmail", email);
+        showApp();
+      }
+
+      // OTP box helpers
+      function otpMove(e, i, prefix) {
+        prefix = prefix || "otp";
+        const val = e.target.value.replace(/\D/g, "").slice(-1);
+        e.target.value = val;
+        _rebuildOtp(prefix);
+        if (val && i < 5)
+          document.getElementById(`${prefix}-${i + 1}`)?.focus();
+        render();
+      }
+      function otpKeydown(e, i, prefix) {
+        prefix = prefix || "otp";
+        if (e.key === "Backspace" && !e.target.value && i > 0) {
+          document.getElementById(`${prefix}-${i - 1}`)?.focus();
+        }
+      }
+      function otpPaste(e, prefix) {
+        prefix = prefix || "otp";
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData)
+          .getData("text")
+          .replace(/\D/g, "")
+          .slice(0, 6);
+        text.split("").forEach((ch, i) => {
+          const el = document.getElementById(`${prefix}-${i}`);
+          if (el) el.value = ch;
+        });
+        _rebuildOtp(prefix);
+        document
+          .getElementById(`${prefix}-${Math.min(text.length, 5)}`)
+          ?.focus();
+        render();
+      }
+      function _rebuildOtp(prefix) {
+        prefix = prefix || "otp";
+        let s = "";
+        for (let i = 0; i < 6; i++)
+          s += document.getElementById(`${prefix}-${i}`)?.value || "";
+        authState.otpValue = s;
+      }
+      function resetOtp(prefix) {
+        prefix = prefix || "otp";
+        authState.otpValue = "";
+        for (let i = 0; i < 6; i++) {
+          const el = document.getElementById(`${prefix}-${i}`);
+          if (el) el.value = "";
+        }
+        setTimeout(() => document.getElementById(`${prefix}-0`)?.focus(), 0);
+      }
+
+      // Resend timer
+      function _startResendTimer(seconds) {
+        seconds = seconds || 60;
+        clearInterval(authState._resendInterval);
+        authState.resendTimer = seconds;
+        authState._resendInterval = setInterval(() => {
+          if (authState.resendTimer > 0) authState.resendTimer--;
+          else clearInterval(authState._resendInterval);
+          render();
+        }, 1000);
+      }
+
+      // Password strength
+      function checkStrength() {
+        const p = authState.newPassword;
+        let score = 0;
+        if (p.length >= 8) score++;
+        if (/[A-Z]/.test(p)) score++;
+        if (/[0-9]/.test(p)) score++;
+        if (/[^A-Za-z0-9]/.test(p)) score++;
+        authState.strengthScore = score;
+      }
+      function strengthClass(seg) {
+        if (authState.strengthScore === 0) return "";
+        const map = [
+          "",
+          "filled-weak",
+          "filled-weak",
+          "filled-medium",
+          "filled-strong",
+        ];
+        return seg <= authState.strengthScore
+          ? map[authState.strengthScore]
+          : "";
+      }
+      function strengthLabel() {
+        return (
+          ["", "Weak", "Fair", "Good", "Strong"][authState.strengthScore] || ""
+        );
+      }
+
+      // Full auth reset
+      function resetAuthState() {
+        authState.password = "";
+        authState.newPassword = "";
+        authState.confirmPassword = "";
+        authState.error = "";
+        authState.emailError = "";
+        authState.showPasswordField = false;
+        authState.showPwd = false;
+        authState.showConfirmPwd = false;
+        authState.strengthScore = 0;
+        authState.otpValue = "";
+        authState.forgotOtp = "";
+        authState._isNewUser = false;
+        clearInterval(authState._resendInterval);
+        authState.resendTimer = 0;
+      }
+
+      // ══════════════════════════════════════════════════════
+      //  SHOW / HIDE APP vs AUTH
+      // ══════════════════════════════════════════════════════
+      function getToken() {
+        return localStorage.getItem("jwtEmail2AI");
+      }
+
+      function getEmail() {
+        return localStorage.getItem("email2AIEmail");
+      }
+
+      function showLogin() {
+        const app = document.getElementById("main-app-container");
+        if (app) {
+          app.style.display = "none";
+          app.style.visibility = "hidden";
+        }
+        document.getElementById("auth-overlay").style.display = "flex";
+        resetAuthState();
+        authState.step = "login";
+        authState.email = "";
+        const emailInput = document.getElementById("email-input");
+        if (emailInput) emailInput.value = "";
+        const passwordInput = document.getElementById("password-input");
+        if (passwordInput) passwordInput.value = "";
+        render();
+      }
+
+      function showApp() {
+        document.getElementById("auth-overlay").style.display = "none";
+        const app = document.getElementById("main-app-container");
+        if (app) {
+          app.style.display = "flex";
+          app.style.visibility = "visible";
+        }
+        window.dispatchEvent(new CustomEvent("login-success"));
+        if (typeof loadUsers === "function") loadUsers();
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const emailInput = document.getElementById("email-input");
+        if (emailInput) {
+          emailInput.addEventListener("input", (e) => {
+            authState.email = e.target.value.trim();
+            render();
+          });
+          emailInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              if (authState.showPasswordField) doLogin();
+              else handleLoginEmailNext();
+            }
+          });
+        }
+        const passwordInput = document.getElementById("password-input");
+        if (passwordInput) {
+          passwordInput.addEventListener("input", (e) => {
+            authState.password = e.target.value;
+            render();
+          });
+          passwordInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doLogin();
+          });
+        }
+        const loginEyeBtn = document.getElementById("login-eye-btn");
+        if (loginEyeBtn)
+          loginEyeBtn.addEventListener("click", () => {
+            authState.showPwd = !authState.showPwd;
+            render();
+          });
+        const forgotPwLink = document.getElementById("forgot-pw-link");
+        if (forgotPwLink)
+          forgotPwLink.addEventListener("click", async () => {
+            if (authState._isNewUser) {
+              authState.error = "";
+              authState.loading = true;
+              render();
+              try {
+                await _sendOtp();
+                authState.step = "otp";
+                setTimeout(() => document.getElementById("otp-0")?.focus(), 0);
+              } catch (e) {
+                authState.error = "Failed to send OTP. Please try again.";
+              } finally {
+                authState.loading = false;
+                render();
+              }
+            } else {
+              goForgotPassword();
+            }
+          });
+        const loginContinueBtn = document.getElementById("login-continue-btn");
+        if (loginContinueBtn)
+          loginContinueBtn.addEventListener("click", () => {
+            if (authState.showPasswordField) doLogin();
+            else handleLoginEmailNext();
+          });
+
+        for (let i = 0; i < 6; i++) {
+          const box = document.getElementById(`otp-${i}`);
+          if (box) {
+            box.addEventListener("input", (e) => otpMove(e, i, "otp"));
+            box.addEventListener("keydown", (e) => otpKeydown(e, i, "otp"));
+            box.addEventListener("paste", (e) => otpPaste(e, "otp"));
+          }
+        }
+        const otpVerifyBtn = document.getElementById("otp-verify-btn");
+        if (otpVerifyBtn)
+          otpVerifyBtn.addEventListener("click", () => {
+            doVerifyOtp();
+          });
+        const resendOtpBtn = document.getElementById("resend-otp-btn");
+        if (resendOtpBtn)
+          resendOtpBtn.addEventListener("click", () => {
+            resendOtp();
+          });
+        const otpBackBtn = document.getElementById("otp-back-btn");
+        if (otpBackBtn)
+          otpBackBtn.addEventListener("click", () => {
+            authState.step = "login";
+            resetAuthState();
+            render();
+          });
+
+        const newPwdInput = document.getElementById("new-password-input");
+        if (newPwdInput) {
+          newPwdInput.addEventListener("input", (e) => {
+            authState.newPassword = e.target.value;
+            checkStrength();
+            render();
+          });
+          newPwdInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doCreatePassword();
+          });
+        }
+        const createEyeBtn = document.getElementById("create-eye-btn");
+        if (createEyeBtn)
+          createEyeBtn.addEventListener("click", () => {
+            authState.showPwd = !authState.showPwd;
+            render();
+          });
+        const confirmPwdInput = document.getElementById(
+          "confirm-password-input",
+        );
+        if (confirmPwdInput) {
+          confirmPwdInput.addEventListener("input", (e) => {
+            authState.confirmPassword = e.target.value;
+            render();
+          });
+          confirmPwdInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doCreatePassword();
+          });
+        }
+        const confirmEyeBtn = document.getElementById("confirm-eye-btn");
+        if (confirmEyeBtn)
+          confirmEyeBtn.addEventListener("click", () => {
+            authState.showConfirmPwd = !authState.showConfirmPwd;
+            render();
+          });
+        const createPwdBtn = document.getElementById("create-pwd-btn");
+        if (createPwdBtn)
+          createPwdBtn.addEventListener("click", () => {
+            doCreatePassword();
+          });
+
+        const forgotEmailInput = document.getElementById("forgot-email-input");
+        if (forgotEmailInput) {
+          forgotEmailInput.addEventListener("input", (e) => {
+            authState.email = e.target.value.trim();
+            render();
+          });
+          forgotEmailInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doSendForgotOtp();
+          });
+        }
+        const forgotSendBtn = document.getElementById("forgot-send-btn");
+        if (forgotSendBtn)
+          forgotSendBtn.addEventListener("click", () => {
+            doSendForgotOtp();
+          });
+        const forgotBackBtn = document.getElementById("forgot-back-btn");
+        if (forgotBackBtn)
+          forgotBackBtn.addEventListener("click", () => {
+            authState.step = "login";
+            resetAuthState();
+            render();
+            setTimeout(() => {
+              const el = document.getElementById("email-input");
+              if (el) el.value = authState.email;
+            }, 0);
+          });
+
+        for (let i = 0; i < 6; i++) {
+          const box = document.getElementById(`fotp-${i}`);
+          if (box) {
+            box.addEventListener("input", (e) => otpMove(e, i, "fotp"));
+            box.addEventListener("keydown", (e) => otpKeydown(e, i, "fotp"));
+            box.addEventListener("paste", (e) => otpPaste(e, "fotp"));
+          }
+        }
+        const fotpVerifyBtn = document.getElementById("fotp-verify-btn");
+        if (fotpVerifyBtn)
+          fotpVerifyBtn.addEventListener("click", () => {
+            doVerifyForgotOtp();
+          });
+        const resendFotpBtn = document.getElementById("resend-fotp-btn");
+        if (resendFotpBtn)
+          resendFotpBtn.addEventListener("click", () => {
+            resendForgotOtp();
+          });
+        const fotpBackBtn = document.getElementById("fotp-back-btn");
+        if (fotpBackBtn)
+          fotpBackBtn.addEventListener("click", () => {
+            authState.step = "forgot";
+            resetOtp("fotp");
+            render();
+          });
+
+        const resetNewPwdInput = document.getElementById(
+          "reset-new-password-input",
+        );
+        if (resetNewPwdInput) {
+          resetNewPwdInput.addEventListener("input", (e) => {
+            authState.newPassword = e.target.value;
+            checkStrength();
+            render();
+          });
+          resetNewPwdInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doResetPassword();
+          });
+        }
+        const resetEyeBtn = document.getElementById("reset-eye-btn");
+        if (resetEyeBtn)
+          resetEyeBtn.addEventListener("click", () => {
+            authState.showPwd = !authState.showPwd;
+            render();
+          });
+        const resetConfirmInput = document.getElementById(
+          "reset-confirm-input",
+        );
+        if (resetConfirmInput) {
+          resetConfirmInput.addEventListener("input", (e) => {
+            authState.confirmPassword = e.target.value;
+            render();
+          });
+          resetConfirmInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doResetPassword();
+          });
+        }
+        const resetConfirmEyeBtn = document.getElementById(
+          "reset-confirm-eye-btn",
+        );
+        if (resetConfirmEyeBtn)
+          resetConfirmEyeBtn.addEventListener("click", () => {
+            authState.showConfirmPwd = !authState.showConfirmPwd;
+            render();
+          });
+        const resetBtn = document.getElementById("reset-btn");
+        if (resetBtn)
+          resetBtn.addEventListener("click", () => {
+            doResetPassword();
+          });
+
+        if (getToken()) {
+          showApp();
+        } else {
+          showLogin();
+        }
+      });
+
+      /* USERS PANEL */
+      function toggleUsersPanel() {
+        const overlay = document.getElementById("users-slide-overlay");
+        const panel = document.getElementById("users-slide-panel");
+        const isOpen = panel.style.display === "flex";
+        overlay.style.display = isOpen ? "none" : "block";
+        panel.style.display = isOpen ? "none" : "flex";
+        if (!isOpen) loadUsers();
+      }
+
+      /* ══════════════════════════════════════════════════════
+         INSTRUCTIONS MODAL
+      ══════════════════════════════════════════════════════ */
+      function openInstructionsModal() {
+        document.getElementById("instructions-overlay").style.display = "block";
+        document.getElementById("instructions-modal").style.display = "block";
+      }
+      function closeInstructionsModal() {
+        document.getElementById("instructions-overlay").style.display = "none";
+        document.getElementById("instructions-modal").style.display = "none";
+      }
+
+      /* ══════════════════════════════════════════════════════
+         GLOBALS
+      ══════════════════════════════════════════════════════ */
+      let allUsers = [];
+      let selectedUserId = null;
+
+      /* â”€â”€â”€ TOAST â”€â”€â”€ */
+      function showToast(msg, type = "info") {
+        const container = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = msg;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      }
+
+      /* ══════════════════════════════════════════════════════
+         PANEL HELPERS
+      ══════════════════════════════════════════════════════ */
+      function showPanel(id) {
+        ["detail-loading", "register-panel", "user-detail-panel"].forEach(
+          (p) => {
+            const el = document.getElementById(p);
+            if (el) el.style.display = p === id ? "block" : "none";
+          },
+        );
+      }
+
+      function showRegisterPanel() {
+        showPanel("register-panel");
+        selectedUserId = null;
+        highlightUser(null);
+        clearRegForm();
+      }
+      function showLoadingPanel() {
+        showPanel("detail-loading");
+      }
+
+      function clearRegForm() {
+        [
+          "reg-name",
+          "reg-birthdate",
+          "reg-primary-email",
+          "reg-secondary-email",
+        ].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        document.getElementById("reg-error").style.display = "none";
+        document.getElementById("reg-success").style.display = "none";
+        const respBox = document.getElementById("reg-response-box");
+        if (respBox) {
+          respBox.style.display = "none";
+          respBox.className = "";
+        }
+        const respContent = document.getElementById("reg-response-content");
+        if (respContent) respContent.textContent = "";
+      }
+
+      /* ══════════════════════════════════════════════════════
+         FILE UPLOAD
+      ══════════════════════════════════════════════════════ */
+      function handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (file) showFileName(file.name);
+      }
+
+      function handleFileDrop(e) {
+        e.preventDefault();
+        document
+          .getElementById("file-upload-area")
+          .classList.remove("drag-over");
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          document.getElementById("doc-file-input").files =
+            e.dataTransfer.files;
+          showFileName(file.name);
+        }
+      }
+
+      function showFileName(name) {
+        const el = document.getElementById("file-name-display");
+        el.textContent = "âœ“ " + name;
+        el.style.display = "block";
+      }
+
+      /* ══════════════════════════════════════════════════════
+         USER MENU
+      ══════════════════════════════════════════════════════ */
+      function toggleUserMenu() {
+        document.getElementById("user-menu-popover").classList.toggle("active");
+      }
+
+      document.addEventListener("click", (e) => {
+        const pop = document.getElementById("user-menu-popover");
+        if (pop && !pop.parentElement.contains(e.target))
+          pop.classList.remove("active");
+      });
+
+      /* ══════════════════════════════════════════════════════
+         HIGHLIGHT USER IN LIST
+      ══════════════════════════════════════════════════════ */
+      function highlightUser(id) {
+        document.querySelectorAll(".user-item").forEach((el) => {
+          el.classList.toggle("active", el.dataset.id == id);
+        });
+      }
+
+      /* ══════════════════════════════════════════════════════
+         LOAD USERS
+      ══════════════════════════════════════════════════════ */
+      async function loadUsers() {
+        const token = localStorage.getItem("jwtEmail2AI");
+        if (!token) return;
+        try {
+          const res = await fetch(`${API_BASE_URL}/Email2AI/users`, {
+            headers: {
+              Authorization: "Bearer " + token,
+              "ngrok-skip-browser-warning": "true",
+            },
+          });
+          if (!res.ok) throw new Error("Failed to load users");
+          const data = await res.json();
+          allUsers = Array.isArray(data) ? data : data.users || data.data || [];
+          renderUsers(allUsers);
+        } catch (err) {
+          console.error(err);
+          document.getElementById("users-list").innerHTML =
+            `<div class="sidebar-empty">Could not load users.<br><small style="color:#555;">${err.message}</small></div>`;
+        }
+      }
+
+      function renderUsers(users) {
+        const list = document.getElementById("users-list");
+        document.getElementById("users-count").textContent =
+          users.length + " users";
+        if (!users.length) {
+          list.innerHTML = `<div class="sidebar-empty">No users registered yet.</div>`;
+          return;
+        }
+        list.innerHTML = users
+          .map(
+            (u) => `
+        <div class="user-item" data-id="${u.id || u._id || u.primary_email}"
+          onclick="selectUser(this, ${JSON.stringify(JSON.stringify(u))})">
+          <div class="user-item-name">${escHtml(u.name || "Unnamed")}</div>
+          <div class="user-item-email">${escHtml(u.primary_email || "")}</div>
+          <div class="user-item-email">${escHtml(u.secondary_email || "")}</div>
+          <div class="user-item-date">${u.birthdate_code ? "DOB: " + escHtml(u.birthdate_code) : ""}</div>
+        </div>
+      `,
+          )
+          .join("");
+      }
+
+      function filterUsers(query) {
+        const q = query.toLowerCase();
+        const filtered = allUsers.filter(
+          (u) =>
+            (u.name || "").toLowerCase().includes(q) ||
+            (u.primary_email || "").toLowerCase().includes(q),
+        );
+        renderUsers(filtered);
+      }
+
+      /* ══════════════════════════════════════════════════════
+         SELECT USER
+      ══════════════════════════════════════════════════════ */
+      function selectUser(el, jsonStr) {
+        const user = JSON.parse(jsonStr);
+        selectedUserId = user.id || user._id || user.primary_email;
+        highlightUser(selectedUserId);
+        // Close panel
+        document.getElementById("users-slide-overlay").style.display = "none";
+        document.getElementById("users-slide-panel").style.display = "none";
+        showPanel("user-detail-panel");
+
+        const card = document.getElementById("user-detail-card");
+        const initials = (user.name || "?")
+          .split(" ")
+          .map((p) => p[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+
+        card.innerHTML = `
+        <div style="margin-bottom:1.5rem;">
+          <button onclick="showRegisterPanel()" style="
+            background:none; border:1px solid rgba(241,196,15,0.3); color:#f1c40f;
+            padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600;
+            cursor:pointer; font-family:'Montserrat',sans-serif; display:inline-flex;
+            align-items:center; gap:6px; transition:all 0.2s;
+          " onmouseover="this.style.background='rgba(241,196,15,0.1)'" onmouseout="this.style.background='none'">
+            â†  Back to Register
+          </button>
+        </div>
+        <div class="user-detail-header">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div class="user-avatar">${escHtml(initials)}</div>
+            <div>
+              <div class="user-detail-name">${escHtml(user.name || "â€”")}</div>
+              <div class="user-detail-sub">${escHtml(user.primary_email || "")}</div>
+            </div>
+          </div>
+        </div>
+        <div class="detail-field-grid">
+          <div class="detail-field">
+            <div class="detail-field-label">Name</div>
+            <div class="detail-field-value">${escHtml(user.name || "â€”")}</div>
+          </div>
+          <div class="detail-field">
+            <div class="detail-field-label">Birthdate Code</div>
+            <div class="detail-field-value">${escHtml(user.birthdate_code || "â€”")}</div>
+          </div>
+          <div class="detail-field">
+            <div class="detail-field-label">Primary Email</div>
+            <div class="detail-field-value">${escHtml(user.primary_email || "â€”")}</div>
+          </div>
+          <div class="detail-field">
+            <div class="detail-field-label">Secondary Email</div>
+            <div class="detail-field-value ${!user.secondary_email ? "empty" : ""}">${escHtml(user.secondary_email || "Not provided")}</div>
+          </div>
+          ${Object.entries(user)
+            .filter(
+              ([k]) =>
+                ![
+                  "name",
+                  "birthdate_code",
+                  "primary_email",
+                  "secondary_email",
+                  "id",
+                  "_id",
+                ].includes(k),
+            )
+            .map(
+              ([k, v]) => `
+              <div class="detail-field">
+                <div class="detail-field-label">${escHtml(k.replace(/_/g, " "))}</div>
+                <div class="detail-field-value">${escHtml(String(v ?? "â€”"))}</div>
+              </div>`,
+            )
+            .join("")}
+        </div>
+      `;
+      }
+
+      /* ══════════════════════════════════════════════════════
+         REGISTER
+      ══════════════════════════════════════════════════════ */
+      async function submitRegistration() {
+        const name = document.getElementById("reg-name").value.trim();
+        const birthdate_code = document
+          .getElementById("reg-birthdate")
+          .value.trim();
+        const primary_email = document
+          .getElementById("reg-primary-email")
+          .value.trim();
+        const secondary_email = document
+          .getElementById("reg-secondary-email")
+          .value.trim();
+        const errEl = document.getElementById("reg-error");
+        const sucEl = document.getElementById("reg-success");
+        const btn = document.getElementById("reg-submit-btn");
+
+        errEl.style.display = "none";
+        sucEl.style.display = "none";
+
+        // Validation
+        if (!name || !birthdate_code || !primary_email) {
+          errEl.textContent =
+            "Please fill in all required fields (Name, Birthdate Code, Primary Email).";
+          errEl.style.display = "block";
+          return;
+        }
+        if (!primary_email.includes("@")) {
+          errEl.textContent = "Please enter a valid primary email address.";
+          errEl.style.display = "block";
+          return;
+        }
+
+        const token = localStorage.getItem("jwtEmail2AI");
+        btn.disabled = true;
+        btn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:8px;"><span class="mini-spinner"></span>Registering...</span>`;
+
+        try {
+          const params = new URLSearchParams({
+            name,
+            birthdate_code,
+            primary_email,
+          });
+          if (secondary_email)
+            params.append("secondary_email", secondary_email);
+
+          const res = await fetch(
+            `${API_BASE_URL}/Email2AI/register?${params.toString()}`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + token,
+                "ngrok-skip-browser-warning": "true",
+              },
+            },
+          );
+
+          let responseData;
+          const contentType = res.headers.get("content-type") || "";
+          try {
+            responseData = contentType.includes("application/json")
+              ? await res.json()
+              : await res.text();
+          } catch (_) {
+            responseData = "";
+          }
+
+          if (!res.ok) {
+            const isJson = typeof responseData === "object";
+            const msg = isJson
+              ? responseData.detail ||
+                responseData.message ||
+                `Error ${res.status}`
+              : `Error ${res.status}`;
+            errEl.textContent = "Registration failed: " + msg;
+            errEl.style.display = "block";
+            showToast("Registration failed: " + msg, "error");
+          } else {
+            // Clear all form fields first
+            clearRegForm();
+
+            // Show simple success message with birthdate code only
+            sucEl.innerHTML = `✓ User registered successfully! &nbsp;&nbsp; <span style="color:#f1c40f;font-weight:700;">Birthdate code: "${escHtml(birthdate_code)}"</span>`;
+            sucEl.style.display = "block";
+            showToast("User registered successfully!", "success");
+            loadUsers();
+
+            // Auto-hide after 30 seconds
+            setTimeout(() => {
+              sucEl.style.display = "none";
+            }, 30000);
+          }
+        } catch (err) {
+          errEl.textContent = "Request failed: " + err.message;
+          errEl.style.display = "block";
+          showToast("Request failed: " + err.message, "error");
+          showToast("Request failed: " + err.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Register User";
+        }
+      }
+
+      /* â”€â”€â”€ HELPERS â”€â”€â”€ */
+      function escHtml(str) {
+        const d = document.createElement("div");
+        d.textContent = str;
+        return d.innerHTML;
+      }
+
+      function mainApp() {
+        return {
+          isLoggedIn: false,
+          userEmail: "",
+          init() {
+            const token = localStorage.getItem("jwtEmail2AI");
+            const email = localStorage.getItem("email2AIEmail");
+            if (token && email) {
+              this.isLoggedIn = true;
+              this.userEmail = email;
+            }
+            window.addEventListener("login-success", () => {
+              this.isLoggedIn = true;
+              this.userEmail = localStorage.getItem("email2AIEmail");
+              setTimeout(loadUsers, 300);
+            });
+            window.addEventListener("logout-success", () => {
+              this.isLoggedIn = false;
+              this.userEmail = "";
+            });
+            if (this.isLoggedIn) setTimeout(loadUsers, 300);
+          },
+          logout() {
+            localStorage.removeItem("jwtEmail2AI");
+            localStorage.removeItem("email2AIEmail");
+            window.dispatchEvent(new Event("logout-success"));
+            this.isLoggedIn = false;
+            this.userEmail = "";
+            setTimeout(() => location.reload(), 100);
+          },
+        };
+      }
+    </script>
+  </body>
+</html>

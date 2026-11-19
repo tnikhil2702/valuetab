@@ -1,0 +1,68 @@
+{
+"pc": "phone call",
+"tc": "telephone conference",
+"conf": "conference",
+"corr": "correspondence",
+"email": "email communication",
+"msg": "message",
+"w/": "with",
+"re": "regarding",
+
+"cl": "client",
+"pt": "patient",
+"dr": "doctor",
+
+"mro": "medical records office",
+"med rec": "medical records",
+"med recs": "medical records",
+"clinic": "medical clinic",
+"hosp": "hospital",
+"chron": "chronology",
+"prov": "provider",
+"chronology": "medical chronology",
+"recs": "records",
+"rec": "record",
+"req": "request",
+"reqst": "request",
+"consult": "consultation",
+"pet": "petition",
+"petn": "petition",
+"am pet": "amended petition",
+
+"resp": "respondent",
+"respt": "respondent",
+"resp rpt": "respondent report",
+"rpt": "report",
+
+"exh": "exhibit",
+"exhs": "exhibits",
+"ex": "exhibit",
+
+"atty": "attorney",
+"paral": "paralegal",
+
+"f/u": "follow up",
+"fu": "follow up",
+
+"rev": "review",
+"prep": "prepare",
+"draft": "draft",
+"edit": "edit",
+
+"doc": "document",
+"docs": "documents",
+
+"filing": "court filing",
+"efile": "electronic filing",
+"dkt": "docket",
+
+"sm": "special master",
+"attn": "attention",
+"file": "file review",
+
+"mot": "motion",
+"mtc": "motion to compel",
+"doj": "department of justice",
+"r4": "rule 4 report",
+"rule4": "rule 4 report"
+}

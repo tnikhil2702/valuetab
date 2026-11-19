@@ -1,0 +1,3093 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAA MedCert Case Builder</title>
+    <link rel="icon" type="image/webp"
+        href="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        [x-cloak] { display: none !important; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            font-family: "Montserrat", sans-serif;
+            background-color: #111;
+            color: #f1c40f;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url("https://static.vecteezy.com/system/resources/previews/007/596/744/non_2x/abstract-digital-glossy-particles-and-lines-connected-3d-illustration-on-black-background-free-photo.jpg");
+            background-size: cover;
+            background-position: center top 150px;
+            z-index: -2;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: -1;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .app-header {
+            background: rgba(17, 17, 17, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(241, 196, 15, 0.2);
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(241, 196, 15, 0.15);
+            position: relative;
+            z-index: 50;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            height: 56px;
+            width: auto;
+            filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.3));
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f1c40f;
+            letter-spacing: 1px;
+            text-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        #active-users-popover::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #active-users-popover::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        #active-users-popover::-webkit-scrollbar-thumb {
+            background: rgba(241, 196, 15, 0.4);
+            border-radius: 4px;
+        }
+
+        #active-users-popover::-webkit-scrollbar-thumb:hover {
+            background: rgba(241, 196, 15, 0.6);
+        }
+
+        .ledger-table-container::-webkit-scrollbar,
+        .view-container::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        .ledger-table-container::-webkit-scrollbar-track,
+        .view-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .ledger-table-container::-webkit-scrollbar-thumb,
+        .view-container::-webkit-scrollbar-thumb {
+            background: rgba(241, 196, 15, 0.4);
+            border-radius: 5px;
+            border: 2px solid rgba(17, 17, 17, 0.9);
+        }
+
+        .ledger-table-container::-webkit-scrollbar-thumb:hover,
+        .view-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(241, 196, 15, 0.7);
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-top-color: #000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 16px 20px;
+            }
+
+            .header-title h1 {
+                font-size: 18px;
+            }
+
+            .header-title p {
+                display: none;
+            }
+
+            .logo {
+                height: 44px;
+            }
+        }
+
+        /* LOGIN PAGE STYLES */
+        .login-page-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .login-page-content {
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .login-logo-section {
+            margin-bottom: 3rem;
+        }
+
+        .login-page-content h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f1c40f;
+            margin: 0 0 1rem 0;
+            letter-spacing: 2px;
+        }
+
+        .login-page-content>p {
+            font-size: 1rem;
+            color: #aaa;
+            margin: 0 0 2rem 0;
+        }
+
+        .login-form-card {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-form-card h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #f1c40f;
+            margin: 0 0 2rem 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .login-form-group {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .login-form-group label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f1c40f;
+            margin-bottom: 0.75rem;
+        }
+
+        .login-form-group input[type="email"] {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            font-size: 0.95rem;
+            background-color: #000;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 6px;
+            font-family: "Montserrat", sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-form-group input[type="email"]:focus {
+            outline: none;
+            border-color: #f1c40f;
+            box-shadow: 0 0 0 2px rgba(241, 196, 15, 0.1);
+        }
+
+        .login-form-group input[type="email"]::placeholder {
+            color: #666;
+        }
+
+        .login-email-status {
+            display: flex;
+            align-items: center;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .login-email-status.visible {
+            opacity: 1;
+        }
+
+        .login-email-status .status-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .login-email-status .status-icon.checking {
+            background-color: #3498db;
+            animation: pulse 1.5s infinite;
+        }
+
+        .login-email-status .status-icon.valid {
+            background-color: #2ecc71;
+        }
+
+        .login-email-status .status-icon.invalid {
+            background-color: #e74c3c;
+        }
+
+        .login-error-message {
+            color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.875rem;
+            font-size: 1rem;
+            font-weight: 700;
+            background-color: #d4ac0d;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .login-btn:hover:not(:disabled) {
+            background-color: #f1c40f;
+            box-shadow: 0 4px 12px rgba(241, 196, 15, 0.3);
+        }
+
+        .login-btn:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .login-btn-spinner {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+
+        .active_user {
+            position: fixed;
+            top: 80px;
+            left: 350px;
+            background-color: rgb(26, 26, 26);
+            border: 1px solid rgba(241, 196, 15, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            min-width: auto;
+            max-height: 400px;
+            display: none;
+            z-index: 2100;
+            box-shadow: rgba(0, 0, 0, 0.5) 0px 4px 20px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .active_user {
+                top: 120px;
+                left: 105px;
+            }
+
+            div#user-menu-popover {
+                top: 120px !important;
+            }
+        }
+
+        /* --- LEDGER UI STYLES --- */
+        .view-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(241, 196, 15, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+        }
+
+        .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            color: #e0e0e0;
+        }
+
+        .ledger-table-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .ledger-table th {
+            padding: 11px 14px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid rgba(241, 196, 15, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .ledger-table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .ledger-row {
+            transition: background 0.15s;
+        }
+
+        .ledger-row:hover {
+            background: rgba(241, 196, 15, 0.06);
+        }
+
+        /* Responsive Utilities for Run Details */
+        .responsive-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .responsive-grid-main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .responsive-grid-auto {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        @media (max-width: 1024px) {
+
+            .responsive-grid-2,
+            .responsive-grid-main {
+                grid-template-columns: 1fr !important;
+            }
+
+            .view-container {
+                padding: 12px !important;
+            }
+
+            .glass-panel {
+                padding: 16px !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .responsive-grid-auto {
+                grid-template-columns: 1fr !important;
+            }
+
+            h2 {
+                font-size: 20px !important;
+            }
+
+            .item-card {
+                padding: 8px !important;
+            }
+
+            .responsive-header {
+                flex-direction: column !important;
+                gap: 12px !important;
+                text-align: left !important;
+            }
+
+            .responsive-header>div {
+                text-align: left !important;
+            }
+
+            /* Section 1: filter bar on mobile */
+            .filter-bar {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+                padding: 12px !important;
+            }
+
+            .filter-bar button {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+
+            /* Section 1 & 2: view container padding */
+            .view-container {
+                overflow-y: auto !important;
+            }
+
+            /* Section 2: session/email row stacks vertically */
+            .session-email-row {
+                flex-direction: column !important;
+                gap: 4px !important;
+            }
+
+            /* Section 2: case header badge aligns left  */
+            .case-header-badge-col {
+                text-align: left !important;
+            }
+
+            /* Section 2: case details inner padding */
+            .case-details-inner {
+                padding: 12px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            /* Section 1: reduce table container height on very small screens */
+            .ledger-table-container {
+                max-height: 220px !important;
+            }
+
+            /* Section 2: reduce font in case header */
+            .case-header-name {
+                font-size: 18px !important;
+            }
+
+            /* Modal full-width on very small screens */
+            .modal-content {
+                width: 96% !important;
+                padding: 20px !important;
+            }
+        }
+
+        .responsive-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Review Section Styles */
+        .item-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(241, 196, 15, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s;
+        }
+
+        .item-card:hover {
+            background: rgba(241, 196, 15, 0.05);
+            border-color: rgba(241, 196, 15, 0.3);
+        }
+
+        .evidence-line {
+            border-left: 2px solid rgba(241, 196, 15, 0.3);
+            padding-left: 12px;
+            margin-top: 8px;
+            font-style: italic;
+            color: #ccc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-status {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .badge-missing {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+
+        /* =========================
+   LOGIN PAGE STYLES
+========================= */
+
+        :root {
+            --gold: #f1c40f;
+            --gold-dark: #d4ac0d;
+            --bg-dark: #111111;
+            --card-bg: rgba(20, 20, 20, 0.96);
+            --border: rgba(241, 196, 15, 0.18);
+            --muted: #9ca3af;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        /* Wrapper */
+        .login-page-wrapper {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 999;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+        }
+
+        /* Content */
+        .login-page-content {
+            width: 100%;
+            max-width: 520px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Logo Section */
+        .login-logo-section {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .login-logo-section img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 18px;
+            filter: drop-shadow(0 0 14px rgba(241, 196, 15, 0.35));
+        }
+
+        .login-page-content h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 18px rgba(241, 196, 15, 0.25);
+        }
+
+        .login-logo-section p {
+            font-size: 0.95rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        /* Card */
+        .login-form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 34px;
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, 0.6),
+                0 0 30px rgba(241, 196, 15, 0.06);
+            backdrop-filter: blur(14px);
+        }
+
+        /* Card Heading */
+        .login-form-card h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+        }
+
+        /* Form Group */
+        .login-form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .login-form-group label {
+            display: block;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        /* Inputs */
+        .login-form-group input {
+            width: 100%;
+            height: 52px;
+            padding: 0 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: "Montserrat", sans-serif;
+            transition: all 0.25s ease;
+        }
+
+        .login-form-group input::placeholder {
+            color: #777;
+        }
+
+        .login-form-group input:focus {
+            outline: none;
+            border-color: rgba(241, 196, 15, 0.7);
+            box-shadow: 0 0 0 4px rgba(241, 196, 15, 0.12);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Email Status */
+        .login-email-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 0.82rem;
+            opacity: 0;
+            transition: 0.25s ease;
+        }
+
+        .login-email-status.visible {
+            opacity: 1;
+        }
+
+        .status-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-icon.checking {
+            background: #3b82f6;
+            animation: pulse 1s infinite;
+        }
+
+        .status-icon.valid {
+            background: var(--success);
+        }
+
+        .status-icon.invalid {
+            background: var(--danger);
+        }
+
+        .status-text {
+            color: #d1d5db;
+        }
+
+        /* Error */
+        .login-error-message {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Button */
+        .login-btn {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+                    var(--gold) 0%,
+    var(--gold-dark) 100%
+  );
+            color: #000;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+
+        .login-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(241, 196, 15, 0.22);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Spinner */
+        .login-btn-spinner {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .spinner {
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Forgot Link */
+        .forgot-link {
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 0.82rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .forgot-link:hover {
+            opacity: 0.75;
+        }
+
+        /* Back Link */
+        .back-link {
+            width: 100%;
+            margin-top: 16px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--gold);
+        }
+
+        /* Sub Text */
+        .login-sub {
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 22px;
+        }
+
+        .login-sub span {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        /* Animation */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+                transform: scale(0.95);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0.5;
+                transform: scale(0.95);
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .login-page-wrapper {
+                padding: 16px;
+                align-items: flex-start;
+                padding-top: 40px;
+            }
+
+            .login-form-card {
+                padding: 24px;
+                border-radius: 18px;
+            }
+
+            .login-form-card h2 {
+                font-size: 1.6rem;
+            }
+
+            .login-page-content h1 {
+                font-size: 1.5rem;
+            }
+
+            .login-logo-section img {
+                width: 72px;
+                height: 72px;
+            }
+
+            .login-form-group input {
+                height: 48px;
+            }
+
+            .login-btn {
+                height: 48px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="video-background"></div>
+    <div class="overlay"></div>
+
+    <!-- LOGIN PAGE -->
+    <div id="login-page-wrapper" class="login-page-wrapper" x-data="loginApp()" x-init="init()" x-show="!loggedIn"
+        x-cloak>
+        <div class="login-page-content">
+            <div class="login-logo-section">
+                <h1>FAA MedCert Case Builder</h1>
+                <p>Secure Access for Authorized Ramos Law Users</p>
+            </div>
+
+            <!-- ── VIEW: login ── -->
+            <div class="login-form-card" x-show="view === 'login'">
+                <h2>Login</h2>
+
+                <div class="login-form-group">
+                    <label for="login-email">Email</label>
+                    <input id="login-email" type="email" placeholder="Enter your email" x-model="email"
+                        @input.debounce.500="verifyEmail()" @keydown.enter="emailValid && password && login()" />
+                    <div class="login-email-status" :class="email && email.includes('@') ? 'visible' : ''"
+                        x-show="email && email.includes('@')">
+                        <span class="status-icon"
+                            :class="emailChecking ? 'checking' : emailValid ? 'valid' : 'invalid'"></span>
+                        <span class="status-text"
+                            x-text="emailChecking ? 'Checking email...' : emailValid ? 'Email authorized' : 'Email not authorized'"></span>
+                    </div>
+                </div>
+
+                <div x-show="emailValid && passwordCreated" x-transition class="login-form-group">
+                    <label for="login-password">Password</label>
+                    <input id="login-password" type="password" placeholder="Enter your password" x-model="password"
+                        @keydown.enter="emailValid && password && login()" />
+                </div>
+
+                <div style="text-align: right;">
+                    <button x-show="emailValid && passwordCreated" type="button" class="forgot-link"
+                        @click="_resetOtpState(); view = 'forgot'; forgotSendOtp()">
+                        Forgot Password?
+                    </button>
+                    <button x-show="emailValid && !passwordCreated" type="button" class="forgot-link"
+                        @click="_resetOtpState(); view = 'setup-otp'">
+                        Set Password
+                    </button>
+                </div>
+
+                <div x-show="error" x-text="error" class="login-error-message"></div>
+
+                <button @click="login()" :disabled="!emailValid || !password || loggingIn" class="login-btn">
+                    <span x-show="!loggingIn">Login</span>
+                    <span x-show="loggingIn" class="login-btn-spinner">
+                        <span class="spinner"
+                            style="width:14px;height:14px;border-width:2px;margin-left:0;border:2px solid rgba(0,0,0,0.3);border-top-color:#000;"></span>
+                        Logging in...
+                    </span>
+                </button>
+            </div>
+
+            <!-- ── VIEW: setup-otp ── -->
+            <div class="login-form-card" x-show="view === 'setup-otp'" style="display:none">
+                <h2>Set Up Account</h2>
+                <p class="login-sub">No password found for <span x-text="email"></span>. We'll send a one-time code to
+                    get started.</p>
+
+                <div x-show="error" x-text="error" class="login-error-message"></div>
+
+                <button class="login-btn" @click="setupSendOtp()" :disabled="otpSending || otpSent">
+                    <span x-show="!otpSending && !otpSent">Send OTP to Email</span>
+                    <span x-show="otpSending" class="login-btn-spinner">
+                        <span class="spinner" style="width:14px;height:14px;border-width:2px;margin-left:0;"></span>
+                        Sending...
+                    </span>
+                    <span x-show="!otpSending && otpSent">OTP Sent ✓ — Enter Below</span>
+                </button>
+
+                <template x-if="otpSent">
+                    <div class="login-form-group" style="margin-top:0;">
+                        <label>Enter OTP</label>
+                        <input type="text" placeholder="6-digit OTP" x-model="otp" @keydown.enter="setupVerifyOtp()" />
+                        <button class="login-btn" style="margin-top:.75rem;" @click="setupVerifyOtp()"
+                            :disabled="otpVerifying">
+                            <span x-show="!otpVerifying">Verify OTP</span>
+                            <span x-show="otpVerifying" class="login-btn-spinner">
+                                <span class="spinner"
+                                    style="width:14px;height:14px;border-width:2px;margin-left:0;"></span>
+                                Verifying...
+                            </span>
+                        </button>
+                    </div>
+                </template>
+
+                <button type="button" class="back-link" @click="view = 'login'; _resetOtpState()">← Back to
+                    Login</button>
+            </div>
+
+            <!-- ── VIEW: setup-create ── -->
+            <div class="login-form-card" x-show="view === 'setup-create'" style="display:none">
+                <h2>Create Password</h2>
+                <p class="login-sub">OTP verified! Now set your account password.</p>
+
+                <div x-show="error" x-text="error" class="login-error-message"></div>
+
+                <div class="login-form-group">
+                    <label>New Password</label>
+                    <input type="password" placeholder="Enter new password" x-model="newPassword" />
+                </div>
+                <div class="login-form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" placeholder="Confirm new password" x-model="confirmPassword"
+                        @keydown.enter="setupCreatePassword()" />
+                </div>
+
+                <button class="login-btn" @click="setupCreatePassword()" :disabled="submitting">
+                    <span x-show="!submitting">Create Password &amp; Login</span>
+                    <span x-show="submitting" class="login-btn-spinner">
+                        <span class="spinner" style="width:14px;height:14px;border-width:2px;margin-left:0;"></span>
+                        Setting up...
+                    </span>
+                </button>
+            </div>
+
+            <!-- ── VIEW: forgot ── -->
+            <div class="login-form-card" x-show="view === 'forgot'" style="display:none">
+                <h2>Forgot Password</h2>
+                <p class="login-sub">Sending a reset OTP to <span x-text="email"></span>…</p>
+
+                <div x-show="error" x-text="error" class="login-error-message"></div>
+
+                <div x-show="otpSending" style="display:flex;justify-content:center;padding:1rem;">
+                    <span class="spinner" style="width:22px;height:22px;border-width:3px;"></span>
+                </div>
+
+                <button x-show="!otpSending && error" class="login-btn" @click="forgotSendOtp()">Retry Send OTP</button>
+                <button type="button" class="back-link" @click="view = 'login'; _resetOtpState()">← Back to
+                    Login</button>
+            </div>
+
+            <!-- ── VIEW: forgot-verify ── -->
+            <div class="login-form-card" x-show="view === 'forgot-verify'" style="display:none">
+                <h2>Enter OTP</h2>
+                <p class="login-sub">OTP sent to <span x-text="email"></span>. Enter it below.</p>
+
+                <div x-show="error" x-text="error" class="login-error-message"></div>
+
+                <div class="login-form-group">
+                    <label>OTP</label>
+                    <input type="text" placeholder="6-digit OTP" x-model="otp" @keydown.enter="forgotVerifyOtp()" />
+                </div>
+
+                <button class="login-btn" @click="forgotVerifyOtp()" :disabled="otpVerifying">
+                    <span x-show="!otpVerifying">Verify OTP</span>
+                    <span x-show="otpVerifying" class="login-btn-spinner">
+                        <span class="spinner" style="width:14px;height:14px;border-width:2px;margin-left:0;"></span>
+                        Verifying...
+                    </span>
+                </button>
+                <button type="button" class="back-link" @click="view = 'login'; _resetOtpState()">← Back to
+                    Login</button>
+            </div>
+
+            <!-- ── VIEW: forgot-reset ── -->
+            <div class="login-form-card" x-show="view === 'forgot-reset'" style="display:none">
+                <h2>Reset Password</h2>
+                <p class="login-sub">Enter your new password below.</p>
+
+                <div x-show="error" x-text="error" class="login-error-message"></div>
+
+                <div class="login-form-group">
+                    <label>New Password</label>
+                    <input type="password" placeholder="Enter new password" x-model="newPassword" />
+                </div>
+                <div class="login-form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" placeholder="Confirm new password" x-model="confirmPassword"
+                        @keydown.enter="forgotResetPassword()" />
+                </div>
+
+                <button class="login-btn" @click="forgotResetPassword()" :disabled="submitting">
+                    <span x-show="!submitting">Reset Password &amp; Login</span>
+                    <span x-show="submitting" class="login-btn-spinner">
+                        <span class="spinner" style="width:14px;height:14px;border-width:2px;margin-left:0;"></span>
+                        Resetting...
+                    </span>
+                </button>
+                <button type="button" class="back-link" @click="view = 'login'; _resetOtpState()">← Back to
+                    Login</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="main-app-wrapper" class="app-container" x-data="medcertApp()" style="display: none">
+
+        <div class="app-header">
+            <div class="header-left">
+                <img src="https://www.ramoslaw.com/wp-content/uploads/2024/02/ramos-law-injury-intelligence-cross.webp"
+                    alt="Ramos Law" class="logo" />
+                <div class="header-title">
+                    <h1>FAA MedCert Case Builder</h1>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <p>AI-Powered Case Analysis</p>
+                        <!-- Active Users Count -->
+                        <button id="active-users-btn" style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  background: none;
+                  border: none;
+                  cursor: pointer;
+                  padding: 4px 10px;
+                  border-radius: 6px;
+                  transition: all 0.3s;
+                  color: #f1c40f;
+                  font-size: 12px;
+                  font-weight: 600;
+                " onclick="toggleActiveUsersPopover()" title="Active users on this tool">
+                            <span style="
+                  display: inline-block;
+                  width: 8px;
+                  height: 8px;
+                  background: #2ecc71;
+                  border-radius: 50%;
+                  box-shadow: 0 0 8px #2ecc71;
+                "></span>
+                            <span id="active-count">0</span>
+                            <span style="margin-left: 4px;">Users</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
+                <!-- MENU ICON -->
+                <button style="background: none; border: none; cursor: pointer; padding: 8px; position: relative;"
+                    onclick="toggleUserMenu()" title="User menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                    </svg>
+                </button>
+
+                <!-- USER MENU POPOVER -->
+                <div id="user-menu-popover" style="
+              position: absolute;
+              top: 70px;
+              right: 20px;
+              background-color: #222;
+              border: 1px solid #444;
+              border-radius: 8px;
+              padding: 12px;
+              min-width: 200px;   
+              display: none;
+              z-index: 1000;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            ">
+                    <div
+                        style="padding: 8px 12px; border-bottom: 1px solid #444; margin-bottom: 8px; color: #bbb; font-size: 13px;">
+                        <span x-text="userEmail"></span>
+                    </div>
+                    <button onclick="logoutApp()" style="
+                width: 100%;
+                padding: 10px 12px;
+                background-color: #e74c3c;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+              ">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Users Popover -->
+        <div id="active-users-popover" class="active_user">
+            <div style="
+          padding: 8px 0;
+          margin-bottom: 8px;
+          border-bottom: 1px solid rgba(241, 196, 15, 0.3);
+          color: #f1c40f;
+          font-size: 12px;
+          font-weight: 600;
+        ">Active Users</div>
+            <div id="active-users-list" style="color: #aaa; font-size: 13px;">
+                <div style="padding: 8px 0; color: #666;">Loading...</div>
+            </div>
+        </div>
+
+        <div class="view-container" style="padding: 24px; gap: 24px; overflow-y: auto;">
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+
+                <!-- Section 1: Medcert Upload History -->
+                <div class="glass-panel"
+                    style="display: flex; flex-direction: column; overflow: hidden; margin-bottom: 24px;">
+                    <div class="filter-bar"
+                        style="background: rgba(241, 196, 15, 0.05); border-bottom: 1px solid rgba(241, 196, 15, 0.1);">
+                        <h3
+                            style="color: #f1c40f; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">
+                            MedCert History
+                        </h3>
+                        <button @click="openUploadModal()"
+                            style="margin-left: auto; background: rgba(241,196,15,0.15); color: #f1c40f; border: 1px solid rgba(241,196,15,0.4); padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; letter-spacing: 0.5px;">
+                            UPLOAD ZIP
+                        </button>
+                    </div>
+                    <div class="ledger-table-container"
+                        style="margin: 0; max-height: 300px; overflow-y: auto; overflow-x: auto;">
+                        <div x-show="loadingRuns" style="padding: 40px; text-align: center;">
+                            <span class="spinner" style="width: 24px; height: 24px; border-width: 3px;"></span>
+                            <p style="margin-top: 12px; color: #f1c40f; font-size: 12px;">Fetching run history...</p>
+                        </div>
+
+                        <div x-show="!loadingRuns && runs.length === 0"
+                            style="padding: 40px; text-align: center; color: #555;">
+                            <p style="font-size: 13px;">No previous runs found.</p>
+                        </div>
+
+                        <table class="ledger-table" x-show="!loadingRuns && runs.length > 0"
+                            style="table-layout: auto; min-width: 600px;">
+                            <thead style="position: sticky; top: 0; background: rgba(10, 10, 10, 0.98); z-index: 10;">
+                                <tr>
+                                    <th style="width: 60px;">#</th>
+                                    <th style="width: 200px;">User Email</th>
+                                    <th style="width: 250px;">Zip Filename</th>
+                                    <th style="width: 180px;">Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(run, index) in runs" :key="run.id">
+                                    <tr class="ledger-row" @click="selectRun(run.id)"
+                                        :style="currentRunId === run.id ? 'background: rgba(241,196,15,0.12); border-left: 4px solid #f1c40f;' : 'cursor: pointer;'">
+                                        <td style="font-size: 12px; color: #ccc; padding-left: 14px; font-weight: bold;"
+                                            x-text="index + 1"></td>
+                                        <td style="font-size: 12px; color: #ccc;" x-text="run.user_email"></td>
+                                        <td style="font-size: 12px; color: #eee; font-weight: 500;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span x-show="currentRunId === run.id"
+                                                    style="color: #f1c40f; font-size: 10px;">▶</span>
+                                                <span x-text="run.zip_filename"></span>
+                                            </div>
+                                        </td>
+                                        <td style="font-size: 12px; color: #888;"
+                                            x-text="new Date(run.created_at).toLocaleString()"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 2: Run Details Area -->
+                <div class="glass-panel" style="display: flex; flex-direction: column; overflow: hidden;">
+                    <div
+                        style="padding: 12px 16px; border-bottom: 1px solid rgba(241, 196, 15, 0.1); background: rgba(241, 196, 15, 0.05);">
+                        <h3
+                            style="color: #f1c40f; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">
+                            Case Details
+                        </h3>
+                    </div>
+                    <!-- Details Container without filters or select options -->
+                    <div class="ledger-table-container" style="margin: 0; min-height: 200px; padding: 0;">
+                        <div x-show="!currentRunId" style="text-align: center; color: #555; padding: 60px 0;">
+                            <p style="font-size: 14px; font-weight: 600;">Select a run to view details.</p>
+                        </div>
+
+                        <div x-show="currentRunId && loadingCaseDetails" style="text-align: center; padding: 60px 0;">
+                            <span class="spinner" style="width: 32px; height: 32px;"></span>
+                            <p style="margin-top: 16px; color: #f1c40f; font-size: 13px;">Analyzing Case Data...</p>
+                        </div> <!-- CASE CONTENT VIEW -->
+                        <div x-show="currentRunId && !loadingCaseDetails && caseDetails" style="padding: 24px;"
+                            class="case-details-inner">
+
+                            <!-- 1. Case Header & Airman Info -->
+                            <div class="glass-panel"
+                                style="padding: 24px; margin-bottom: 24px; background: rgba(241, 196, 15, 0.05);">
+                                <div class="responsive-header" style="margin-bottom: 20px;">
+                                    <div>
+                                        <h2 style="color: #f1c40f; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;"
+                                            class="case-header-name" x-text="caseDetails?.case_header.case_name"></h2>
+                                        <div style="display: flex; gap: 12px; margin-top: 4px;"
+                                            class="session-email-row">
+                                            <p style="color: #888; font-size: 11px; font-weight: 600; text-transform: uppercase;"
+                                                x-text="'Session: ' + (caseDetails?.session_id || 'N/A')"></p>
+                                            <p style="color: #666; font-size: 11px; font-weight: 600; text-transform: uppercase;"
+                                                x-text="'Email: ' + (caseDetails?.user_email || 'N/A')"></p>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right;" class="case-header-badge-col">
+                                        <div class="badge badge-status" style="font-size: 11px; padding: 4px 12px;"
+                                            x-text="caseDetails?.procedural_stage.current_procedural_stage"></div>
+                                        <p style="color: #666; font-size: 10px; margin-top: 6px;"
+                                            x-text="'Analyzed: ' + (caseDetails?.created_at ? new Date(caseDetails?.created_at).toLocaleString() : 'N/A')">
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="responsive-grid-auto"
+                                    style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border-top: 1px solid rgba(241,196,15,0.1); padding-top: 20px; gap: 32px;">
+                                    <div>
+                                        <h5
+                                            style="color: #888; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">
+                                            Airman Information</h5>
+                                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                                            <p style="color: #eee; font-size: 13px;"><span
+                                                    style="color: #f1c40f; font-weight: 600;">Case ID:</span> <span
+                                                    x-text="caseDetails?.case_header.case_id || 'UNKNOWN'"></span></p>
+                                            <p style="color: #eee; font-size: 13px;"><span
+                                                    style="color: #f1c40f; font-weight: 600;">Case No:</span> <span
+                                                    x-text="caseDetails?.case_header.case_number || 'UNKNOWN'"></span>
+                                            </p>
+                                            <p style="color: #eee; font-size: 13px;"><span
+                                                    style="color: #f1c40f; font-weight: 600;">Full Name:</span> <span
+                                                    x-text="caseDetails?.case_header.airman_information.full_name || 'N/A'"></span>
+                                            </p>
+                                            <p style="color: #eee; font-size: 13px;"><span
+                                                    style="color: #f1c40f; font-weight: 600;">PI:</span> <span
+                                                    x-text="caseDetails?.case_header.airman_information.pi || 'N/A'"></span>
+                                            </p>
+                                            <p style="color: #eee; font-size: 13px;"><span
+                                                    style="color: #f1c40f; font-weight: 600;">DOB:</span> <span
+                                                    x-text="caseDetails?.case_header.airman_information.dob || 'N/A'"></span>
+                                            </p>
+                                            <p style="color: #eee; font-size: 13px;"><span
+                                                    style="color: #f1c40f; font-weight: 600;">App ID:</span> <span
+                                                    x-text="caseDetails?.case_header.airman_information.app_id || 'N/A'"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5
+                                            style="color: #888; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">
+                                            Document Set Summary</h5>
+                                        <p style="color: #ccc; font-size: 12px; font-style: italic; line-height: 1.4; margin-bottom: 12px;"
+                                            x-text="caseDetails?.case_header.document_set_summary.notes"></p>
+                                        <div
+                                            style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+                                            <p style="color: #f1c40f; font-size: 10px; font-weight: 700; margin-bottom: 6px;"
+                                                x-text="'FILE NAMES (' + (caseDetails?.case_header.document_set_summary.total_files || 0) + ' TOTAL)'">
+                                            </p>
+                                            <div
+                                                style="max-height: 120px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(241, 196, 15, 0.4) rgba(241, 196, 15, 0.1); padding-right: 8px;">
+                                                <template
+                                                    x-for="fname in (caseDetails?.case_header.document_set_summary.file_names || [])"
+                                                    :key="fname">
+                                                    <div style="color: #aaa; font-size: 10px; margin-bottom: 4px; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 4px;"
+                                                        x-text="fname"></div>
+                                                </template>
+                                                <template
+                                                    x-if="!caseDetails?.case_header.document_set_summary.file_names || caseDetails?.case_header.document_set_summary.file_names.length === 0">
+                                                    <div style="color: #555; font-size: 10px; font-style: italic;">No
+                                                        file names provided.</div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5
+                                            style="color: #888; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">
+                                            Recommended Addressee</h5>
+                                        <p style="color: #f1c40f; font-size: 13px; font-weight: 700;"
+                                            x-text="caseDetails?.addressee_logic.recommended_addressee"></p>
+                                        <div x-show="caseDetails?.addressee_logic.attorney_review_required"
+                                            style="margin-top: 8px; color: #e74c3c; font-size: 10px; font-weight: 800; display: flex; align-items: center; gap: 4px;">
+                                            <span
+                                                style="display:inline-block; width:6px; height:6px; background:#e74c3c; border-radius:50%;"></span>
+                                            ATTORNEY REVIEW REQUIRED
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Logic Basis (Addressee & Stage) -->
+                            <div class="responsive-grid-2" style="margin-bottom: 32px;">
+                                <!-- Addressee Basis -->
+                                <div class="glass-panel" style="padding: 16px;">
+                                    <h4
+                                        style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
+                                        Addressee Decision Basis</h4>
+                                    <template x-for="basis in (caseDetails?.addressee_logic.basis || [])">
+                                        <div>
+                                            <p style="color: #eee; font-size: 12px; line-height: 1.5; margin-bottom: 12px;"
+                                                x-text="basis.description"></p>
+                                            <template x-for="cite in (basis.source_citations || [])">
+                                                <div
+                                                    style="margin-bottom: 8px; font-size: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-left: 2px solid #f1c40f;">
+                                                    <p style="color: #ccc; font-style: italic; font-size: 10px; margin-bottom: 6px;"
+                                                        x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                    <div style=" display: flex; justify-content: space-between;
+                                                        align-items: center;">
+                                                        <span style="color: #f1c40f; font-weight: 700; font-size: 9px;"
+                                                            x-text="cite.citation_label"></span>
+                                                        <span style="color: #888; font-size: 9px;"
+                                                            x-text="cite.source_document"></span>
+                                                </div>
+                                        </div>
+                                    </template>
+                                    <template x-if="!basis.source_citations || basis.source_citations.length === 0">
+                                        <div
+                                            style="color: #555; font-size: 10px; font-style: italic; margin-bottom: 12px; padding: 4px;">
+                                            No source citations for this basis.</div>
+                                    </template>
+                                </div>
+                                </template>
+                                <template
+                                    x-if="!caseDetails?.addressee_logic.basis || caseDetails?.addressee_logic.basis.length === 0">
+                                    <div
+                                        style="color: #555; font-size: 12px; font-style: italic; text-align: center; padding: 12px;">
+                                        No addressee decision basis available.</div>
+                                </template>
+                            </div>
+                            <!-- Procedural Stage Basis -->
+                            <div class="glass-panel" style="padding: 16px;">
+                                <h4
+                                    style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
+                                    Procedural Stage Basis</h4>
+                                <template x-for="basis in (caseDetails?.procedural_stage.stage_basis || [])">
+                                    <div>
+                                        <p style="color: #eee; font-size: 12px; line-height: 1.5; margin-bottom: 12px;"
+                                            x-text="basis.description"></p>
+                                        <template x-for="cite in (basis.source_citations || [])">
+                                            <div
+                                                style="margin-bottom: 8px; font-size: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-left: 2px solid #3498db;">
+                                                <p style="color: #ccc; font-style: italic; font-size: 10px; margin-bottom: 6px;"
+                                                    x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                    <div style=" display: flex; justify-content: space-between;
+                                                    align-items: center;">
+                                                    <span style="color: #3498db; font-weight: 700; font-size: 9px;"
+                                                        x-text="cite.citation_label"></span>
+                                                    <span style="color: #888; font-size: 9px;"
+                                                        x-text="cite.source_document"></span>
+                                            </div>
+                                    </div>
+                                </template>
+                                <template x-if="!basis.source_citations || basis.source_citations.length === 0">
+                                    <div
+                                        style="color: #555; font-size: 10px; font-style: italic; margin-bottom: 12px; padding: 4px;">
+                                        No source citations for this stage basis.</div>
+                                </template>
+                            </div>
+                            </template>
+                            <template
+                                x-if="!caseDetails?.procedural_stage.stage_basis || caseDetails?.procedural_stage.stage_basis.length === 0">
+                                <div
+                                    style="color: #555; font-size: 12px; font-style: italic; text-align: center; padding: 12px;">
+                                    No procedural stage basis available.</div>
+                            </template>
+
+                            <!-- Prior Procedural Stages -->
+                            <div
+                                style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
+                                <h5
+                                    style="color: #888; font-size: 9px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">
+                                    Prior Procedural Stages</h5>
+                                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                    <template
+                                        x-for="stage in (caseDetails?.procedural_stage.prior_procedural_stages || [])">
+                                        <span class="badge badge-status"
+                                            style="font-size: 9px; background: rgba(136,136,136,0.1); color: #888; border-color: rgba(136,136,136,0.2);"
+                                            x-text="stage"></span>
+                                    </template>
+                                    <template
+                                        x-if="!caseDetails?.procedural_stage.prior_procedural_stages || caseDetails?.procedural_stage.prior_procedural_stages.length === 0">
+                                        <p style="color: #555; font-size: 10px; font-style: italic;">No prior
+                                            procedural stages recorded.</p>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Document Inventory -->
+                    <div style="margin-bottom: 32px;">
+                        <h4
+                            style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; letter-spacing: 1px;">
+                            Document Inventory</h4>
+                        <div class="responsive-grid-auto">
+                            <template x-for="doc in (caseDetails?.documents || [])">
+                                <div class="item-card" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                                        <span
+                                            style="color: #f1c40f; font-size: 10px; font-weight: 800; background: rgba(241,196,15,0.1); padding: 2px 6px; border-radius: 4px;"
+                                            x-text="doc.document_id"></span>
+                                        <span style="color: #aaa; font-size: 10px;" x-text="doc.document_type"></span>
+                                    </div>
+                                    <p style="color: #eee; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                        x-text="doc.file_name"></p>
+                                    <p style="color: #888; font-size: 11px; line-height: 1.4;"
+                                        x-text="doc.classification_basis"></p>
+                                    <template x-for="cite in (doc.source_citations || [])">
+                                        <div
+                                            style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+                                            <p style="color: #ccc; font-style: italic; font-size: 9px; margin-bottom: 4px;"
+                                                x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                    <div style=" display: flex; justify-content: space-between;
+                                                align-items: center;">
+                                                <span style="color: #f1c40f; font-weight: 700; font-size: 8px;"
+                                                    x-text="cite.citation_label"></span>
+                                                <span style="color: #666; font-size: 8px;"
+                                                    x-text="cite.source_document"></span>
+                                        </div>
+                                </div>
+                            </template>
+                            <template x-if="!doc.source_citations || doc.source_citations.length === 0">
+                                <div style="color: #444; font-size: 9px; font-style: italic; margin-top: 6px;">
+                                    No source citations.</div>
+                            </template>
+                        </div>
+                        </template>
+                        <template x-if="!caseDetails?.documents || caseDetails?.documents.length === 0">
+                            <div
+                                style="color: #555; font-size: 12px; font-style: italic; grid-column: 1/-1; text-align: center; padding: 20px;">
+                                No documents in inventory.</div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 4. Issue Matrix -->
+                <div style="margin-bottom: 32px;">
+                    <h4
+                        style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; letter-spacing: 1px;">
+                        Issue Matrix by Condition</h4>
+                    <div class="responsive-grid-auto"
+                        style="grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));">
+                        <template x-for="issue in (caseDetails?.issue_stack || [])">
+                            <div class="item-card" style="position: relative; border-left: 4px solid #f1c40f;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="color: #f1c40f; font-weight: 800; font-size: 12px;"
+                                            x-text="issue.issue_category"></span>
+                                        <span style="color: #444;">|</span>
+                                        <span style="color: #888; font-size: 10px;" x-text="issue.issue_subtype"></span>
+                                    </div>
+                                    <div
+                                        style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                                        <span class="badge"
+                                            :class="issue.record_status === 'KNOWN' ? 'badge-status' : 'badge-missing'"
+                                            x-text="issue.record_status"></span>
+                                        <span
+                                            style="font-size: 9px; color: #aaa; font-weight: 700; text-transform: uppercase;"
+                                            x-text="issue.condition_status"></span>
+                                    </div>
+                                </div>
+                                <h5 style="color: #eee; font-weight: 700; font-size: 15px; margin-bottom: 12px; line-height: 1.4;"
+                                    x-text="issue.issue_label"></h5>
+
+                                <!-- Associated IDs -->
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px;">
+                                    <template x-for="id in (issue.diagnosis_ids || [])">
+                                        <span
+                                            style="font-size: 8px; color: #3498db; background: rgba(52,152,219,0.1); padding: 1px 4px; border: 1px solid rgba(52,152,219,0.2); border-radius: 3px;"
+                                            x-text="'Diag: ' + id"></span>
+                                    </template>
+                                    <template x-for="id in (issue.medication_ids || [])">
+                                        <span
+                                            style="font-size: 8px; color: #2ecc71; background: rgba(46,204,113,0.1); padding: 1px 4px; border: 1px solid rgba(46,204,113,0.2); border-radius: 3px;"
+                                            x-text="'Med: ' + id"></span>
+                                    </template>
+                                    <template x-for="id in (issue.evaluation_ids || [])">
+                                        <span
+                                            style="font-size: 8px; color: #f1c40f; background: rgba(241,196,15,0.1); padding: 1px 4px; border: 1px solid rgba(241,196,15,0.2); border-radius: 3px;"
+                                            x-text="'Eval: ' + id"></span>
+                                    </template>
+                                </div>
+
+                                <!-- Supporting Evidence (New Nested Structure) -->
+                                <div style="margin-top: 16px;">
+                                    <p
+                                        style="color: #f1c40f; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
+                                        Supporting Evidence</p>
+                                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                                        <template x-for="ev in (issue.supporting_evidence || [])">
+                                            <div
+                                                style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(241,196,15,0.05);">
+                                                <p style="color: #ccc; font-size: 11px; line-height: 1.5; margin-bottom: 8px;"
+                                                    x-text="ev.description"></p>
+                                                <template x-for="cite in (ev.source_citations || [])">
+                                                    <div
+                                                        style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(241,196,15,0.1);">
+                                                        <p style="color: #aaa; font-style: italic; font-size: 10px; margin-bottom: 4px;"
+                                                            x-text="'\"' + (cite.excerpt || ' No excerpt available')
+                                                            + ' \"'"></p>
+                                                                    <div
+                                                                        style=" display:flex;
+                                                            justify-content:space-between; align-items:center;
+                                                            margin-top:4px;">
+                                                            <span
+                                                                style="color: #f1c40f; font-weight: 700; font-size: 9px;"
+                                                                x-text="cite.citation_label"></span>
+                                                            <span style="color: #666; font-size: 9px;"
+                                                                x-text="cite.source_document"></span>
+                                                    </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Linked Data Tags -->
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px;">
+                    <template x-for="tag in (issue.attorney_review_flags || [])">
+                        <span
+                            style="font-size: 9px; padding: 2px 6px; background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.2); border-radius: 4px;"
+                            x-text="tag"></span>
+                    </template>
+                    <template x-for="tag in (issue.prior_faa_action_ids || [])">
+                        <span
+                            style="font-size: 9px; padding: 2px 6px; background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.2); border-radius: 4px;"
+                            x-text="'FAA Action: ' + tag"></span>
+                    </template>
+                    <template x-for="tag in (issue.requested_relief_ids || [])">
+                        <span
+                            style="font-size: 9px; padding: 2px 6px; background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.2); border-radius: 4px;"
+                            x-text="'Relief: ' + tag"></span>
+                    </template>
+                    <template x-for="tag in (issue.referenced_missing_item_ids || [])">
+                        <span
+                            style="font-size: 9px; padding: 2px 6px; background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.2); border-radius: 4px;"
+                            x-text="'Missing: ' + tag"></span>
+                    </template>
+                </div>
+            </div>
+            </template>
+            <template x-if="!caseDetails?.issue_stack || caseDetails?.issue_stack.length === 0">
+                <div
+                    style="color: #555; font-size: 14px; font-style: italic; grid-column: 1/-1; text-align: center; padding: 20px;">
+                    No issues identified in stack.</div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Taxonomy Section -->
+    <div style="margin-bottom: 32px;" x-show="caseDetails?.taxonomy">
+        <h4
+            style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; letter-spacing: 1px;">
+            Case Taxonomy Metadata</h4>
+        <div class="responsive-grid-auto">
+            <div class="glass-panel" style="padding: 16px;">
+                <p
+                    style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(241,196,15,0.1); padding-bottom: 4px;">
+                    Supported Issue Categories</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <template x-for="cat in (caseDetails?.taxonomy.issue_categories_supported || [])">
+                        <span
+                            style="font-size: 9px; padding: 2px 6px; background: rgba(241,196,15,0.05); color: #f1c40f; border: 1px solid rgba(241,196,15,0.2); border-radius: 4px;"
+                            x-text="cat"></span>
+                    </template>
+                </div>
+            </div>
+            <div class="glass-panel" style="padding: 16px;">
+                <p
+                    style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">
+                    Potential Addressees</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <template x-for="val in (caseDetails?.taxonomy.addressee_values || [])">
+                        <span
+                            style="font-size: 9px; padding: 2px 6px; background: rgba(136,136,136,0.1); color: #ccc; border: 1px solid rgba(136,136,136,0.2); border-radius: 4px;"
+                            x-text="val"></span>
+                    </template>
+                </div>
+            </div>
+            <div class="glass-panel" style="padding: 16px;">
+                <p
+                    style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">
+                    Procedural Stages</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <template x-for="val in (caseDetails?.taxonomy.procedural_stage_values || [])">
+                        <span
+                            style="font-size: 9px; padding: 2px 6px; background: rgba(136,136,136,0.1); color: #ccc; border: 1px solid rgba(136,136,136,0.2); border-radius: 4px;"
+                            x-text="val"></span>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="responsive-grid-main">
+        <!-- Left Column: Fact Model -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+
+            <!-- 5. Checklists & Missing Items -->
+            <div class="responsive-grid-2">
+                <!-- Checklists -->
+                <div class="glass-panel" style="padding: 20px;">
+                    <h4
+                        style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px;">
+                        Guideline Checklists</h4>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <template x-for="list in (caseDetails?.guideline_checklists || [])">
+                            <div>
+                                <p style="color: #f1c40f; font-size: 10px; font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid rgba(241,196,15,0.2) ; padding-bottom: 4px;"
+                                    x-text="list.issue_subtype"></p>
+                                <template x-for="item in (list.items || [])">
+                                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                        <div :style="item.status === 'checklist_present' ? 'color:#2ecc71;' : 'color:#e74c3c;'"
+                                            style="font-size: 14px;">●</div>
+                                        <div>
+                                            <p style="color: #eee; font-size: 12px; font-weight: 600;"
+                                                x-text="item.checklist_item"></p>
+                                            <p style="color: #999; font-size: 10px; margin-top: 2px;"
+                                                x-text="item.notes"></p>
+                                            <template x-for="cite in (item.source_citations || [])">
+                                                <div
+                                                    style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.05);">
+                                                    <p style="color: #ccc; font-style: italic; font-size: 9px; margin-bottom: 4px;"
+                                                        x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                                                <div style=" display: flex;
+                                                        justify-content: space-between; align-items: center;">
+                                                        <span style="color: #f1c40f; font-weight: 700; font-size: 8px;"
+                                                            x-text="cite.citation_label"></span>
+                                                        <span style="color: #666; font-size: 8px;"
+                                                            x-text="cite.source_document"></span>
+                                                </div>
+                                        </div>
+                                </template>
+                            </div>
+                    </div>
+                    </template>
+                </div>
+                </template>
+            </div>
+        </div>
+        <!-- Missing Items -->
+        <div class="glass-panel" style="padding: 20px; border-color: rgba(231, 76, 60, 0.3);">
+            <h4
+                style="color: #e74c3c; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px;">
+                Missing Records Checklist</h4>
+            <div x-show="!caseDetails?.missing_items.referenced_missing_items || caseDetails?.missing_items.referenced_missing_items.length === 0"
+                style="color: #555; font-size: 12px; text-align: center; padding: 20px;">
+                No missing items identified.
+            </div>
+            <template x-for="item in (caseDetails?.missing_items.referenced_missing_items || [])">
+                <div
+                    style="padding: 10px; background: rgba(231, 76, 60, 0.05); border-radius: 6px; margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <p style="color: #e74c3c; font-size: 12px; font-weight: 700;" x-text="item.item"></p>
+                        <span class="badge badge-missing" style="font-size: 8px;" x-text="item.status"></span>
+                    </div>
+                    <p style="color: #888; font-size: 11px; margin-bottom: 8px;" x-text="item.description"></p>
+                    <template x-for="cite in (item.triggering_source_citations || [])">
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(231,76,60,0.1);">
+                            <p style="color: #ccc; font-style: italic; font-size: 9px; margin-bottom: 4px;"
+                                x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                                <div
+                                                                    style=" display:flex;
+                                justify-content:space-between; align-items:center; margin-top:4px;">
+                                <span style="color: #e74c3c; font-weight: 700; font-size: 9px;"
+                                    x-text="cite.citation_label"></span>
+                                <span style="color: #666; font-size: 9px;" x-text="cite.source_document"></span>
+                        </div>
+                </div>
+            </template>
+        </div>
+        </template>
+    </div>
+    </div>
+
+    <!-- 6. Fact Model Grid -->
+    <div class="glass-panel" style="padding: 20px;">
+        <h4
+            style="color: #f1c40f; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px;">
+            Clinical Fact Model</h4>
+
+        <!-- Diagnoses -->
+        <div style="margin-bottom: 24px;">
+            <p style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
+                Diagnoses</p>
+            <div class="responsive-grid-2" style="gap: 12px;">
+                <template x-for="diag in (caseDetails?.fact_model.diagnoses || [])">
+                    <div class="item-card" style="padding: 12px;">
+                        <p style="color: #f1c40f; font-weight: 700; font-size: 13px; margin-bottom: 4px;"
+                            x-text="diag.diagnosis_name"></p>
+                        <p style="color: #ccc; font-size: 11px; margin-bottom: 10px;" x-text="diag.diagnosis_detail">
+                        </p>
+                        <template x-for="cite in (diag.source_citations || [])">
+                            <div
+                                style="font-size: 9px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px;">
+                                <p style="color: #ccc; font-style: italic; margin-bottom: 4px;"
+                                    x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                                <div
+                                                                    style=" display: flex; justify-content:
+                                    space-between; align-items: center;">
+                                    <span style="color: #f1c40f; font-weight: 800;" x-text="cite.citation_label"></span>
+                                    <span style="color: #888;" x-text="cite.source_document"></span>
+                            </div>
+                    </div>
+                </template>
+            </div>
+            </template>
+            <div x-show="!caseDetails?.fact_model.diagnoses || caseDetails?.fact_model.diagnoses.length === 0"
+                style="color: #555; font-size: 11px; font-style: italic; padding: 12px;">
+                No diagnoses recorded.</div>
+        </div>
+    </div>
+
+    <!-- Medications -->
+    <div style="margin-bottom: 24px;">
+        <p style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
+            Medications</p>
+        <div class="responsive-grid-2" style="gap: 12px;">
+            <template x-for="med in (caseDetails?.fact_model.medications || [])">
+                <div class="item-card" style="padding: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="color: #eee; font-weight: 700; font-size: 13px;"
+                            x-text="med.medication_name"></span>
+                        <span style="color: #888; font-size: 11px;" x-text="med.medication_class"></span>
+                    </div>
+                    <p style="color: #ccc; font-size: 11px;" x-text="med.dose + ' • ' + med.instructions"></p>
+                    <template x-for="cite in (med.source_citations || [])">
+                        <div
+                            style="font-size: 9px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px;">
+                            <p style="color: #ccc; font-style: italic; margin-bottom: 4px;"
+                                x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                                <div
+                                                                    style=" display: flex; justify-content:
+                                space-between; align-items: center;">
+                                <span style="color: #f1c40f; font-weight: 800;" x-text="cite.citation_label"></span>
+                                <span style="color: #888;" x-text="cite.source_document"></span>
+                        </div>
+                </div>
+            </template>
+        </div>
+        </template>
+        <div x-show="!caseDetails?.fact_model.medications || caseDetails?.fact_model.medications.length === 0"
+            style="color: #555; font-size: 11px; font-style: italic; padding: 12px;">
+            No medications recorded.</div>
+    </div>
+    </div>
+
+    <div class="responsive-grid-2">
+        <!-- Prior FAA Actions -->
+        <div style="margin-bottom: 24px;">
+            <p style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
+                Prior FAA Actions</p>
+            <template x-for="action in (caseDetails?.fact_model.prior_faa_actions || [])">
+                <div class="item-card" style="margin-bottom: 8px; padding: 10px;">
+                    <p style="color: #eee; font-weight: 700; font-size: 12px;" x-text="action.action_type"></p>
+                    <p style="color: #888; font-size: 11px; margin-top: 4px;" x-text="action.description"></p>
+                    <template x-for="cite in (action.source_citations || [])">
+                        <div
+                            style="font-size: 9px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px;">
+                            <p style="color: #ccc; font-style: italic; margin-bottom: 4px;"
+                                x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                                <div
+                                                                    style=" display: flex; justify-content:
+                                space-between; align-items: center;">
+                                <span style="color: #f1c40f; font-weight: 800;" x-text="cite.citation_label"></span>
+                                <span style="color: #888;" x-text="cite.source_document"></span>
+                        </div>
+                </div>
+            </template>
+        </div>
+        </template>
+        <div x-show="!caseDetails?.fact_model.prior_faa_actions || caseDetails?.fact_model.prior_faa_actions.length === 0"
+            style="color: #555; font-size: 11px; font-style: italic; padding: 12px;">
+            No prior actions identified.</div>
+    </div>
+
+    <!-- Reporting Reconciliation -->
+    <div style="margin-bottom: 24px;">
+        <p style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
+            Reporting Reconciliation</p>
+        <template x-for="item in (caseDetails?.fact_model.reporting_reconciliation_status || [])">
+            <div class="item-card" style="margin-bottom: 8px; padding: 10px;">
+                <p style="color: #eee; font-weight: 700; font-size: 12px;" x-text="item.label"></p>
+                <p style="color: #888; font-size: 11px; margin-top: 4px;" x-text="item.reconciliation_notes"></p>
+                <template x-for="cite in (item.source_citations || [])">
+                    <div
+                        style="font-size: 9px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px;">
+                        <p style="color: #ccc; font-style: italic; margin-bottom: 4px;"
+                            x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                                <div
+                                                                    style=" display: flex; justify-content:
+                            space-between; align-items: center;">
+                            <span style="color: #f1c40f; font-weight: 800;" x-text="cite.citation_label"></span>
+                            <span style="color: #888;" x-text="cite.source_document"></span>
+                    </div>
+            </div>
+        </template>
+    </div>
+    </template>
+    <div x-show="!caseDetails?.fact_model.reporting_reconciliation_status || caseDetails?.fact_model.reporting_reconciliation_status.length === 0"
+        style="color: #555; font-size: 11px; font-style: italic; padding: 12px;">
+        No reconciliation items identified.</div>
+    </div>
+    </div>
+
+    <!-- Evaluations & Relief -->
+    <div class="responsive-grid-2">
+        <div>
+            <p style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
+                Evaluations & Tests</p>
+            <template x-for="test in (caseDetails?.fact_model.evaluations_tests || [])">
+                <div class="item-card" style="margin-bottom: 8px; padding: 10px;">
+                    <p style="color: #eee; font-weight: 700; font-size: 12px;" x-text="test.test_name"></p>
+                    <p style="color: #2ecc71; font-size: 11px; margin-top: 4px;" x-text="test.result"></p>
+                    <template x-for="cite in (test.source_citations || [])">
+                        <div
+                            style="font-size: 9px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px;">
+                            <p style="color: #ccc; font-style: italic; margin-bottom: 4px;"
+                                x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                                <div
+                                                                    style=" display: flex; justify-content:
+                                space-between; align-items: center;">
+                                <span style="color: #f1c40f; font-weight: 800;" x-text="cite.citation_label"></span>
+                                <span style="color: #888;" x-text="cite.source_document"></span>
+                        </div>
+                </div>
+            </template>
+        </div>
+        </template>
+        <div x-show="!caseDetails?.fact_model.evaluations_tests || caseDetails?.fact_model.evaluations_tests.length === 0"
+            style="color: #555; font-size: 11px; font-style: italic; padding: 12px;">
+            No evaluations or tests recorded.</div>
+    </div>
+    <div>
+        <p style="color: #888; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">
+            Requested Relief</p>
+        <template x-for="relief in (caseDetails?.fact_model.requested_relief || [])">
+            <div class="item-card"
+                style="border-color: rgba(46, 204, 113, 0.3) ; background: rgba(46, 204, 113, 0.05) ; padding: 10px;">
+                <p style="color: #2ecc71; font-weight: 800; font-size: 11px; text-transform: uppercase;"
+                    x-text="relief.relief_type"></p>
+                <p style="color: #eee; font-size: 11px; margin-top: 4px;" x-text="relief.description"></p>
+                <template x-for="cite in (relief.source_citations || [])">
+                    <div
+                        style="font-size: 9px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px;">
+                        <p style="color: #ccc; font-style: italic; margin-bottom: 4px;"
+                            x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                                <div
+                                                                    style=" display: flex; justify-content:
+                            space-between; align-items: center;">
+                            <span style="color: #f1c40f; font-weight: 800;" x-text="cite.citation_label"></span>
+                            <span style="color: #888;" x-text="cite.source_document"></span>
+                    </div>
+            </div>
+        </template>
+    </div>
+    </template>
+    <div x-show="!caseDetails?.fact_model.requested_relief || caseDetails?.fact_model.requested_relief.length === 0"
+        style="color: #555; font-size: 11px; font-style: italic; padding: 12px;">
+        No requested relief recorded.</div>
+    </div>
+    </div>
+    </div>
+    </div>
+
+    <!-- Right Column: Workflow & Review -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- 7. Relief Strategy Selector -->
+        <div class="glass-panel" style="padding: 20px;">
+            <h4
+                style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px;">
+                Strategy Selector</h4>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="item-card"
+                    style="width: 100%; text-align: left; background: rgba(241,196,15,0.1); border-color: #f1c40f;">
+                    <p style="color: #f1c40f; font-weight: 800; font-size: 12px;">Recourse:
+                        Special Issuance (SI)</p>
+                    <p style="color: #aaa; font-size: 10px; margin-top: 4px;">Recommended
+                        based on waiver requirements.</p>
+                </button>
+                <button class="item-card" style="width: 100%; text-align: left; opacity: 0.5;">
+                    <p style="color: #eee; font-weight: 700; font-size: 12px;">Recourse:
+                        Unrestricted</p>
+                    <p style="color: #888; font-size: 10px; margin-top: 4px;">Standard
+                        certification path.</p>
+                </button>
+                <button class="item-card" style="width: 100%; text-align: left; opacity: 0.5;">
+                    <p style="color: #eee; font-weight: 700; font-size: 12px;">Recourse:
+                        Appeal / Reconsideration</p>
+                    <p style="color: #888; font-size: 10px; margin-top: 4px;">Secondary
+                        level review.</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- 8. Procedural Timeline -->
+        <div class="glass-panel" style="padding: 20px;">
+            <h4
+                style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 24px;">
+                Chronological Timeline</h4>
+            <div style="border-left: 2px solid rgba(241,196,15,0.1) ; padding-left: 20px; margin-left: 10px;">
+                <template x-for="event in (caseDetails?.timeline || [])">
+                    <div style="position: relative; padding-bottom: 24px;">
+                        <div
+                            style="position: absolute; left: -27px; top: 0; width: 12px; height: 12px; background: #111; border: 2px solid #f1c40f ; border-radius: 50%; z-index: 1;">
+                        </div>
+                        <p style="color: #f1c40f; font-size: 11px; font-weight: 800; margin-bottom: 4px;"
+                            x-text="event.date"></p>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <span class="badge"
+                                style="font-size: 8px; background: rgba(52,152,219,0.1); color: #3498db; border-color: rgba(52,152,219,0.2);"
+                                x-text="event.event_type"></span>
+                            <p style="color: #eee; font-weight: 700; font-size: 13px;" x-text="event.description"></p>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+                            <template x-for="id in (event.linked_issue_ids || [])">
+                                <span
+                                    style="font-size: 8px; color: #f1c40f; background: rgba(241,196,15,0.05); padding: 1px 4px; border: 1px solid rgba(241,196,15,0.2); border-radius: 3px;"
+                                    x-text="'Issue: ' + id"></span>
+                            </template>
+                        </div>
+                        <template x-for="cite in (event.source_citations || [])">
+                            <div
+                                style="margin-top: 8px; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 2px solid #f1c40f;">
+                                <p style="color: #ccc; font-style: italic; font-size: 9px; margin-bottom: 4px;"
+                                    x-text="'\"' + (cite.excerpt || ' No excerpt available') + ' \"'"></p>
+                                                            <div style=" display: flex; justify-content: space-between;
+                                    align-items: center;">
+                                    <span style="color: #f1c40f; font-weight: 700; font-size: 8px;"
+                                        x-text="cite.citation_label"></span>
+                                    <span style="color: #666; font-size: 8px;" x-text="cite.source_document"></span>
+                            </div>
+                    </div>
+                </template>
+            </div>
+            </template>
+            <template x-if="!caseDetails?.timeline || caseDetails?.timeline.length === 0">
+                <div style="color: #555; font-size: 12px; font-style: italic; text-align: center; padding: 20px;">
+                    No timeline events recorded.</div>
+            </template>
+        </div>
+    </div>
+
+    <!-- 9. Draft Preview & Sign-off -->
+    <div class="glass-panel" style="padding: 20px; background: rgba(0,0,0,0.5);">
+        <h4 style="color: #f1c40f; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px;">
+            Draft Preview Shell</h4>
+        <div
+            style="font-family: serif; color: #888; font-size: 11px; line-height: 1.6; max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(241, 196, 15, 0.4) rgba(241, 196, 15, 0.1); padding-right: 12px; margin-bottom: 24px;">
+            <template x-for="(content, section) in (caseDetails?.draft_outline || {})" :key="section">
+                <div style="margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                    <p style="color: #ccc; font-weight: 800; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;"
+                        x-text="section.replace(/_/g, ' ')"></p>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <template x-for="line in content">
+                            <p style="position: relative; padding-left: 12px;">
+                                <span style="position: absolute; left: 0;">•</span>
+                                <span x-text="line"></span>
+                            </p>
+                        </template>
+                        <template x-if="!content || content.length === 0">
+                            <p style="font-style: italic; color: #444;">No content for
+                                this section.</p>
+                        </template>
+                    </div>
+                </div>
+            </template>
+            <template x-if="!caseDetails?.draft_outline || Object.keys(caseDetails?.draft_outline).length === 0">
+                <div style="color: #444; font-size: 12px; font-style: italic; text-align: center; padding: 20px;">
+                    No draft outline available.</div>
+            </template>
+        </div>
+
+        <!-- UPLOAD ZIP MODAL (teleported to body to avoid stacking context issues) -->
+        <template x-teleport="body">
+            <div class="modal-backdrop" :style="showUploadModal ? 'display: flex;' : 'display: none;'">
+                <div class="glass-panel modal-content" style="padding: 32px; max-width: 500px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="color: #f1c40f; font-size: 20px; font-weight: 700;">Upload Zip Archive</h2>
+                        <button @click="showUploadModal = false" class="text-gray-500 text-2xl">×</button>
+                    </div>
+
+                    <form @submit.prevent="runUploadGeneration()" class="flex flex-col gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-[#f1c40f] mb-2 uppercase">Zip File
+                                Archive</label>
+                            <input type="file" @change="uploadArchiveFile = $event.target.files[0]" required
+                                accept=".zip" class="w-full bg-black border border-[#444] rounded p-2 text-white">
+                        </div>
+                        <div x-show="isUploadGenerating" class="text-center p-4">
+                            <span class="spinner"></span>
+                            <p class="mt-2 text-[#f1c40f]" x-text="uploadStepMessage"></p>
+                            <p style="color: #666; font-size: 10px; margin-top: 4px;" x-text="uploadStepDetail"></p>
+                        </div>
+
+                        <button x-show="!isUploadGenerating" type="submit"
+                            class="login-btn w-full !bg-[#f1c40f] !text-black !font-bold">UPLOAD ZIP</button>
+                    </form>
+                </div>
+            </div>
+        </template>
+
+    </div>
+
+    <script>
+        const API_BASE_URL = "";
+
+        function toggleUserMenu() {
+            const popover = document.getElementById("user-menu-popover");
+            if (popover.style.display === "none" || popover.style.display === "") {
+                popover.style.display = "block";
+            } else {
+                popover.style.display = "none";
+            }
+        }
+
+        document.addEventListener("click", function (event) {
+            const popover = document.getElementById("user-menu-popover");
+            const menuBtn = event.target.closest("button[onclick='toggleUserMenu()']");
+            if (!menuBtn && popover && !popover.contains(event.target)) {
+                popover.style.display = "none";
+            }
+        });
+
+        function logoutApp() {
+            localStorage.removeItem("jwtmedcert");
+            localStorage.removeItem("medcertEmail");
+            window.dispatchEvent(new Event("logout-success"));
+            document.getElementById("user-menu-popover").style.display = "none";
+        }
+
+        // Alpine.js Components
+
+        function loginApp() {
+            return {
+                email: "",
+                password: "",
+                emailValid: false,
+                emailChecking: false,
+                error: "",
+                loggedIn: false,
+                loggingIn: false,
+                passwordCreated: false,
+                view: "login",
+
+                otp: "",
+                newPassword: "",
+                confirmPassword: "",
+
+                otpSending: false,
+                otpSent: false,
+
+                otpVerifying: false,
+                otpVerified: false,
+
+                submitting: false,
+
+                init() {
+                    const token =
+                        localStorage.getItem("jwtmedcert");
+
+                    const savedEmail =
+                        localStorage.getItem(
+                            "medcertEmail"
+                        );
+
+                    if (token && savedEmail) {
+                        this.loggedIn = true;
+
+                        this.email = savedEmail;
+                    }
+
+                    window.addEventListener(
+                        "logout-success",
+                        () => {
+                            this.loggedIn = false;
+
+                            this.email = "";
+
+                            this.password = "";
+
+                            this.emailValid = false;
+
+                            this.error = "";
+
+                            this.view = "login";
+
+                            this._resetOtpState();
+                        }
+                    );
+                },
+
+                _resetOtpState() {
+                    this.otp = "";
+
+                    this.newPassword = "";
+
+                    this.confirmPassword = "";
+
+                    this.otpSending = false;
+
+                    this.otpSent = false;
+
+                    this.otpVerifying = false;
+
+                    this.otpVerified = false;
+
+                    this.submitting = false;
+
+                    this.error = "";
+                },
+
+                _headers() {
+                    return {
+                        "ngrok-skip-browser-warning":
+                            "true",
+                    };
+                },
+
+                verifyEmail() {
+                    if (!this.email.includes("@")) {
+                        this.emailValid = false;
+
+                        this.passwordCreated = false;
+
+                        this.error = "";
+
+                        return;
+                    }
+
+                    this.emailChecking = true;
+
+                    this.error = "";
+
+                    fetch(
+                        `${API_BASE_URL}/FAA_MedCert_Case_Builder/verify-email?email=${encodeURIComponent(this.email)}`,
+                        {
+                            method: "GET",
+
+                            headers: this._headers(),
+                        }
+                    )
+                        .then((res) => res.json())
+
+                        .then((json) => {
+                            this.emailValid = json.valid;
+
+                            this.passwordCreated =
+                                json.password_created || false;
+
+                            this.emailChecking = false;
+
+                            if (!json.valid) {
+                                this.error =
+                                    "Access denied: Your email is not on the authorized list.";
+                            }
+                        })
+
+                        .catch(() => {
+                            this.emailValid = false;
+
+                            this.passwordCreated = false;
+
+                            this.emailChecking = false;
+
+                            this.error =
+                                "Access denied: Your email is not on the authorized list.";
+                        });
+                },
+
+                async login() {
+                    this.error = "";
+
+                    if (!this.emailValid) {
+                        this.error =
+                            "Email not authorized";
+
+                        return;
+                    }
+
+                    if (!this.password) {
+                        this.error =
+                            "Please enter password";
+
+                        return;
+                    }
+
+                    this.loggingIn = true;
+
+                    try {
+                        const data =
+                            new URLSearchParams();
+
+                        data.append(
+                            "username",
+                            this.email
+                        );
+
+                        data.append(
+                            "password",
+                            this.password
+                        );
+
+                        const res = await fetch(
+                            `${API_BASE_URL}/FAA_MedCert_Case_Builder/login`,
+                            {
+                                method: "POST",
+
+                                body: data,
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/x-www-form-urlencoded",
+
+                                    ...this._headers(),
+                                },
+                            }
+                        );
+
+                        const json =
+                            await res.json();
+
+                        if (
+                            !res.ok &&
+                            json.detail ===
+                            "Please create password first"
+                        ) {
+                            this._resetOtpState();
+
+                            this.view = "setup-otp";
+
+                            return;
+                        }
+
+                        if (!res.ok) {
+                            throw new Error(
+                                json.detail ||
+                                "Login failed"
+                            );
+                        }
+
+                        localStorage.setItem(
+                            "jwtmedcert",
+                            json.access_token
+                        );
+
+                        localStorage.setItem(
+                            "medcertEmail",
+                            this.email
+                        );
+
+                        this.loggedIn = true;
+
+
+
+
+
+                        this.error = "";
+
+                        window.dispatchEvent(
+                            new CustomEvent(
+                                "login-success"
+                            )
+                        );
+                    } catch (err) {
+                        this.error =
+                            err.message ||
+                            "Something went wrong";
+                    } finally {
+                        this.loggingIn = false;
+                    }
+                },
+
+                async setupSendOtp() {
+                    this.error = "";
+
+                    this.otpSending = true;
+
+                    try {
+                        const res = await fetch(
+                            `${API_BASE_URL}/FAA_MedCert_Case_Builder/send/otp?email=${encodeURIComponent(this.email)}`,
+                            {
+                                method: "POST",
+
+                                headers:
+                                    this._headers(),
+                            }
+                        );
+
+                        const json =
+                            await res.json();
+
+                        if (!res.ok) {
+                            throw new Error(
+                                json.detail ||
+                                "Failed to send OTP"
+                            );
+                        }
+
+                        this.otpSent = true;
+                    } catch (err) {
+                        this.error =
+                            err.message ||
+                            "Failed to send OTP";
+                    } finally {
+                        this.otpSending = false;
+                    }
+                },
+
+                async setupVerifyOtp() {
+                    this.error = "";
+
+                    if (!this.otp) {
+                        this.error =
+                            "Please enter the OTP";
+
+                        return;
+                    }
+
+                    this.otpVerifying = true;
+
+                    try {
+                        const res = await fetch(
+                            `${API_BASE_URL}/FAA_MedCert_Case_Builder/verify/otp?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}`,
+                            {
+                                method: "POST",
+
+                                headers:
+                                    this._headers(),
+                            }
+                        );
+
+                        const json =
+                            await res.json();
+
+                        if (!res.ok) {
+                            throw new Error(
+                                json.detail ||
+                                "Invalid OTP"
+                            );
+                        }
+
+                        this.otpVerified = true;
+
+                        this.view = "setup-create";
+                    } catch (err) {
+                        this.error =
+                            err.message ||
+                            "Invalid OTP";
+                    } finally {
+                        this.otpVerifying = false;
+                    }
+                },
+
+                async setupCreatePassword() {
+                    this.error = "";
+
+                    if (!this.newPassword) {
+                        this.error =
+                            "Please enter a new password";
+
+                        return;
+                    }
+
+                    if (
+                        this.newPassword !==
+                        this.confirmPassword
+                    ) {
+                        this.error =
+                            "Passwords do not match";
+
+                        return;
+                    }
+
+                    this.submitting = true;
+
+                    try {
+                        const res = await fetch(
+                            `${API_BASE_URL}/FAA_MedCert_Case_Builder/create/password?email=${encodeURIComponent(this.email)}&password=${encodeURIComponent(this.newPassword)}`,
+                            {
+                                method: "POST",
+
+                                headers:
+                                    this._headers(),
+                            }
+                        );
+
+                        const json =
+                            await res.json();
+
+                        if (!res.ok) {
+                            throw new Error(
+                                json.detail ||
+                                "Failed to create password"
+                            );
+                        }
+
+                        this.password =
+                            this.newPassword;
+
+                        this.view = "login";
+
+                        await this.login();
+                    } catch (err) {
+                        this.error =
+                            err.message ||
+                            "Failed to create password";
+                    } finally {
+                        this.submitting = false;
+                    }
+                },
+
+                async forgotSendOtp() {
+                    this.error = "";
+
+                    if (
+                        !this.email ||
+                        !this.email.includes("@")
+                    ) {
+                        this.error =
+                            "Please enter your email first";
+
+                        return;
+                    }
+
+                    this.otpSending = true;
+
+                    try {
+                        const res = await fetch(
+                            `${API_BASE_URL}/FAA_MedCert_Case_Builder/forgot/password?email=${encodeURIComponent(this.email)}`,
+                            {
+                                method: "POST",
+
+                                headers:
+                                    this._headers(),
+                            }
+                        );
+
+                        const json =
+                            await res.json();
+
+                        if (!res.ok) {
+                            throw new Error(
+                                json.detail ||
+                                "Failed to send OTP"
+                            );
+                        }
+
+                        this.otpSent = true;
+
+                        this.view =
+                            "forgot-verify";
+                    } catch (err) {
+                        this.error =
+                            err.message ||
+                            "Failed to send OTP";
+                    } finally {
+                        this.otpSending = false;
+                    }
+                },
+
+                async forgotVerifyOtp() {
+                    this.error = "";
+
+                    if (!this.otp) {
+                        this.error =
+                            "Please enter the OTP";
+
+                        return;
+                    }
+
+                    this.otpVerifying = true;
+
+                    setTimeout(() => {
+                        this.otpVerified = true;
+
+                        this.view =
+                            "forgot-reset";
+
+                        this.otpVerifying = false;
+                    }, 400);
+                },
+
+                async forgotResetPassword() {
+                    this.error = "";
+
+                    if (!this.newPassword) {
+                        this.error =
+                            "Please enter a new password";
+
+                        return;
+                    }
+
+                    if (
+                        this.newPassword !==
+                        this.confirmPassword
+                    ) {
+                        this.error =
+                            "Passwords do not match";
+
+                        return;
+                    }
+
+                    this.submitting = true;
+
+                    try {
+                        const res = await fetch(
+                            `${API_BASE_URL}/FAA_MedCert_Case_Builder/reset/password?email=${encodeURIComponent(this.email)}&otp=${encodeURIComponent(this.otp)}&new_password=${encodeURIComponent(this.newPassword)}`,
+                            {
+                                method: "POST",
+
+                                headers:
+                                    this._headers(),
+                            }
+                        );
+
+                        const json =
+                            await res.json();
+
+                        if (!res.ok) {
+                            throw new Error(
+                                json.detail ||
+                                "Failed to reset password"
+                            );
+                        }
+
+                        this.password =
+                            this.newPassword;
+
+                        this.view = "login";
+
+                        await this.login();
+                    } catch (err) {
+                        this.error =
+                            err.message ||
+                            "Failed to reset password";
+                    } finally {
+                        this.submitting = false;
+                    }
+                },
+
+                logout() {
+                    localStorage.removeItem(
+                        "jwtmedcert"
+                    );
+
+                    localStorage.removeItem(
+                        "medcertEmail"
+                    );
+
+                    this.loggedIn = false;
+
+
+
+                    this.email = "";
+
+                    this.password = "";
+
+
+
+                    this.emailValid = false;
+
+                    this.error = "";
+
+                    this.view = "login";
+
+                    this._resetOtpState();
+
+                    window.dispatchEvent(
+                        new Event("logout-success")
+                    );
+                },
+            };
+        }
+
+
+        function medcertApp() {
+            return {
+                isLoggedIn: false,
+                userEmail: "",
+                runs: [],
+                loadingRuns: false,
+                currentRunId: null,
+                caseDetails: null,
+                loadingCaseDetails: false,
+
+                showUploadModal: false,
+                uploadArchiveFile: null,
+                isUploadGenerating: false,
+                uploadStepMessage: '',
+                uploadStepDetail: '',
+
+                init() {
+                    this.checkAuth();
+                    window.addEventListener("login-success", (e) => {
+                        this.userEmail = e.detail.email;
+                        this.isLoggedIn = true;
+                        this.fetchRuns();
+                    });
+
+                    if (this.isLoggedIn) {
+                        this.fetchRuns();
+                    }
+                },
+
+                checkAuth() {
+                    const token = localStorage.getItem("jwtmedcert");
+                    const userEmail = localStorage.getItem("medcertEmail");
+                    if (token && userEmail) {
+                        this.isLoggedIn = true;
+                        this.userEmail = userEmail;
+                    }
+                },
+
+                async fetchRuns() {
+                    const token = requireToken();
+                    if (!token) return;
+                    this.loadingRuns = true;
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/FAA_MedCert_Case_Builder/medcert/runhistory`, {
+                            headers: {
+                                "Authorization": `Bearer ${token}`,
+                                "ngrok-skip-browser-warning": "true"
+                            }
+                        });
+                        if (response.status === 401) { handle401(); return; }
+                        if (response.ok) {
+                            this.runs = await response.json();
+                            // DEFAULT SELECTION: Select the first row if available
+                            if (this.runs.length > 0 && !this.currentRunId) {
+                                this.selectRun(this.runs[0].id);
+                            }
+                        } else {
+                            this.runs = [];
+                        }
+                    } catch (error) {
+                        console.error("Failed to fetch runs:", error);
+                        this.runs = [];
+                    } finally {
+                        this.loadingRuns = false;
+                    }
+                },
+
+                async fetchCaseDetails(runId) {
+                    const token = requireToken();
+                    if (!token) return;
+
+                    // Note: In a real scenario, we might need to find the session_id from the run object.
+                    // For now, we'll try to find if the session_id is available in the run object if it's there.
+                    const runObj = this.runs.find(r => r.id === runId);
+                    const sessionId = runObj && runObj.session_id ? runObj.session_id : null;
+
+                    // If history API doesn't return session_id directly, we might need to use a static one for testing
+                    // as provided in the example or fix the backend.
+                    // To make the demo work with the provided curl example:
+                    const targetId = sessionId || "70592934-6809-4953-a5f1-1cd735db52b0";
+
+                    this.loadingCaseDetails = true;
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/FAA_MedCert_Case_Builder/medcert/case/${targetId}`, {
+                            headers: {
+                                "Authorization": `Bearer ${token}`,
+                                "ngrok-skip-browser-warning": "true"
+                            }
+                        });
+                        if (response.status === 401) { handle401(); return; }
+                        if (response.ok) {
+                            this.caseDetails = await response.json();
+                        } else {
+                            alert("Failed to load case details.");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching case details:", error);
+                    } finally {
+                        this.loadingCaseDetails = false;
+                    }
+                },
+
+                selectRun(runId) {
+                    if (this.currentRunId === runId) return;
+                    this.currentRunId = runId;
+                    this.fetchCaseDetails(runId);
+                },
+
+                openUploadModal() {
+                    this.showUploadModal = true;
+                },
+
+                async runUploadGeneration() {
+                    if (!this.uploadArchiveFile) {
+                        alert("Please select a zip file.");
+                        return;
+                    }
+                    const token = requireToken();
+                    if (!token) return;
+
+                    this.isUploadGenerating = true;
+
+                    try {
+                        // Step 1: Upload the zip file
+                        this.uploadStepMessage = 'Step 1/5 — Uploading zip archive...';
+                        this.uploadStepDetail = 'Uploading and extracting documents...';
+                        const uploadForm = new FormData();
+                        uploadForm.append('file', this.uploadArchiveFile);
+                        const uploadRes = await fetch(`${API_BASE_URL}/FAA_MedCert_Case_Builder/zip/upload`, {
+                            method: 'POST',
+                            headers: { "Authorization": `Bearer ${token}`, "ngrok-skip-browser-warning": "true" },
+                            body: uploadForm
+                        });
+                        if (uploadRes.status === 401) { handle401(); return; }
+                        if (!uploadRes.ok) { alert("Upload failed."); return; }
+                        const uploadData = await uploadRes.json();
+                        const sessionId = uploadData.session_id;
+
+                        // Step 2: Process the zip
+                        this.uploadStepMessage = 'Step 2/5 — Processing documents...';
+                        this.uploadStepDetail = 'Parsing and extracting document content...';
+                        const processForm = new FormData();
+                        processForm.append('session_id', sessionId);
+                        const processRes = await fetch(`${API_BASE_URL}/FAA_MedCert_Case_Builder/zip/process`, {
+                            method: 'POST',
+                            headers: { "Authorization": `Bearer ${token}`, "ngrok-skip-browser-warning": "true" },
+                            body: processForm
+                        });
+                        if (processRes.status === 401) { handle401(); return; }
+                        if (!processRes.ok) { alert("Processing failed."); return; }
+                        const processData = await processRes.json();
+                        const processSessionId = processData.session_id;
+
+                        // Step 3: Redact the zip
+                        this.uploadStepMessage = 'Step 3/5 — Redacting sensitive information...';
+                        this.uploadStepDetail = 'Removing PHI and personal identifiers...';
+                        const redactForm = new FormData();
+                        redactForm.append('session_id', processSessionId);
+                        const redactRes = await fetch(`${API_BASE_URL}/FAA_MedCert_Case_Builder/zip/redact`, {
+                            method: 'POST',
+                            headers: { "Authorization": `Bearer ${token}`, "ngrok-skip-browser-warning": "true" },
+                            body: redactForm
+                        });
+                        if (redactRes.status === 401) { handle401(); return; }
+                        if (!redactRes.ok) { alert("Redaction failed."); return; }
+                        const redactData = await redactRes.json();
+                        const redactSessionId = redactData.session_id;
+
+                        // Step 4: Index the zip
+                        this.uploadStepMessage = 'Step 4/5 — Indexing documents...';
+                        this.uploadStepDetail = 'Building search index for AI analysis...';
+                        const indexForm = new FormData();
+                        indexForm.append('session_id', redactSessionId);
+                        const indexRes = await fetch(`${API_BASE_URL}/FAA_MedCert_Case_Builder/zip/index`, {
+                            method: 'POST',
+                            headers: { "Authorization": `Bearer ${token}`, "ngrok-skip-browser-warning": "true" },
+                            body: indexForm
+                        });
+                        if (indexRes.status === 401) { handle401(); return; }
+                        if (!indexRes.ok) { alert("Indexing failed."); return; }
+                        const indexData = await indexRes.json();
+                        const indexSessionId = indexData.session_id;
+
+                        // Step 5: LLM Generate
+                        this.uploadStepMessage = 'Step 5/5 — Generating AI case analysis...';
+                        this.uploadStepDetail = 'Running LLM on indexed documents, this may take a moment...';
+                        const llmForm = new FormData();
+                        llmForm.append('session_id', indexSessionId);
+                        const llmRes = await fetch(`${API_BASE_URL}/FAA_MedCert_Case_Builder/zip/llm-generate`, {
+                            method: 'POST',
+                            headers: { "Authorization": `Bearer ${token}`, "ngrok-skip-browser-warning": "true" },
+                            body: llmForm
+                        });
+                        if (llmRes.status === 401) { handle401(); return; }
+                        if (!llmRes.ok) { alert("LLM generation failed."); return; }
+
+                        // All steps done — close modal and refresh data
+                        this.showUploadModal = false;
+                        this.currentRunId = null;
+                        this.uploadArchiveFile = null;
+                        await this.fetchRuns();
+
+                    } catch (error) {
+                        console.error("Upload Pipeline Error:", error);
+                        alert("Error during processing pipeline. Check console for details.");
+                    } finally {
+                        this.isUploadGenerating = false;
+                        this.uploadStepMessage = '';
+                        this.uploadStepDetail = '';
+                    }
+                },
+            };
+        }
+    </script>
+
+    <script>
+        function checkAuthToken() {
+            const token = localStorage.getItem("jwtmedcert");
+            const loginPageWrapper = document.getElementById("login-page-wrapper");
+            const mainAppWrapper = document.getElementById("main-app-wrapper");
+
+            if (token) {
+                loginPageWrapper.style.display = "none";
+                mainAppWrapper.style.display = "flex";
+                loadActiveUsers();
+            } else {
+                loginPageWrapper.style.display = "flex";
+                mainAppWrapper.style.display = "none";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", checkAuthToken);
+
+        window.addEventListener("logout-success", () => {
+            setTimeout(checkAuthToken, 100);
+        });
+
+        window.addEventListener("login-success", () => {
+            setTimeout(checkAuthToken, 100);
+        });
+
+        function requireToken() {
+            const token = localStorage.getItem("jwtmedcert");
+            if (!token) {
+                alert("Your session has expired or you are not logged in. Please log in again.");
+                localStorage.removeItem("jwtmedcert");
+                localStorage.removeItem("medcertEmail");
+                window.dispatchEvent(new CustomEvent("logout-success"));
+                return null;
+            }
+            return token;
+        }
+
+        function handle401() {
+            alert("Your session has expired. Please log in again.");
+            localStorage.removeItem("jwtmedcert");
+            localStorage.removeItem("medcertEmail");
+            window.dispatchEvent(new CustomEvent("logout-success"));
+        }
+
+        async function loadActiveUsers() {
+            const token = requireToken();
+            if (!token) return;
+
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/FAA_MedCert_Case_Builder/active-today`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "ngrok-skip-browser-warning": "true"
+                        }
+                    }
+                );
+
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
+                    const count = data.length;
+                    const countElement = document.getElementById("active-count");
+                    if (countElement) {
+                        countElement.textContent = count;
+                    }
+
+                    const usersList = document.getElementById("active-users-list");
+                    if (usersList) {
+                        if (count === 0) {
+                            usersList.innerHTML = '<div style="padding: 8px 0; color: #666;">No active users</div>';
+                        } else {
+                            usersList.innerHTML = data.map(user => `
+                  <div style="
+                    padding: 10px 8px;
+                    border-bottom: 1px solid rgba(241, 196, 15, 0.2);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 16px;
+                  ">
+                    <span style="color: #f1c40f; font-weight: 500; flex: 1;">${user.email}</span>
+                    <span style="color: #aaa; font-size: 12px; white-space: nowrap; flex-shrink: 0;">${formatLastActive(user.last_active)}</span>
+                  </div>
+                `).join("");
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load active users:", error);
+            }
+        }
+
+        function formatLastActive(dateStr) {
+            try {
+                const date = new Date(dateStr);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+
+                if (diffMins < 1) return "just now";
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ago`;
+                if (diffDays < 7) return `${diffDays}d ago`;
+
+                return date.toLocaleDateString();
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        function toggleActiveUsersPopover() {
+            const popover = document.getElementById("active-users-popover");
+            if (popover.style.display === "none" || popover.style.display === "") {
+                popover.style.display = "block";
+                loadActiveUsers();
+            } else {
+                popover.style.display = "none";
+            }
+        }
+
+        document.addEventListener("click", function (event) {
+            const popover = document.getElementById("active-users-popover");
+            const btn = document.getElementById("active-users-btn");
+            if (!btn.contains(event.target) && !popover.contains(event.target)) {
+                popover.style.display = "none";
+            }
+        });
+
+    </script>
+</body>
+
+</html>
